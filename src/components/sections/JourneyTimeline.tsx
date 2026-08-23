@@ -1,5 +1,6 @@
 import { Section, SectionHeading } from '@/components/ui/Section'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
+import { Reveal } from '@/components/motion/Reveal'
 import { JOURNEY_STAGES } from '@/content/journey'
 import { cn } from '@/lib/utils'
 
@@ -23,7 +24,13 @@ export function JourneyPreview() {
         {JOURNEY_STAGES.map((stage, i) => {
           const last = i === JOURNEY_STAGES.length - 1
           return (
-            <li key={stage.id} className="group relative flex gap-5 sm:gap-7">
+            <Reveal
+              as="li"
+              key={stage.id}
+              index={i}
+              variant="left"
+              className="group relative flex gap-5 sm:gap-7"
+            >
               {/* Rail */}
               <div className="flex shrink-0 flex-col items-center">
                 <span
@@ -49,7 +56,7 @@ export function JourneyPreview() {
                   {stage.body}
                 </p>
               </div>
-            </li>
+            </Reveal>
           )
         })}
       </ol>

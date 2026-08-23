@@ -47,6 +47,7 @@ export default async function StudentMocksPage() {
               <line key={y} x1="0" y1={y} x2="100" y2={y} stroke="#DCE5EE" strokeWidth="0.4" />
             ))}
             {points.length > 1 ? (
+              // The trend draws itself left to right: the line is the progress.
               <polyline
                 points={points.map((p) => `${p.x},${p.y}`).join(' ')}
                 fill="none"
@@ -55,10 +56,23 @@ export default async function StudentMocksPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
+                pathLength={100}
+                strokeDasharray="100"
+                style={{ ['--draw-length' as string]: '100' }}
+                className="[animation:draw-line_1.1s_cubic-bezier(0.16,1,0.3,1)_0.15s_both] motion-reduce:![animation:none]"
               />
             ) : null}
-            {points.map((p) => (
-              <circle key={p.mock.id} cx={p.x} cy={p.y} r="1.4" fill="#3F9C57" vectorEffect="non-scaling-stroke" />
+            {points.map((p, i) => (
+              <circle
+                key={p.mock.id}
+                cx={p.x}
+                cy={p.y}
+                r="1.4"
+                fill="#3F9C57"
+                vectorEffect="non-scaling-stroke"
+                className="animate-fade-in motion-reduce:animate-none"
+                style={{ animationDelay: `${250 + i * 260}ms` }}
+              />
             ))}
           </svg>
         </div>

@@ -10,8 +10,11 @@ export function Hero() {
       {/* Calm, layered background — texture, never decoration for its own sake */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 texture-grid mask-fade-b opacity-70" />
-        <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-sky-50/70 blur-3xl" />
-        <MathTexture density="sparse" className="opacity-70" />
+        <div
+          data-ambient=""
+          className="absolute -right-40 -top-40 h-[34rem] w-[34rem] animate-ambient-breathe rounded-full bg-sky-50/70 blur-3xl"
+        />
+        <MathTexture density="sparse" ambient className="opacity-70" />
       </div>
 
       <div className="container-page relative py-14 sm:py-20 lg:py-28">
@@ -84,12 +87,21 @@ export function Hero() {
                 <p className="mt-2 font-display text-sm font-semibold leading-snug text-deep-700">
                   Seven stages from first assessment to exam day
                 </p>
+                {/*
+                  The literal picture of the system: seven stages, four
+                  complete. They fill in order on load — the one piece of
+                  motion in the hero that is carrying meaning, not atmosphere.
+                */}
                 <div className="mt-3 flex gap-1" aria-hidden="true">
                   {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                    <span
-                      key={i}
-                      className={`h-1 flex-1 rounded-full ${i < 4 ? 'bg-growth-300' : 'bg-deep-100'}`}
-                    />
+                    <span key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-deep-100">
+                      {i < 4 ? (
+                        <span
+                          className="block h-full origin-left animate-grow-bar rounded-full bg-growth-300"
+                          style={{ animationDelay: `${420 + i * 110}ms` }}
+                        />
+                      ) : null}
+                    </span>
                   ))}
                 </div>
               </div>

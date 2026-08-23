@@ -12,9 +12,20 @@ type MathTextureProps = {
   className?: string
   tone?: 'light' | 'dark'
   density?: 'sparse' | 'normal'
+  /**
+   * Very slow vertical drift. Amplitude is 10px over 22–32s, so it reads as
+   * quiet momentum in peripheral vision and is never something to watch.
+   * Marked `data-ambient` so reduced-motion stops it outright.
+   */
+  ambient?: boolean
 }
 
-export function MathTexture({ className, tone = 'light', density = 'normal' }: MathTextureProps) {
+export function MathTexture({
+  className,
+  tone = 'light',
+  density = 'normal',
+  ambient = false,
+}: MathTextureProps) {
   const glyphs = density === 'sparse' ? GLYPHS.slice(0, 6) : GLYPHS
 
   return (
@@ -29,10 +40,17 @@ export function MathTexture({ className, tone = 'light', density = 'normal' }: M
         {glyphs.map((glyph, i) => (
           <span
             key={`${glyph}-${i}`}
+            data-ambient={ambient ? '' : undefined}
+            style={
+              ambient
+                ? { animationDelay: `${(i % 5) * -2.6}s`, animationDuration: `${22 + (i % 4) * 3}s` }
+                : undefined
+            }
             className={cn(
               'font-mono leading-none',
               tone === 'dark' ? 'text-white/[0.07]' : 'text-deep-700/[0.055]',
               i % 3 === 0 ? 'text-6xl sm:text-8xl' : i % 3 === 1 ? 'text-4xl sm:text-6xl' : 'text-5xl sm:text-7xl',
+              ambient && (i % 2 === 0 ? 'animate-ambient-drift' : 'animate-ambient-drift-slow'),
             )}
           >
             {glyph}

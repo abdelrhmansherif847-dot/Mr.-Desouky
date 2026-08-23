@@ -1,5 +1,6 @@
 import { Section, SectionHeading } from '@/components/ui/Section'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
+import { Reveal } from '@/components/motion/Reveal'
 import { SYSTEM_STAGES } from '@/content/system'
 import { cn } from '@/lib/utils'
 
@@ -30,10 +31,16 @@ export function SystemFlowCompact() {
         {SYSTEM_STAGES.map((stage, i) => {
           const tone = toneStyles[stage.tone]
           return (
-            <li
+            <Reveal
+              as="li"
               key={stage.id}
+              index={i}
+              variant="up"
               className={cn(
-                'group relative rounded-card border border-deep-100 bg-white p-5 transition-all duration-300 ease-calm hover:-translate-y-1 hover:shadow-card',
+                'group relative rounded-card border border-deep-100 bg-white p-5',
+                'transition-[transform,box-shadow,border-color] duration-300 ease-calm',
+                'hover:-translate-y-1 hover:border-sky-200 hover:shadow-card',
+                'motion-reduce:hover:translate-y-0',
                 // Last card spans to fill the 4-column grid neatly
                 i === SYSTEM_STAGES.length - 1 && 'sm:col-span-2 lg:col-span-1',
               )}
@@ -46,7 +53,7 @@ export function SystemFlowCompact() {
               </div>
               <h3 className="mt-3 font-display text-lg font-bold text-deep-700">{stage.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-deep-500">{stage.purpose}</p>
-            </li>
+            </Reveal>
           )
         })}
       </ol>
@@ -63,7 +70,7 @@ export function SystemFlowFull() {
         const last = i === SYSTEM_STAGES.length - 1
 
         return (
-          <div key={stage.id} id={stage.id} className="relative scroll-mt-28">
+          <Reveal key={stage.id} id={stage.id} variant="up" className="relative scroll-mt-28">
             <div className="grid gap-6 rounded-panel border border-deep-100 bg-white p-6 sm:p-8 lg:grid-cols-12 lg:gap-10">
               {/* Index + title */}
               <div className="lg:col-span-4">
@@ -115,7 +122,7 @@ export function SystemFlowFull() {
                 </svg>
               </div>
             ) : null}
-          </div>
+          </Reveal>
         )
       })}
     </div>

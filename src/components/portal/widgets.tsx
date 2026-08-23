@@ -1,3 +1,5 @@
+import { Reveal } from '@/components/motion/Reveal'
+import { CountUp } from '@/components/motion/CountUp'
 import { cn } from '@/lib/utils'
 import { formatShortDate } from '@/lib/utils'
 import type { HomeworkStatus, SessionStatus, TopicStatus } from '@/lib/portal/types'
@@ -9,15 +11,23 @@ export function Panel({
   children,
   className,
   description,
+  index,
 }: {
   title: string
   description?: string
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
+  /** Position within a dashboard column, for a gentle stagger. */
+  index?: number
 }) {
   return (
-    <section className={cn('rounded-panel border border-deep-100 bg-white', className)}>
+    <Reveal
+      as="section"
+      variant="up"
+      index={index}
+      className={cn('rounded-panel border border-deep-100 bg-white', className)}
+    >
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-deep-100 px-5 py-4 sm:px-6">
         <div>
           <h2 className="font-display text-base font-bold text-deep-700">{title}</h2>
@@ -26,7 +36,7 @@ export function Panel({
         {action}
       </header>
       <div className="px-5 py-5 sm:px-6">{children}</div>
-    </section>
+    </Reveal>
   )
 }
 
@@ -37,12 +47,24 @@ export function StatTile({
   unit,
   hint,
   tone = 'neutral',
+  countTo,
+  countSuffix = '',
+  index,
 }: {
   label: string
   value: string | number
   unit?: string
   hint?: string
   tone?: 'neutral' | 'growth' | 'sky' | 'alert'
+  /**
+   * Counts up from zero when scrolled into view. Set this only where the
+   * figure is progress the student actually made — attendance, completion,
+   * scores. Plain counts of things stay static, because watching them tick
+   * would be noise rather than meaning.
+   */
+  countTo?: number
+  countSuffix?: string
+  index?: number
 }) {
   const tones = {
     neutral: 'text-deep-700',
@@ -52,16 +74,20 @@ export function StatTile({
   }
 
   return (
-    <div className="rounded-card border border-deep-100 bg-white p-4 sm:p-5">
+    <Reveal
+      variant="scale"
+      index={index}
+      className="rounded-card border border-deep-100 bg-white p-4 sm:p-5"
+    >
       <p className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-deep-300">{label}</p>
       <p className="mt-2 flex items-baseline gap-1">
         <span className={cn('font-display text-2xl font-bold tabular-nums sm:text-3xl', tones[tone])}>
-          {value}
+          {countTo !== undefined ? <CountUp value={countTo} suffix={countSuffix} /> : value}
         </span>
         {unit ? <span className="text-sm font-medium text-deep-400">{unit}</span> : null}
       </p>
       {hint ? <p className="mt-1.5 text-xs leading-snug text-deep-400">{hint}</p> : null}
-    </div>
+    </Reveal>
   )
 }
 

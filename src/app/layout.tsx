@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
+import { PageTransition } from '@/components/motion/PageTransition'
 import { SITE } from '@/content/site'
 import { JsonLd, organizationJsonLd, personJsonLd } from '@/lib/seo'
 import './globals.css'
@@ -91,14 +92,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${display.variable} ${body.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/*
+          Scroll-revealed sections start hidden and are shown by JavaScript.
+          Without it they would never appear, so this guarantees the content
+          is visible to anyone browsing without scripts.
+        */}
+        <noscript>
+          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
+      </head>
       <body className="flex min-h-dvh flex-col">
         <a href="#main" className="skip-link">
           Skip to content
         </a>
         <SiteHeader />
-        <main id="main" className="flex-1">
+        <PageTransition id="main" className="flex-1">
           {children}
-        </main>
+        </PageTransition>
         <SiteFooter />
         <WhatsAppButton />
         <JsonLd data={[organizationJsonLd(), personJsonLd()]} />

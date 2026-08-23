@@ -98,24 +98,35 @@ export default async function ParentOverviewPage() {
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <StatTile
                   label="Attendance"
+                  index={0}
+                  countTo={attendance.rate}
+                  countSuffix="%"
                   value={`${attendance.rate}%`}
                   hint={`${attendance.attended} of ${attendance.held} sessions`}
                   tone={attendance.rate >= 80 ? 'growth' : 'alert'}
                 />
                 <StatTile
                   label="Homework"
+                  index={1}
+                  countTo={homework.rate}
+                  countSuffix="%"
                   value={`${homework.rate}%`}
                   hint={`${homework.done} of ${homework.due} submitted`}
                   tone={homework.rate >= 80 ? 'growth' : 'alert'}
                 />
                 <StatTile
                   label="Quiz average"
+                  index={2}
+                  countTo={quizAvg}
+                  countSuffix="%"
                   value={`${quizAvg}%`}
                   hint={`${child.quizzes.length} quizzes`}
                   tone={quizAvg >= 75 ? 'growth' : 'neutral'}
                 />
                 <StatTile
                   label="Latest mock"
+                  index={3}
+                  countTo={mock ? mock.score : undefined}
                   value={mock ? mock.score : '—'}
                   unit={mock ? `/ ${mock.total}` : undefined}
                   hint={trend !== null ? `${trend >= 0 ? '+' : ''}${trend} vs previous` : 'First mock'}

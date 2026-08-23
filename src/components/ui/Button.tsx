@@ -5,8 +5,16 @@ import { cn } from '@/lib/utils'
 type Variant = 'primary' | 'secondary' | 'ghost' | 'onDark' | 'growth'
 type Size = 'sm' | 'md' | 'lg'
 
+/**
+ * Transitions are scoped to the properties that actually change, so the
+ * browser never has to re-evaluate layout mid-interaction. The press state
+ * gives physical feedback without moving anything around it.
+ */
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-full font-display font-semibold transition-all duration-300 ease-calm disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-full font-display font-semibold ' +
+  'transition-[transform,background-color,border-color,box-shadow,color] duration-200 ease-smooth ' +
+  'active:scale-[0.97] active:duration-[120ms] motion-reduce:active:scale-100 ' +
+  'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100'
 
 const variants: Record<Variant, string> = {
   // Sky blue — the primary "Learn" action.
@@ -88,7 +96,10 @@ export function ArrowRight({ className }: { className?: string }) {
       viewBox="0 0 20 20"
       fill="none"
       aria-hidden="true"
-      className={cn('h-4 w-4 transition-transform duration-300 ease-calm group-hover:translate-x-1', className)}
+      className={cn(
+        'h-4 w-4 transition-transform duration-300 ease-calm group-hover:translate-x-1 motion-reduce:transition-none',
+        className,
+      )}
     >
       <path
         d="M4 10h12m0 0-4.5-4.5M16 10l-4.5 4.5"

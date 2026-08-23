@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Card'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
 import { Portrait } from '@/components/brand/Portrait'
 import { GlyphMark } from '@/components/brand/MathTexture'
+import { Reveal } from '@/components/motion/Reveal'
 import { PROGRAMS, getProgram } from '@/content/programs'
 import { SYSTEM_STAGES } from '@/content/system'
 import { JsonLd, breadcrumbJsonLd, courseJsonLd, pageMeta } from '@/lib/seo'
@@ -180,8 +181,10 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
 
         <div className="mt-12 grid gap-4 lg:grid-cols-2 lg:gap-6">
           {program.learn.map((group, i) => (
-            <div
+            <Reveal
               key={group.area}
+              index={i}
+              variant="up"
               className="relative overflow-hidden rounded-panel border border-deep-100 bg-white p-6 sm:p-7"
             >
               <GlyphMark
@@ -202,7 +205,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
                   ))}
                 </ul>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </Section>
@@ -217,14 +220,16 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
         />
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {program.included.map((item) => {
+          {program.included.map((item, i) => {
             const stage = SYSTEM_STAGES.find(
               (s) => s.title.toLowerCase() === item.label.toLowerCase().replace(' exams', ''),
             )
             return (
-              <div
+              <Reveal
                 key={item.label}
-                className="rounded-card border border-white/10 bg-white/[0.04] p-5 transition-colors duration-300 hover:border-sky-300/40 hover:bg-white/[0.08]"
+                index={i}
+                variant="up"
+                className="rounded-card border border-white/10 bg-white/[0.04] p-5 transition-[transform,background-color,border-color] duration-300 ease-calm hover:-translate-y-1 hover:border-sky-300/40 hover:bg-white/[0.08] motion-reduce:hover:translate-y-0"
               >
                 {stage ? (
                   <span className="font-mono text-[0.62rem] font-semibold tracking-[0.16em] text-sky-300">
@@ -237,7 +242,7 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
                 )}
                 <h3 className="mt-2 font-display text-base font-bold text-white">{item.label}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-deep-100/70">{item.detail}</p>
-              </div>
+              </Reveal>
             )
           })}
         </div>
@@ -268,15 +273,18 @@ export default async function ProgramPage({ params }: { params: Promise<{ slug: 
           <div className="lg:col-span-7">
             <ul className="space-y-3">
               {program.outcome.map((item, i) => (
-                <li
+                <Reveal
+                  as="li"
                   key={item}
+                  index={i}
+                  variant="up"
                   className="flex items-start gap-4 rounded-card border border-deep-100 bg-white p-5 sm:p-6"
                 >
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-growth-50 font-mono text-xs font-bold text-growth-600">
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span className="text-[0.95rem] leading-relaxed text-deep-600">{item}</span>
-                </li>
+                </Reveal>
               ))}
             </ul>
 

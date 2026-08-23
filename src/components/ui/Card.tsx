@@ -21,9 +21,9 @@ export function Card({ children, className, interactive, tone = 'paper' }: CardP
   return (
     <div
       className={cn(
-        'rounded-card border shadow-card transition-all duration-300 ease-calm',
+        'rounded-card border shadow-card transition-[transform,box-shadow,border-color] duration-300 ease-calm',
         tones[tone],
-        interactive && 'hover:-translate-y-1 hover:shadow-lift',
+        interactive && 'hover:-translate-y-1 hover:shadow-lift motion-reduce:hover:translate-y-0',
         className,
       )}
     >
@@ -39,7 +39,11 @@ export function CardLink({ href, children, className, tone = 'paper' }: CardLink
     <Link
       href={href}
       className={cn(
-        'group block rounded-card border shadow-card transition-all duration-300 ease-calm hover:-translate-y-1 hover:border-sky-200 hover:shadow-lift',
+        'group block rounded-card border shadow-card',
+        'transition-[transform,box-shadow,border-color] duration-300 ease-calm',
+        'hover:-translate-y-1 hover:border-sky-200 hover:shadow-lift',
+        'active:translate-y-0 active:duration-[120ms] active:shadow-card',
+        'motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0',
         tones[tone],
         className,
       )}

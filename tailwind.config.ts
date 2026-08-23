@@ -121,9 +121,11 @@ const config: Config = {
         grid: '32px 32px',
         'grid-lg': '48px 48px',
       },
+      // Motion system — see src/lib/motion.ts and the MOTION layer in
+      // globals.css. Durations and easings are shared across all three.
       keyframes: {
         'fade-up': {
-          from: { opacity: '0', transform: 'translateY(12px)' },
+          from: { opacity: '0', transform: 'translateY(14px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         'fade-in': {
@@ -134,14 +136,39 @@ const config: Config = {
           from: { transform: 'scaleX(0)' },
           to: { transform: 'scaleX(1)' },
         },
+        // Ambient: slow, low amplitude, peripheral only.
+        'ambient-drift': {
+          '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+          '50%': { transform: 'translate3d(0, -10px, 0)' },
+        },
+        'ambient-breathe': {
+          '0%, 100%': { opacity: '0.55' },
+          '50%': { opacity: '1' },
+        },
+        // Nav active underline drawing itself in.
+        'indicator-in': {
+          from: { transform: 'scaleX(0)', opacity: '0' },
+          to: { transform: 'scaleX(1)', opacity: '1' },
+        },
+        // Mobile drawer.
+        'drawer-in': {
+          from: { opacity: '0', transform: 'translate3d(0, -8px, 0)' },
+          to: { opacity: '1', transform: 'none' },
+        },
       },
       animation: {
-        'fade-up': 'fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both',
-        'fade-in': 'fade-in 0.5s ease-out both',
+        'fade-up': 'fade-up 0.62s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'fade-in': 'fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
         'grow-bar': 'grow-bar 0.9s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'ambient-drift': 'ambient-drift 22s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'ambient-drift-slow': 'ambient-drift 32s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'ambient-breathe': 'ambient-breathe 14s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+        'indicator-in': 'indicator-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'drawer-in': 'drawer-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
       transitionTimingFunction: {
         calm: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },

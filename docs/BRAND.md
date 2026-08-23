@@ -138,8 +138,9 @@ this, and could the teacher defend it?*
   fully rounded.
 * Shadows are soft and low-contrast — `shadow-card` at rest, `shadow-lift` on
   interaction.
-* Transitions use the `ease-calm` curve and 300ms. Nothing bounces, flashes or
-  demands attention.
+* Transitions use the `ease-calm` curve. Nothing bounces, flashes or demands
+  attention. Motion says the student is moving forward: one direction, always
+  settling. The full system is in [`MOTION.md`](MOTION.md).
 * The graph-paper texture and low-opacity math glyphs are the connection to the
   printed workbooks. Both are always subtle and masked out toward the edges.
 

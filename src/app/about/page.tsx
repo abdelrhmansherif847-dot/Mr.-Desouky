@@ -3,6 +3,7 @@ import { CtaBand } from '@/components/sections/CtaBand'
 import { Badge } from '@/components/ui/Card'
 import { Portrait } from '@/components/brand/Portrait'
 import { GlyphMark } from '@/components/brand/MathTexture'
+import { Reveal } from '@/components/motion/Reveal'
 import {
   APPROACH_MARKERS,
   INTRO,
@@ -142,14 +143,16 @@ export default function AboutPage() {
         />
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {VALUES.map((value) => (
-            <div
+          {VALUES.map((value, i) => (
+            <Reveal
               key={value.title}
-              className="rounded-card border border-deep-100 bg-white p-6 transition-all duration-300 ease-calm hover:-translate-y-1 hover:shadow-card"
+              index={i}
+              variant="up"
+              className="rounded-card border border-deep-100 bg-white p-6 transition-[transform,box-shadow,border-color] duration-300 ease-calm hover:-translate-y-1 hover:border-sky-200 hover:shadow-card motion-reduce:hover:translate-y-0"
             >
               <h3 className="font-display text-lg font-bold text-deep-700">{value.title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-deep-500">{value.body}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </Section>
@@ -163,14 +166,14 @@ export default function AboutPage() {
         />
 
         <ol className="mt-12 grid gap-x-10 gap-y-8 lg:grid-cols-2">
-          {PRINCIPLES.map((p) => (
-            <li key={p.number} className="flex gap-5 border-t border-deep-100 pt-6">
+          {PRINCIPLES.map((p, i) => (
+            <Reveal as="li" key={p.number} index={i} variant="up" className="flex gap-5 border-t border-deep-100 pt-6">
               <span className="font-mono text-2xl font-bold text-sky-500">{p.number}</span>
               <div>
                 <h3 className="font-display text-lg font-bold text-deep-700">{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-deep-500">{p.body}</p>
               </div>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </Section>

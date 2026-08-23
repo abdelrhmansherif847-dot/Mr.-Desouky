@@ -2,6 +2,7 @@ import { Section, SectionHeading } from '@/components/ui/Section'
 import { CtaBand } from '@/components/sections/CtaBand'
 import { Badge } from '@/components/ui/Card'
 import { GlyphMark } from '@/components/brand/MathTexture'
+import { Reveal } from '@/components/motion/Reveal'
 import { METHOD_STEPS, METHOD_SUMMARY } from '@/content/method'
 import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 
@@ -59,10 +60,12 @@ export default function MethodPage() {
       {/* ---------- The five steps ---------- */}
       <Section tone="paper">
         <div className="space-y-6 lg:space-y-8">
-          {METHOD_STEPS.map((step, i) => (
-            <article
+          {METHOD_STEPS.map((step) => (
+            <Reveal
+              as="article"
               key={step.id}
               id={step.id}
+              variant="up"
               className="scroll-mt-28 overflow-hidden rounded-panel border border-deep-100 bg-white"
             >
               <div className="grid lg:grid-cols-12">
@@ -138,8 +141,7 @@ export default function MethodPage() {
                 </div>
               </div>
 
-              {i < METHOD_STEPS.length - 1 ? null : null}
-            </article>
+            </Reveal>
           ))}
         </div>
       </Section>

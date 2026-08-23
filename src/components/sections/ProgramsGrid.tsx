@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Card'
+import { Reveal } from '@/components/motion/Reveal'
 import { ArrowRight } from '@/components/ui/Button'
 import { PROGRAMS, TRACKS, type ExamTrack } from '@/content/programs'
 import { cn } from '@/lib/utils'
@@ -13,13 +14,15 @@ export function ProgramsGrid({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-      {tracks.map((track) => {
+      {tracks.map((track, trackIndex) => {
         const programs = PROGRAMS.filter((p) => p.exam === track)
         const meta = TRACKS[track]
 
         return (
-          <div
+          <Reveal
             key={track}
+            variant={trackIndex === 0 ? 'left' : 'right'}
+            delay={trackIndex * 90}
             className="flex flex-col overflow-hidden rounded-panel border border-deep-100 bg-white"
           >
             {/* Track header */}
@@ -92,7 +95,7 @@ export function ProgramsGrid({ compact = false }: { compact?: boolean }) {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         )
       })}
     </div>

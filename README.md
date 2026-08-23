@@ -160,6 +160,10 @@ Target balance per page: ~50% white/soft-gray · ~25% deep blue · ~15% sky blue
 attention: the "Common mistake" callouts, missed homework, the parent portal's
 attention band, weak topics, and form errors.
 
+Motion is part of the identity, not decoration on top of it — see
+[`docs/MOTION.md`](docs/MOTION.md) for the tokens and the rules. It costs
+~2 KB gzipped and adds no animation library.
+
 Typography: Plus Jakarta Sans (display) · Inter (body) · IBM Plex Mono
 (eyebrows, numerals, mathematical detail) — all self-hosted via `next/font`,
 so no external font requests at runtime.
@@ -223,7 +227,11 @@ server-side email delivery on a server host.
   IDs, no unlabelled links.
 * Visible focus rings, a skip link, `aria-current` on navigation, labelled form
   fields with `aria-invalid` and `role="alert"` errors.
-* `prefers-reduced-motion` disables all animation and smooth scrolling.
+* `prefers-reduced-motion` removes animation rather than shortening it, and
+  forces scroll-revealed content visible. Without JavaScript a `<noscript>`
+  rule does the same, so no content can ever be left hidden.
+* Motion never blocks interaction (52–229ms click-to-interactive) and measures
+  **CLS 0.0000** on every page at both 1440px and 390px.
 
 ---
 

@@ -2,6 +2,7 @@ import { Section, SectionHeading } from '@/components/ui/Section'
 import { CtaBand } from '@/components/sections/CtaBand'
 import { Badge } from '@/components/ui/Card'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
+import { Reveal } from '@/components/motion/Reveal'
 import { JOURNEY_STAGES } from '@/content/journey'
 import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 import { cn } from '@/lib/utils'
@@ -64,7 +65,7 @@ export default function JourneyPage() {
           {JOURNEY_STAGES.map((stage, i) => {
             const last = i === JOURNEY_STAGES.length - 1
             return (
-              <div key={stage.id} id={stage.id} className="scroll-mt-28">
+              <Reveal key={stage.id} id={stage.id} variant="up" className="scroll-mt-28">
                 <article className="overflow-hidden rounded-panel border border-deep-100 bg-white">
                   <div className="grid lg:grid-cols-12">
                     <div className="border-b border-deep-100 p-6 sm:p-8 lg:col-span-4 lg:border-b-0 lg:border-r">
@@ -123,7 +124,7 @@ export default function JourneyPage() {
                     </svg>
                   </div>
                 ) : null}
-              </div>
+              </Reveal>
             )
           })}
         </div>

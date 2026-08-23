@@ -1,9 +1,19 @@
+'use client'
+
+import { useInView } from '@/lib/useInView'
+import { useCountUp } from '@/lib/useCountUp'
+import { DURATION, EASING } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 /**
  * Progress is always green — it means "growth" in this system.
  * Red is reserved for genuine attention states and is never used
  * simply to mean "a low number".
+ *
+ * Motion: bars and rings fill only once they are actually on screen, so the
+ * student sees the growth happen rather than arriving to a finished bar. The
+ * fill is the one place motion is doing real work here — it is the shape of
+ * progress itself.
  */
 
 type ProgressBarProps = {
@@ -32,6 +42,7 @@ export function ProgressBar({
   className,
 }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)))
+  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.25 })
 
   return (
     <div className={cn('w-full', className)}>
@@ -47,6 +58,7 @@ export function ProgressBar({
       ) : null}
 
       <div
+        ref={ref}
         role="progressbar"
         aria-valuenow={clamped}
         aria-valuemin={0}
@@ -57,9 +69,17 @@ export function ProgressBar({
           size === 'sm' ? 'h-1.5' : 'h-2.5',
         )}
       >
+        {/*
+          Width is animated rather than transform-scaled so the rounded end cap
+          keeps its shape. It is inside an overflow-hidden track, so nothing
+          outside this element can be affected.
+        */}
         <div
-          className={cn('h-full origin-left rounded-full animate-grow-bar', barTones[tone])}
-          style={{ width: `${clamped}%` }}
+          className={cn('h-full rounded-full motion-reduce:!transition-none', barTones[tone])}
+          style={{
+            width: inView ? `${clamped}%` : '0%',
+            transition: `width ${DURATION.progress}ms ${EASING.calm}`,
+          }}
         />
       </div>
     </div>
@@ -81,6 +101,9 @@ export function ProgressRing({
   tone?: 'growth' | 'sky'
 }) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)))
+  const { ref, inView } = useInView<HTMLDivElement>({ threshold: 0.3 })
+  const counted = useCountUp(clamped, inView, DURATION.progress)
+
   const stroke = 10
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
@@ -89,6 +112,7 @@ export function ProgressRing({
 
   return (
     <div
+      ref={ref}
       className="relative inline-flex items-center justify-center"
       style={{ width: size, height: size }}
       role="img"
@@ -112,11 +136,16 @@ export function ProgressRing({
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          strokeDashoffset={inView ? offset : circumference}
+          className="motion-reduce:!transition-none"
+          style={{ transition: `stroke-dashoffset ${DURATION.progress}ms ${EASING.calm}` }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span className="font-display text-2xl font-bold tabular-nums text-deep-700">{clamped}%</span>
+        <span className="font-display text-2xl font-bold tabular-nums text-deep-700">
+          <span aria-hidden="true">{Math.round(counted)}%</span>
+          <span className="sr-only">{clamped}%</span>
+        </span>
         {sublabel ? (
           <span className="mt-0.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-deep-400">
             {sublabel}

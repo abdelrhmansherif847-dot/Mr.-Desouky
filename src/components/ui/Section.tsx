@@ -1,4 +1,5 @@
 import type { ElementType, ReactNode } from 'react'
+import { Reveal } from '@/components/motion/Reveal'
 import { cn } from '@/lib/utils'
 
 type Tone = 'paper' | 'mist' | 'deep' | 'deepSoft'
@@ -73,7 +74,8 @@ export function SectionHeading({
   const dark = tone === 'dark'
 
   return (
-    <div
+    <Reveal
+      variant="up"
       className={cn(
         'max-w-3xl',
         align === 'center' && 'mx-auto text-center',
@@ -113,6 +115,6 @@ export function SectionHeading({
           {lead}
         </p>
       ) : null}
-    </div>
+    </Reveal>
   )
 }

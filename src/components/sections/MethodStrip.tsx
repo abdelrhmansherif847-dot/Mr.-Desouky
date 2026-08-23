@@ -1,6 +1,7 @@
 import { Section, SectionHeading } from '@/components/ui/Section'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
 import { GlyphMark } from '@/components/brand/MathTexture'
+import { Reveal } from '@/components/motion/Reveal'
 import { METHOD_STEPS, METHOD_SUMMARY } from '@/content/method'
 
 /** Signature methodology, shown compactly on the home page. */
@@ -21,10 +22,13 @@ export function MethodStrip() {
       </div>
 
       <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5 lg:gap-3">
-        {METHOD_STEPS.map((step) => (
-          <li
+        {METHOD_STEPS.map((step, i) => (
+          <Reveal
+            as="li"
             key={step.id}
-            className="group relative overflow-hidden rounded-card border border-white/10 bg-white/[0.04] p-5 transition-all duration-300 ease-calm hover:border-sky-300/40 hover:bg-white/[0.08]"
+            index={i}
+            variant="up"
+            className="group relative overflow-hidden rounded-card border border-white/10 bg-white/[0.04] p-5 transition-[transform,background-color,border-color] duration-300 ease-calm hover:-translate-y-1 hover:border-sky-300/40 hover:bg-white/[0.08] motion-reduce:hover:translate-y-0"
           >
             <GlyphMark
               glyph={step.symbol}
@@ -40,7 +44,7 @@ export function MethodStrip() {
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-deep-100/70">{step.tagline}</p>
             </div>
-          </li>
+          </Reveal>
         ))}
       </ol>
     </Section>

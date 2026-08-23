@@ -7,6 +7,22 @@
     --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    /* Motion system — mirrors src/lib/motion.ts. Change both, or neither. */
+    --motion-instant: 120ms;
+    --motion-fast: 200ms;
+    --motion-base: 320ms;
+    --motion-slow: 420ms;
+    --motion-entrance: 620ms;
+    --motion-progress: 900ms;
+
+    /* Expo-out: quick to commit, long to settle. Reads as confidence. */
+    --ease-calm: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+    --distance-sm: 8px;
+    --distance-md: 14px;
+    --distance-lg: 22px;
   }
 
   * {
@@ -44,6 +60,11 @@
     @apply bg-sky-200 text-deep-900;
   }
 
+  /**
+   * Reduced motion is honoured properly: animation is not merely shortened,
+   * it is removed — and anything that animates *into* view is shown outright,
+   * so no content can be left invisible.
+   */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -55,6 +76,17 @@
       animation-duration: 0.001ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    /* Ambient loops are pure decoration — stop them entirely. */
+    [data-ambient] {
+      animation: none !important;
     }
   }
 }
@@ -104,5 +136,99 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* ==========================================================================
+   MOTION
+   Scroll reveals, page transitions and ambient drift.
+   Only opacity and transform are animated, so nothing here can shift layout.
+   ========================================================================== */
+@layer components {
+  /* --- Scroll reveal -----------------------------------------------------
+     The hidden state lives in CSS and the JS only toggles `data-revealed`,
+     which keeps the work on the compositor. */
+  [data-reveal] {
+    opacity: 0;
+    transform: translate3d(var(--reveal-x, 0), var(--reveal-y, var(--distance-md)), 0)
+      scale(var(--reveal-scale, 1));
+    transition:
+      opacity var(--motion-entrance) var(--ease-calm) var(--reveal-delay, 0ms),
+      transform var(--motion-entrance) var(--ease-calm) var(--reveal-delay, 0ms);
+  }
+
+  [data-reveal='fade'] {
+    --reveal-y: 0px;
+  }
+
+  [data-reveal='left'] {
+    --reveal-x: calc(var(--distance-lg) * -1);
+    --reveal-y: 0px;
+  }
+
+  [data-reveal='right'] {
+    --reveal-x: var(--distance-lg);
+    --reveal-y: 0px;
+  }
+
+  [data-reveal='scale'] {
+    --reveal-y: var(--distance-sm);
+    --reveal-scale: 0.975;
+  }
+
+  [data-reveal][data-revealed] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* --- Page transition ---------------------------------------------------
+     Deliberately short and forward-moving. Navigation is never blocked: the
+     new page is already interactive while this plays. */
+  .page-enter {
+    animation: page-enter var(--motion-slow) var(--ease-calm) both;
+  }
+
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(0, var(--distance-sm), 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* --- Ambient ------------------------------------------------------------
+     Very slow, very low amplitude. Present in peripheral vision only —
+     a sense of quiet momentum behind the hero, never something to watch. */
+  @keyframes ambient-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -10px, 0);
+    }
+  }
+
+  @keyframes ambient-breathe {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Draws an SVG stroke on, used for the mock-score trend line. */
+  @keyframes draw-line {
+    from {
+      stroke-dashoffset: var(--draw-length, 1000);
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 }

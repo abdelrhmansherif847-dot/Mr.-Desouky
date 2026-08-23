@@ -4,6 +4,7 @@ import { CtaBand } from '@/components/sections/CtaBand'
 import { Badge } from '@/components/ui/Card'
 import { ArrowRight } from '@/components/ui/Button'
 import { GlyphMark } from '@/components/brand/MathTexture'
+import { Reveal } from '@/components/motion/Reveal'
 import { RESOURCES, RESOURCE_CATEGORIES } from '@/content/resources'
 import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 
@@ -38,9 +39,11 @@ export default function ResourcesPage() {
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {RESOURCE_CATEGORIES.map((cat, i) => (
-            <div
+            <Reveal
               key={cat.kind}
-              className="relative overflow-hidden rounded-card border border-deep-100 bg-white p-5 transition-all duration-300 ease-calm hover:-translate-y-1 hover:shadow-card"
+              index={i}
+              variant="scale"
+              className="relative overflow-hidden rounded-card border border-deep-100 bg-white p-5 transition-[transform,box-shadow,border-color] duration-300 ease-calm hover:-translate-y-1 hover:border-sky-200 hover:shadow-card motion-reduce:hover:translate-y-0"
             >
               <GlyphMark
                 glyph={['√', 'π', 'Σ', 'x²', '∫', '≠', 'Δ', 'θ'][i]}
@@ -50,7 +53,7 @@ export default function ResourcesPage() {
                 <h3 className="font-display text-base font-bold text-deep-700">{cat.kind}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-deep-500">{cat.blurb}</p>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </Section>
@@ -64,8 +67,8 @@ export default function ResourcesPage() {
         />
 
         <ul className="mt-10 grid gap-4 sm:grid-cols-2">
-          {available.map((r) => (
-            <li key={r.id}>
+          {available.map((r, i) => (
+            <Reveal as="li" key={r.id} index={i} variant="up">
               <Link
                 href={r.href ?? '#'}
                 className="group flex h-full flex-col rounded-card border border-deep-100 bg-white p-6 transition-all duration-300 ease-calm hover:-translate-y-1 hover:border-sky-200 hover:shadow-card"
@@ -83,7 +86,7 @@ export default function ResourcesPage() {
                   <ArrowRight />
                 </span>
               </Link>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </Section>
@@ -97,9 +100,12 @@ export default function ResourcesPage() {
         />
 
         <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {planned.map((r) => (
-            <li
+          {planned.map((r, i) => (
+            <Reveal
+              as="li"
               key={r.id}
+              index={i}
+              variant="up"
               className="flex h-full flex-col rounded-card border border-dashed border-deep-200 bg-white/60 p-5"
             >
               <div className="flex flex-wrap items-center gap-2">
@@ -111,7 +117,7 @@ export default function ResourcesPage() {
               <span className="mt-4 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-deep-300">
                 Coming soon
               </span>
-            </li>
+            </Reveal>
           ))}
         </ul>
       </Section>
