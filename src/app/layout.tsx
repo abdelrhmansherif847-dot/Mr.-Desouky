@@ -57,13 +57,13 @@ export const metadata: Metadata = {
     description: SITE.description,
     url: SITE.url,
     locale: 'en_US',
-    images: [{ url: '/brand/og-image.svg', width: 1200, height: 630, alt: SITE.name }],
+    images: [{ url: `${SITE.url}/brand/og-image.svg`, width: 1200, height: 630, alt: SITE.name }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE.name} — ${SITE.role}`,
     description: SITE.description,
-    images: ['/brand/og-image.svg'],
+    images: [`${SITE.url}/brand/og-image.svg`],
   },
   robots: {
     index: true,
@@ -71,8 +71,9 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    apple: '/icon.svg',
+    // Prefixed explicitly: metadata icon paths are not rewritten by basePath.
+    icon: [{ url: `${SITE.basePath}/icon.svg`, type: 'image/svg+xml' }],
+    apple: `${SITE.basePath}/icon.svg`,
   },
 }
 

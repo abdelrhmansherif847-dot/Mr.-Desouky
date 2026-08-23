@@ -1,0 +1,89 @@
+# Build the Next.js site and publish it to GitHub Pages.
+#
+# GitHub Pages cannot build a Next.js app on its own: the "deploy from a
+# branch" option serves the repository's files as they are, through Jekyll,
+# and never runs `npm install` or `next build`. This workflow does the build
+# and hands the finished static site to Pages instead.
+#
+# Requires Settings → Pages → Source = "GitHub Actions".
+
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches:
+      - claude/desouky-educational-website-c80uf9
+  workflow_dispatch:
+
+# Least privilege: read the code, publish to Pages, sign the deployment.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deployments race; queue instead of cancelling a live one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static export
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          # Switches the Pages source to "GitHub Actions" when permissions allow.
+          enablement: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # A project site is served from /<repo>/, a user site or custom
+          # domain from /. `configure-pages` resolves which applies, so the
+          # build is correct either way without editing anything by hand.
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.origin }}${{ steps.pages.outputs.base_path }}
+          # Optional: a form endpoint for the contact form. Add it as a
+          # repository variable to switch delivery on — see docs/DEPLOYMENT.md.
+          NEXT_PUBLIC_CONTACT_ENDPOINT: ${{ vars.NEXT_PUBLIC_CONTACT_ENDPOINT }}
+        run: npm run build
+
+      - name: Verify the export looks deployable
+        run: |
+          test -f out/index.html || { echo "::error::out/index.html missing"; exit 1; }
+          test -f out/404.html   || { echo "::error::out/404.html missing";  exit 1; }
+          # Jekyll ignores directories beginning with an underscore, which
+          # would strip _next/ and leave the site unstyled.
+          touch out/.nojekyll
+          echo "Exported $(find out -name '*.html' | wc -l) HTML pages."
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

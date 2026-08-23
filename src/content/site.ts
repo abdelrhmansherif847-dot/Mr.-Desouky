@@ -5,6 +5,9 @@
  *     Eng. Abdelrhman Desouky. They are working placeholders, not facts.
  */
 
+/** Sub-path the site is served from ('' at a domain root). */
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+
 export const SITE = {
   name: 'Eng. Abdelrhman Desouky',
   shortName: 'Mr. Desouky',
@@ -12,23 +15,40 @@ export const SITE = {
   slogan: 'Try. Learn. Rise.',
   description:
     'A structured SAT and EST Math learning system built on clear teaching, consistent practice, honest measurement and real feedback — so every student knows where they stand and what comes next.',
-  /** TODO: replace with the live domain before launch. */
-  url: 'https://desoukymath.com',
+  /**
+   * Absolute public URL, no trailing slash. Canonicals, the sitemap, Open
+   * Graph images and JSON-LD all derive from it.
+   *
+   * Defaults to the GitHub Pages project URL. When a custom domain is ready,
+   * set NEXT_PUBLIC_SITE_URL (and clear NEXT_PUBLIC_BASE_PATH, since a custom
+   * domain serves from the root) — nothing else needs editing.
+   */
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    'https://abdelrhmansherif847-dot.github.io/Mr.-Desouky',
+
+  /** Sub-path the site is served from. Empty at a domain root. */
+  basePath: BASE_PATH,
   locale: 'en',
   /** TODO: confirm — used for local SEO and structured data. */
   area: 'Egypt',
 } as const
 
-/** Brand asset paths. See public/brand/README.md before changing these. */
+/**
+ * Brand asset paths. See public/brand/README.md before changing these.
+ *
+ * `next/image` does not prefix `basePath` onto an unoptimized source, so the
+ * sub-path is applied here. Change only the filename after `/brand/`.
+ */
 export const LOGO = {
-  color: '/brand/logo-color.svg',
-  mono: '/brand/logo-mono.svg',
+  color: `${BASE_PATH}/brand/logo-color.svg`,
+  mono: `${BASE_PATH}/brand/logo-mono.svg`,
   /** True once the approved logo has replaced the shipped placeholder. */
   isPlaceholder: true,
 } as const
 
 export const PORTRAIT = {
-  src: '/brand/portrait.svg',
+  src: `${BASE_PATH}/brand/portrait.svg`,
   alt: 'Eng. Abdelrhman Desouky, SAT & EST Math instructor',
   isPlaceholder: true,
 } as const

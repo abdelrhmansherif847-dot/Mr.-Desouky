@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { useFormStatus } from 'react-dom'
-import { submitEnquiry } from '@/app/contact/actions'
-import { INITIAL_FORM_STATE } from '@/lib/contact/types'
+import { useState } from 'react'
+import { INITIAL_FORM_STATE, type FormState } from '@/lib/contact/types'
+import { deliverEnquiry } from '@/lib/contact/submit'
+import { formatEnquiry, readForm, toEnquiry, validateEnquiry } from '@/lib/contact/validate'
 import { Button } from '@/components/ui/Button'
 import { PROGRAMS } from '@/content/programs'
 import { CONTACT, whatsappLink } from '@/content/site'
@@ -60,8 +60,7 @@ function Field({
   )
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
       {pending ? 'Sending…' : 'Send message'}
@@ -70,24 +69,77 @@ function SubmitButton() {
 }
 
 export function ContactForm() {
-  const [state, formAction] = useActionState(submitEnquiry, INITIAL_FORM_STATE)
+  /**
+   * Submission runs entirely in the browser. The site is deployed as a static
+   * export (GitHub Pages), which has no server to run a Server Action — so the
+   * same validation rules run here instead, via `@/lib/contact/validate`.
+   */
+  const [state, setState] = useState<FormState>(INITIAL_FORM_STATE)
+  const [pending, setPending] = useState(false)
+  const [whatsappHref, setWhatsappHref] = useState<string | null>(null)
   const v = state.values ?? {}
   const e = state.errors ?? {}
 
-  /**
-   * React resets an uncontrolled form once its action resolves. Text inputs
-   * survive that because the reset falls back to the `defaultValue` we just
-   * re-rendered — but a <select> reverts to the option carrying the `selected`
-   * *attribute*, which React never sets. Left uncontrolled, both dropdowns
-   * would silently clear on every failed submit. So they are controlled, and
-   * re-synced from the server response whenever the action returns.
-   */
-  const [choices, setChoices] = useState({ role: '', interest: '' })
-  const [syncedState, setSyncedState] = useState(state)
-  if (syncedState !== state) {
-    setSyncedState(state)
-    setChoices({ role: state.values?.role ?? '', interest: state.values?.interest ?? '' })
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+
+    // Honeypot — real visitors never fill this hidden field.
+    if ((formData.get('company') as string | null)?.trim()) {
+      setState({ status: 'success', message: 'Thank you — your message has been sent.' })
+      return
+    }
+
+    const values = readForm(formData)
+    const errors = validateEnquiry(values)
+
+    if (Object.keys(errors).length > 0) {
+      setState({
+        status: 'error',
+        message: 'Please check the highlighted fields.',
+        errors,
+        values,
+      })
+      return
+    }
+
+    setPending(true)
+    const enquiry = toEnquiry(values)
+    const result = await deliverEnquiry(enquiry)
+    setPending(false)
+
+    if (result.ok) {
+      setState({
+        status: 'success',
+        message: 'Thank you — your message has been sent. You will receive a reply shortly.',
+      })
+      return
+    }
+
+    if (result.reason === 'unconfigured') {
+      // Nothing is silently dropped: the completed enquiry is handed to
+      // WhatsApp with every field already filled in.
+      setWhatsappHref(whatsappLink(formatEnquiry(enquiry)))
+      setState({
+        status: 'unconfigured',
+        message:
+          'Email delivery is not connected yet, so this message was not sent. Please reach out on WhatsApp or by email and you will get a reply straight away.',
+        values,
+      })
+      return
+    }
+
+    setState({
+      status: 'error',
+      message:
+        'Something went wrong sending your message. Please try again, or reach out on WhatsApp.',
+      values,
+    })
   }
+
+  // Both dropdowns stay controlled so their value is always readable from
+  // React state as well as from the DOM.
+  const [choices, setChoices] = useState({ role: '', interest: '' })
 
   if (state.status === 'success') {
     return (
@@ -111,18 +163,7 @@ export function ContactForm() {
   }
 
   return (
-    <form
-      action={formAction}
-      noValidate
-      /**
-       * React clears an uncontrolled form once its action resolves. On a
-       * validation error that would wipe everything the visitor typed, so the
-       * reset is cancelled here. Keeping `action` (rather than an onSubmit
-       * handler) means the form still submits with JavaScript disabled.
-       */
-      onReset={(event) => event.preventDefault()}
-      className="space-y-5"
-    >
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
       {/* Status banners */}
       {state.status === 'error' && !state.errors ? (
         <div role="alert" className="rounded-card border border-alert-200 bg-alert-50 p-4 text-sm text-alert-800">
@@ -135,7 +176,7 @@ export function ContactForm() {
           <p className="text-sm leading-relaxed text-alert-800">{state.message}</p>
           <div className="mt-3 flex flex-wrap gap-3">
             <a
-              href={whatsappLink()}
+              href={whatsappHref ?? whatsappLink()}
               target="_blank"
               rel="noopener noreferrer"
               className="font-display text-sm font-semibold text-alert-700 underline underline-offset-2"
@@ -267,7 +308,7 @@ export function ContactForm() {
         <p className="max-w-sm text-xs leading-relaxed text-deep-400">
           Your details are used only to reply to this enquiry.
         </p>
-        <SubmitButton />
+        <SubmitButton pending={pending} />
       </div>
     </form>
   )

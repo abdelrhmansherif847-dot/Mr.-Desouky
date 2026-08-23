@@ -7,6 +7,9 @@ assessment → feedback → student success → parent visibility → exam readi
 
 > **Try. Learn. Rise.**
 
+**Live:** <https://abdelrhmansherif847-dot.github.io/Mr.-Desouky/>
+Deployed automatically from this branch — see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ---
 
 ## Read this first
@@ -18,7 +21,7 @@ and none of them require touching component code.
 | --- | --- | --- |
 | 1 | **Drop in the approved logo and portrait** | [`public/brand/README.md`](public/brand/README.md) |
 | 2 | **Confirm the placeholder facts** (phone, email, domain, durations, session counts) | [`docs/CONTENT-CHECKLIST.md`](docs/CONTENT-CHECKLIST.md) |
-| 3 | **Connect the contact form** (optional — it degrades honestly without it) | [`src/lib/contact/deliver.ts`](src/lib/contact/deliver.ts) |
+| 3 | **Connect the contact form** (optional — it degrades honestly without it) | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
 
 ### About the logo
 
@@ -104,7 +107,7 @@ src/
 ├── app/                      routes (Next.js App Router)
 │   ├── layout.tsx            fonts, metadata, header/footer, JSON-LD
 │   ├── page.tsx              home
-│   ├── contact/actions.ts    contact form server action + validation
+│   ├── contact/              contact page
 │   ├── sitemap.ts robots.ts  SEO
 │   ├── student/  parent/     portals (own layout + nav)
 │   └── login/                portal entry screens
@@ -125,7 +128,7 @@ src/
 │   ├── resources.ts  faq.ts  about.ts
 └── lib/
     ├── portal/               portal types, data seam, auth seam
-    ├── contact/              delivery seam
+    ├── contact/              validation + browser-side delivery seam
     ├── seo.tsx               metadata helpers + JSON-LD
     ├── hooks.ts  utils.ts
 ```
@@ -195,24 +198,18 @@ canonicals, the sitemap and structured data all derive from it.
 
 ## Contact form
 
-Fully built: server-side validation, field-level errors, preserved input on
-error, a honeypot, and an accessible success state.
+Fully built: validation, field-level errors, preserved input on error, a
+honeypot, and an accessible success state.
 
-Delivery is pluggable. With no provider configured the form still validates and
-responds — it tells the visitor it could not send and points them at WhatsApp
-and email. It never pretends a message was delivered.
+The site is a static export, so submission happens in the browser. Set
+`NEXT_PUBLIC_CONTACT_ENDPOINT` to a form endpoint (Formspree, Web3Forms,
+Getform, Basin) and enquiries are POSTed there as JSON. With nothing set, the
+form still validates, keeps everything typed, and hands the completed enquiry
+to WhatsApp with every field filled in — it never claims a message was
+delivered when it was not.
 
-To turn delivery on:
-
-```bash
-CONTACT_PROVIDER=resend
-RESEND_API_KEY=re_...
-CONTACT_TO=info@desoukymath.com
-CONTACT_FROM=site@yourdomain.com   # a verified sender
-```
-
-For SMTP, a CRM or a database instead, replace the body of `deliverEnquiry` in
-`src/lib/contact/deliver.ts`. Nothing else changes.
+See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for setup and for reinstating
+server-side email delivery on a server host.
 
 ---
 
@@ -232,19 +229,29 @@ For SMTP, a CRM or a database instead, replace the body of `deliverEnquiry` in
 
 ## Deployment
 
-Any Node host works; Vercel is the path of least resistance for Next.js.
+Deployed to **GitHub Pages** as a static export. Every push to this branch
+rebuilds and republishes via `.github/workflows/deploy-pages.yml`.
 
-1. Push the branch and import the repository.
-2. Add the contact-form environment variables if you want delivery.
-3. Point the domain, then set `SITE.url` in `src/content/site.ts` to match.
+**One required setting:** Settings → Pages → **Source = "GitHub Actions"**.
+"Deploy from a branch" cannot work here — it serves the repository's files
+as-is and never runs a build.
 
-Baseline security headers (`X-Content-Type-Options`, `X-Frame-Options`,
-`Referrer-Policy`, `Permissions-Policy`) are set in `next.config.mjs`. Add a
-Content-Security-Policy once the final host and any embeds are known.
+```bash
+npm run build      # static export -> out/
+```
+
+Because a GitHub *project* site is served from `/Mr.-Desouky/` rather than the
+domain root, the build takes `NEXT_PUBLIC_BASE_PATH` so every asset URL carries
+that prefix. The workflow supplies it automatically.
+
+Security headers cannot be set on GitHub Pages; the exact set is recorded in
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) ready to reapply behind a host that
+supports them.
 
 ---
 
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 3.4.
-Every page is statically prerendered. `npm audit` reports zero vulnerabilities.
+Exported to static HTML — no server required. `npm audit` reports zero
+vulnerabilities.

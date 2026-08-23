@@ -24,8 +24,9 @@ Once replaced, set `isPlaceholder: false` on `LOGO` and `PORTRAIT` in
 
 **File: `src/content/site.ts`**
 
-- [ ] `SITE.url` — currently `https://desoukymath.com`. Canonical URLs, the
-      sitemap and all structured data derive from this. **Set before launch.**
+- [ ] `SITE.url` — currently the GitHub Pages URL, set automatically by the
+      deploy workflow. Only change this when a custom domain is ready (set
+      `NEXT_PUBLIC_SITE_URL`); see [`DEPLOYMENT.md`](DEPLOYMENT.md).
 - [ ] `CONTACT.whatsapp` — currently `201000000000`. Digits only, full
       international format, no `+`.
 - [ ] `CONTACT.whatsappDisplay` — the human-readable version shown on screen.
@@ -94,15 +95,20 @@ Every entry has an `available` flag. Items with `available: false` render as
 
 ## 6. Contact form delivery — optional
 
-**File: `src/lib/contact/deliver.ts`**
+**File: `src/lib/contact/submit.ts`**
 
-Without configuration the form validates, keeps what was typed, and tells the
-visitor it could not send — pointing them at WhatsApp and email. It never
+The site is served as a static export, so the form submits from the browser.
+Without configuration it validates, keeps what was typed, and hands the
+completed enquiry to WhatsApp with every field already filled in. It never
 silently drops an enquiry or falsely claims success.
 
-- [ ] Set `CONTACT_PROVIDER`, `RESEND_API_KEY`, `CONTACT_TO`, `CONTACT_FROM`
-- [ ] Or replace `deliverEnquiry` with SMTP / a CRM / a database write
-- [ ] Send a test enquiry and confirm it arrives
+- [ ] Create a form endpoint (Formspree, Web3Forms, Getform, Basin — all free
+      for low volume) and point it at the address in `CONTACT.email`
+- [ ] Add it on GitHub as **Settings → Secrets and variables → Actions →
+      Variables** named `NEXT_PUBLIC_CONTACT_ENDPOINT`
+- [ ] Push, then send a test enquiry and confirm it arrives
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for details.
 
 ---
 

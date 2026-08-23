@@ -6,6 +6,9 @@ import { SITE } from '@/content/site'
  * Public pages only. The portals are behind `robots: noindex` and are
  * deliberately excluded — they will hold student data once they are live.
  */
+// Static export: this metadata route must be generated at build time.
+export const dynamic = 'force-static'
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { CONTACT, SITE } from '@/content/site'
 
-const OG_IMAGE = '/brand/og-image.svg'
+// Social crawlers need a fully-qualified URL, and a root-relative path would
+// lose the project sub-path when resolved against metadataBase.
+const OG_IMAGE = `${SITE.url}/brand/og-image.svg`
 
 type PageMetaInput = {
   title: string

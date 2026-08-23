@@ -28,7 +28,9 @@ gives the mark a square slot and the wordmark is set in type beside it.
    512×512 or larger.
 2. Overwrite `logo-color.svg` and `logo-mono.svg`, keeping the filenames.
    * Using PNG/JPG instead? Save as e.g. `logo-color.png`, then update
-     `LOGO` in `src/content/site.ts` to point at the new filename.
+     `LOGO` in `src/content/site.ts` — change only the filename after
+     `/brand/`, leaving the `${BASE_PATH}` prefix in place (it is what makes
+     the asset resolve on GitHub Pages).
    * The monochrome version should use `fill="currentColor"` where possible
      so it inherits the surrounding text colour on dark sections.
 3. Overwrite `portrait.svg` with the portrait (a `.jpg` around 1200×1500 is
