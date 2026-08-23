@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Share card">
+  <rect width="1200" height="630" fill="#123B5D"/>
+  <g fill="none" stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="1">
+    <path d="M0 90H1200M0 180H1200M0 270H1200M0 360H1200M0 450H1200M0 540H1200"/>
+    <path d="M100 0V630M200 0V630M300 0V630M400 0V630M500 0V630M600 0V630M700 0V630M800 0V630M900 0V630M1000 0V630M1100 0V630"/>
+  </g>
+  <rect x="80" y="150" width="96" height="96" rx="16" fill="none" stroke="#1597D4" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="128" y="205" text-anchor="middle" font-family="ui-monospace, monospace" font-size="15" font-weight="700" fill="#FFFFFF" fill-opacity="0.7">LOGO</text>
+  <text x="80" y="330" font-family="Georgia, 'Times New Roman', serif" font-size="60" font-weight="700" fill="#FFFFFF">Eng. Abdelrhman Desouky</text>
+  <text x="80" y="392" font-family="Georgia, 'Times New Roman', serif" font-size="34" fill="#78C6ED">SAT &amp; EST Math Instructor</text>
+  <rect x="80" y="440" width="120" height="4" rx="2" fill="#7BCB8B"/>
+  <text x="80" y="500" font-family="ui-monospace, monospace" font-size="24" letter-spacing="4" fill="#FFFFFF" fill-opacity="0.75">TRY. LEARN. RISE.</text>
+</svg>

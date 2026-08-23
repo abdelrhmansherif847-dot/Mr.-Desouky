@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" role="img" aria-label="Portrait placeholder">
+  <title>Portrait placeholder — replace with the approved professional portrait</title>
+  <defs>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#DCE5EE"/>
+      <stop offset="100%" stop-color="#B9CBDC"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="800" fill="url(#pg)"/>
+  <g fill="none" stroke="#123B5D" stroke-opacity="0.10" stroke-width="1">
+    <path d="M0 100H640M0 200H640M0 300H640M0 400H640M0 500H640M0 600H640M0 700H640"/>
+    <path d="M100 0V800M200 0V800M300 0V800M400 0V800M500 0V800"/>
+  </g>
+  <g fill="#123B5D" fill-opacity="0.22">
+    <circle cx="320" cy="330" r="96"/>
+    <path d="M320 452c-104 0-188 74-188 166v58h376v-58c0-92-84-166-188-166z"/>
+  </g>
+  <rect x="28" y="28" width="584" height="744" rx="20" fill="none" stroke="#123B5D" stroke-opacity="0.35" stroke-width="3" stroke-dasharray="14 10"/>
+  <text x="320" y="700" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="700" letter-spacing="2" fill="#123B5D" fill-opacity="0.6">PORTRAIT PLACEHOLDER</text>
+  <text x="320" y="730" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" letter-spacing="0.6" fill="#123B5D" fill-opacity="0.45">replace public/brand/portrait.svg</text>
+</svg>

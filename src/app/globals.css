@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  * {
+    @apply border-deep-100;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper font-sans text-deep-800 antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-bold text-deep-700;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Visible, on-brand focus ring everywhere. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-sky-500 ring-offset-2 ring-offset-paper;
+  }
+
+  ::selection {
+    @apply bg-sky-200 text-deep-900;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Page shell — one container width across the whole site. */
+  .container-page {
+    @apply mx-auto w-full max-w-container px-5 sm:px-6 lg:px-10;
+  }
+
+  /* The eyebrow label above section headings. Mathematical, precise. */
+  .eyebrow {
+    @apply font-mono text-[0.68rem] font-semibold uppercase tracking-[0.18em] sm:text-xs;
+  }
+
+  /* Underline that draws in on hover — used for text links. */
+  .link-underline {
+    @apply relative inline-block after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-calm hover:after:origin-left hover:after:scale-x-100;
+  }
+
+  /* Skip link for keyboard users. */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-deep-700 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white;
+  }
+}
+
+@layer utilities {
+  /* Graph-paper texture — the workbook connection, kept subtle. */
+  .texture-grid {
+    @apply bg-grid-paper bg-grid;
+  }
+
+  .texture-grid-dark {
+    @apply bg-grid-paper-dark bg-grid;
+  }
+
+  /* Fades a decorative texture out toward the edges. */
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 45%, transparent 100%);
+  }
+
+  .mask-fade-radial {
+    -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 72%);
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 72%);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

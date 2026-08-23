@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Logo placeholder">
+  <title>Monochrome logo placeholder — replace with the approved brand logo</title>
+  <rect x="3" y="3" width="114" height="114" rx="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="9 7" opacity="0.85"/>
+  <text x="60" y="52" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="currentColor">LOGO</text>
+  <text x="60" y="70" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8.5" letter-spacing="0.4" fill="currentColor" opacity="0.72">PLACEHOLDER</text>
+  <text x="60" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" letter-spacing="0.3" fill="currentColor" opacity="0.72">see public/brand</text>
+</svg>
