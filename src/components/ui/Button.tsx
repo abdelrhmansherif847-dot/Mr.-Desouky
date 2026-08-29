@@ -11,7 +11,7 @@ type Size = 'sm' | 'md' | 'lg'
  * gives physical feedback without moving anything around it.
  */
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-full font-display font-semibold ' +
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-display font-semibold ' +
   'transition-[transform,background-color,border-color,box-shadow,color] duration-200 ease-smooth ' +
   'active:scale-[0.97] active:duration-[120ms] motion-reduce:active:scale-100 ' +
   'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100'

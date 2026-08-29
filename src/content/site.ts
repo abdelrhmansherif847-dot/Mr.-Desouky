@@ -99,6 +99,7 @@ export const PRIMARY_NAV: NavItem[] = [
       { label: 'EST Math — Advanced', href: '/programs/est-math-advanced', description: 'Raise the ceiling' },
     ],
   },
+  { label: 'Schedule', href: '/schedule', description: 'The weekly teaching timetable' },
   { label: 'The Desouky Method', href: '/method', description: 'READ · ANALYZE · PLAN · SOLVE · CHECK' },
   { label: 'Student Journey', href: '/journey', description: 'Seven stages from assessment to exam day' },
   { label: 'About', href: '/about', description: 'The person, the philosophy, the principles' },

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Mono, Inter, Plus_Jakarta_Sans } from 'next/font/google'
+import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic, Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
@@ -19,6 +19,18 @@ const body = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600'],
   variable: '--font-body',
+  display: 'swap',
+})
+
+/**
+ * Arabic is set in IBM Plex Sans Arabic — the same type family as the mono
+ * face already in the system, so the schedule reads as part of the brand
+ * rather than as a second voice bolted on.
+ */
+const arabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-arabic',
   display: 'swap',
 })
 
@@ -89,7 +101,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={SITE.locale}
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${display.variable} ${body.variable} ${mono.variable} ${arabic.variable}`}
       suppressHydrationWarning
     >
       <head>

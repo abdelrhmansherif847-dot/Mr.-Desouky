@@ -57,7 +57,7 @@ export function Logo({ variant = 'color', markOnly = false, size = 'md', classNa
     <span className={cn('inline-flex items-center gap-3', className)}>
       <LogoMark variant={variant} size={size} />
       {!markOnly ? (
-        <span className="flex flex-col leading-none">
+        <span className="flex flex-col whitespace-nowrap leading-none">
           <span
             className={cn(
               'font-display text-[0.98rem] font-bold tracking-tight sm:text-[1.05rem]',

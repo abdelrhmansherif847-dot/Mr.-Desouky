@@ -7,6 +7,7 @@
     --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-arabic: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
 
     /* Motion system — mirrors src/lib/motion.ts. Change both, or neither. */
     --motion-instant: 120ms;
@@ -230,5 +231,49 @@
     to {
       stroke-dashoffset: 0;
     }
+  }
+}
+
+/* ==========================================================================
+   ARABIC / RTL
+   The schedule is a right-to-left island inside an otherwise English site,
+   so these rules are scoped to [dir='rtl'] and cannot leak outward.
+   ========================================================================== */
+@layer components {
+  [dir='rtl'] {
+    font-family: var(--font-arabic);
+    /* Arabic letterforms are already generously spaced; tracking hurts them. */
+    letter-spacing: normal;
+  }
+
+  [dir='rtl'] h1,
+  [dir='rtl'] h2,
+  [dir='rtl'] h3,
+  [dir='rtl'] h4 {
+    font-family: var(--font-arabic);
+    letter-spacing: normal;
+    /* Arabic ascenders and descenders need more room than Latin. */
+    line-height: 1.45;
+  }
+
+  /*
+   * Times inside the Arabic region keep the mono face so the rail stays
+   * aligned in a column.
+   *
+   * Crucially this does NOT force `direction: ltr`. A time like "10:00 ص"
+   * mixes Latin digits with an Arabic marker, and a composite such as
+   * "10:00 ص — 12:00 ظ" reorders into nonsense when the whole run is forced
+   * left-to-right. Each value is wrapped in <bdi> instead, which isolates it
+   * as one unit while letting the pair read right-to-left like the rest of
+   * the Arabic around it.
+   */
+  [dir='rtl'] .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  [dir='rtl'] .num bdi {
+    /* Keeps "10:00" and "ص" together and in the right order. */
+    unicode-bidi: isolate;
   }
 }

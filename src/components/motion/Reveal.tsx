@@ -30,6 +30,8 @@ type RevealProps = {
   threshold?: number
   /** Forwarded so revealed blocks can still be anchor targets. */
   id?: string
+  /** Merged with the reveal's own custom properties — e.g. grid placement. */
+  style?: React.CSSProperties
 }
 
 export function Reveal({
@@ -41,6 +43,7 @@ export function Reveal({
   as: Tag = 'div',
   threshold,
   id,
+  style,
 }: RevealProps) {
   const { ref, inView } = useInView<HTMLDivElement>(
     threshold !== undefined ? { threshold } : undefined,
@@ -54,7 +57,12 @@ export function Reveal({
       id={id}
       data-reveal={variant}
       data-revealed={inView ? '' : undefined}
-      style={resolvedDelay ? { '--reveal-delay': `${resolvedDelay}ms` } as React.CSSProperties : undefined}
+      style={
+        {
+          ...style,
+          ...(resolvedDelay ? { '--reveal-delay': `${resolvedDelay}ms` } : {}),
+        } as React.CSSProperties
+      }
       className={className}
     >
       {children}

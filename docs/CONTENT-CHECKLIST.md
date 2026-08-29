@@ -80,7 +80,28 @@ on the site asserts a fact that has not been confirmed.
 
 ---
 
-## 5. Resources — optional
+## 5. Weekly schedule — confirm before publishing
+
+**File: `src/content/schedule.ts`**
+
+The whole timetable — days, time slots, student groups, breaks, open time and
+notes — lives in this one file. Editing it updates both the desktop grid and
+the mobile day view; no component needs touching.
+
+- [ ] Confirm the four teaching days and every time slot
+- [ ] Confirm the student group names as they should appear publicly
+      (`يوسف + صحابه`, `مصطفى`, `أحمد + أسر`, `رقية + زينب + أسماء`,
+      `ريم + ياسين + رويا`)
+- [ ] **Decide whether student first names should be public at all.** They are
+      currently visible to anyone who finds the page. If that is not intended,
+      replace them with group labels (e.g. `مجموعة أ`) — the file is the only
+      place to change.
+- [ ] Confirm the standing rules in `SCHEDULE_RULES`
+- [ ] Keep `SCHEDULE_UPDATES` current, or empty it once the changes are old news
+
+---
+
+## 6. Resources — optional
 
 **File: `src/content/resources.ts`**
 
@@ -93,7 +114,7 @@ Every entry has an `available` flag. Items with `available: false` render as
 
 ---
 
-## 6. Contact form delivery — optional
+## 7. Contact form delivery — optional
 
 **File: `src/lib/contact/submit.ts`**
 
@@ -112,7 +133,7 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for details.
 
 ---
 
-## 7. Portals — when you are ready to go live
+## 8. Portals — when you are ready to go live
 
 - [ ] Implement authentication — `src/lib/portal/auth.ts` documents where
 - [ ] Point `getStudentRecord()` / `getParentRecord()` at real records —
@@ -130,7 +151,7 @@ clean record — so both the "needs attention" and "on track" states are visible
 
 ---
 
-## 8. Final pass
+## 9. Final pass
 
 - [ ] Read every page once at mobile width
 - [ ] Confirm no page promises a specific score

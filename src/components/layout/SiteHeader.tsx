@@ -75,12 +75,12 @@ export function SiteHeader() {
       )}
     >
       <div className="container-page">
-        <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+        <div className="flex h-[4.5rem] items-center justify-between gap-4 xl:h-20">
           <LogoLink />
 
           {/* ---------- Desktop navigation ---------- */}
-          <nav aria-label="Main" className="hidden lg:block">
-            <ul className="flex items-center gap-1">
+          <nav aria-label="Main" className="hidden xl:block">
+            <ul className="flex items-center gap-0.5">
               {PRIMARY_NAV.map((item) => {
                 const active = isActive(pathname, item.href)
                 const hasChildren = Boolean(item.children?.length)
@@ -101,7 +101,7 @@ export function SiteHeader() {
                       aria-expanded={hasChildren ? openMenu === item.href : undefined}
                       onFocus={() => hasChildren && setOpenMenu(item.href)}
                       className={cn(
-                        'group/nav relative flex items-center gap-1 rounded-lg px-3 py-2 text-[0.9rem] font-medium transition-colors duration-200 ease-smooth',
+                        'group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-2 text-[0.9rem] font-medium transition-colors duration-200 ease-smooth',
                         active
                           ? 'text-sky-600'
                           : 'text-deep-600 hover:bg-deep-50 hover:text-deep-800',
@@ -173,10 +173,10 @@ export function SiteHeader() {
           </nav>
 
           {/* ---------- Desktop portal actions ---------- */}
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             <Link
               href={PORTAL_NAV[0].href}
-              className="rounded-lg px-3 py-2 text-[0.9rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800"
             >
               {PORTAL_NAV[0].label}
             </Link>
@@ -192,7 +192,7 @@ export function SiteHeader() {
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? 'Close menu' : 'Open menu'}
-            className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 lg:hidden"
+            className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 xl:hidden"
           >
             <span className="relative block h-3.5 w-5">
               <span
@@ -222,7 +222,7 @@ export function SiteHeader() {
       <div
         id="mobile-nav"
         hidden={!open}
-        className="fixed inset-x-0 bottom-0 top-[4.5rem] z-40 animate-drawer-in overflow-y-auto overscroll-contain border-t border-deep-100 bg-white lg:hidden"
+        className="fixed inset-x-0 bottom-0 top-[4.5rem] z-40 animate-drawer-in overflow-y-auto overscroll-contain border-t border-deep-100 bg-white xl:hidden"
       >
         <nav aria-label="Mobile" className="container-page pb-10 pt-6">
           <ul className="space-y-1">

@@ -68,6 +68,7 @@ only optional ones are for contact-form delivery (below).
 | `/` | Who, what, how the system works, why to trust it |
 | `/programs` | All four programs, compared side by side |
 | `/programs/[slug]` | SAT Basic · SAT Advanced · EST Basic · EST Advanced |
+| `/schedule` | The weekly teaching timetable — Arabic, right-to-left |
 | `/method` | The Desouky Method — READ · ANALYZE · PLAN · SOLVE · CHECK |
 | `/journey` | The seven-stage student journey |
 | `/how-it-works` | The educational system, stage by stage |
@@ -108,6 +109,7 @@ src/
 │   ├── layout.tsx            fonts, metadata, header/footer, JSON-LD
 │   ├── page.tsx              home
 │   ├── contact/              contact page
+│   ├── schedule/             weekly timetable page
 │   ├── sitemap.ts robots.ts  SEO
 │   ├── student/  parent/     portals (own layout + nav)
 │   └── login/                portal entry screens
@@ -117,6 +119,7 @@ src/
 │   ├── ui/                   Button, Section, Card, Badge, Progress
 │   ├── sections/             Hero, SystemFlow, MethodStrip, JourneyTimeline, …
 │   ├── contact/              ContactForm
+│   ├── schedule/             WeeklySchedule, SessionCard, notes, Time
 │   └── portal/               PortalShell, widgets, PreviewNotice, LoginPanel
 ├── content/                  ← ALL COPY LIVES HERE, as typed data
 │   ├── site.ts               brand constants, nav, contact details
@@ -125,6 +128,7 @@ src/
 │   ├── method.ts             the five method steps
 │   ├── journey.ts            the seven journey stages, mentoring, advising
 │   ├── programs.ts           the four programs
+│   ├── schedule.ts           the weekly timetable — days, slots, notes
 │   ├── resources.ts  faq.ts  about.ts
 └── lib/
     ├── portal/               portal types, data seam, auth seam
@@ -163,6 +167,10 @@ attention band, weak topics, and form errors.
 Motion is part of the identity, not decoration on top of it — see
 [`docs/MOTION.md`](docs/MOTION.md) for the tokens and the rules. It costs
 ~2 KB gzipped and adds no animation library.
+
+Arabic is set in **IBM Plex Sans Arabic** — the same type family as the mono
+face already in use, so the schedule reads as part of the brand rather than a
+second voice. It loads only on pages that need it.
 
 Typography: Plus Jakarta Sans (display) · Inter (body) · IBM Plex Mono
 (eyebrows, numerals, mathematical detail) — all self-hosted via `next/font`,
