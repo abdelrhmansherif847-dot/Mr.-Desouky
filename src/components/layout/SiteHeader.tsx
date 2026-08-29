@@ -23,7 +23,7 @@ export function SiteHeader() {
 
   // Close every menu when the route changes. Adjusting state during render
   // is the React-recommended pattern here — an effect would render the open
-  // drawer once on the new page before closing it.
+  // menu once on the new page before closing it.
   const [renderedPath, setRenderedPath] = useState(pathname)
   if (renderedPath !== pathname) {
     setRenderedPath(pathname)
@@ -31,7 +31,7 @@ export function SiteHeader() {
     setOpenMenu(null)
   }
 
-  // Lock body scroll while the drawer is open.
+  // Lock body scroll while the menu is open.
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => {
@@ -191,7 +191,7 @@ export function SiteHeader() {
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
-              aria-controls="mobile-nav"
+              aria-controls="header-menu"
               aria-label={open ? 'Close menu' : 'Open menu'}
               className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 xl:hidden"
             >
@@ -221,21 +221,24 @@ export function SiteHeader() {
       </header>
 
       {/*
-        ---------- Drawer ----------
+        ---------- Collapsed navigation ----------
+
+        A dropdown that opens downward from the header, not a sidebar: the
+        panel is full-bleed, attached to the header's lower edge, and slides
+        out from behind it so it reads as the header extending rather than a
+        separate surface arriving from the side.
 
         This MUST stay a sibling of <header>, never a child of it.
 
         When the page is scrolled the header gains `backdrop-blur-md`, and a
         backdrop-filter makes an element the containing block for every
-        `position: fixed` descendant. Nested inside, the drawer would resolve
-        `top-[4.5rem] bottom-0` against the 72px header box instead of the
-        viewport and collapse to zero height — so the menu opened correctly at
-        the top of a page and silently opened *nothing* anywhere else.
-
-        Full-bleed on phones; a right-anchored panel over a dimmed page above.
+        `position: fixed` descendant. Nested inside, the panel would resolve
+        its offsets against the 72px header box instead of the viewport and
+        collapse to zero height — so the menu opened correctly at the top of a
+        page and silently opened *nothing* anywhere else.
       */}
       <div
-        id="mobile-nav"
+        id="header-menu"
         inert={!open}
         aria-hidden={!open}
         onClick={(event) => {
@@ -246,37 +249,44 @@ export function SiteHeader() {
           // over the menu's own buttons, and below the header (z-50).
           'fixed inset-x-0 bottom-0 top-[4.5rem] z-[45] lg:top-20 xl:hidden',
           'transition-[opacity,visibility] duration-200 ease-smooth motion-reduce:transition-none',
-          'sm:bg-deep-900/25',
+          'bg-deep-900/20',
           open ? 'visible opacity-100' : 'invisible opacity-0',
         )}
       >
         <div
           className={cn(
-            'h-full overflow-y-auto overscroll-contain border-t border-deep-100 bg-white',
-            'transition-transform duration-200 ease-smooth motion-reduce:transition-none',
-            'sm:ms-auto sm:h-auto sm:max-h-full sm:w-[26rem] sm:rounded-bl-card sm:border-s sm:shadow-lift',
-            open ? 'translate-y-0' : '-translate-y-1',
+            // Only as tall as its contents, so the dimmed page still shows
+            // beneath it — a dropdown, not a full-height drawer.
+            'max-h-full w-full overflow-y-auto overscroll-contain',
+            'border-b border-deep-100 bg-white shadow-lift',
+            'transition-transform duration-300 ease-calm motion-reduce:transition-none',
+            // Sits tucked under the opaque header when closed, so opening
+            // reads as the panel coming down out of the header itself.
+            open ? 'translate-y-0' : '-translate-y-4',
           )}
         >
           <nav
-            aria-label="Mobile"
-            // Closing on route change alone leaves the drawer open when the
+            aria-label="Menu"
+            // Closing on route change alone leaves the panel open when the
             // link points at the page you are already on — tapping "Home" from
             // Home looked like the menu had jammed.
             onClick={(event) => {
               if ((event.target as HTMLElement).closest('a')) setOpen(false)
             }}
-            className="container-page pb-10 pt-6 sm:px-6 lg:px-6"
+            className="container-page pb-8 pt-6"
           >
-            <ul className="space-y-1">
+            {/* Balanced columns rather than one long list, so the panel stays
+                wide and shallow like a mega menu instead of a tall stack. */}
+            <ul className="gap-x-10 sm:columns-2 lg:columns-3">
               {PRIMARY_NAV.map((item) => {
                 const active = isActive(pathname, item.href)
                 return (
-                  <li key={item.href}>
+                  <li key={item.href} className="mb-1 break-inside-avoid">
                     <Link
                       href={item.href}
+                      aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'flex items-baseline justify-between gap-4 rounded-xl px-4 py-3.5 transition-colors duration-200 ease-smooth active:scale-[0.99] motion-reduce:active:scale-100',
+                        'flex items-baseline justify-between gap-4 rounded-xl px-4 py-3 transition-colors duration-200 ease-smooth active:scale-[0.99] motion-reduce:active:scale-100',
                         active ? 'bg-sky-50 text-sky-700' : 'text-deep-700 hover:bg-mist',
                       )}
                     >
@@ -289,12 +299,12 @@ export function SiteHeader() {
                     </Link>
 
                     {item.children?.length ? (
-                      <ul className="mb-1 ml-4 mt-1 space-y-0.5 border-l border-deep-100 pl-3">
+                      <ul className="mb-2 ml-4 mt-1 space-y-0.5 border-l border-deep-100 pl-3">
                         {item.children.slice(1).map((child) => (
                           <li key={child.href}>
                             <Link
                               href={child.href}
-                              className="block rounded-lg px-3 py-2.5 text-[0.92rem] text-deep-500 transition-colors duration-200 hover:bg-mist hover:text-deep-700"
+                              className="block rounded-lg px-3 py-2 text-[0.92rem] text-deep-500 transition-colors duration-200 hover:bg-mist hover:text-deep-700"
                             >
                               {child.label}
                             </Link>
@@ -307,16 +317,21 @@ export function SiteHeader() {
               })}
             </ul>
 
-            <div className="mt-8 border-t border-deep-100 pt-6">
-              <p className="eyebrow mb-3 text-deep-400">Portals</p>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="mt-6 border-t border-deep-100 pt-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+              <p className="eyebrow mb-3 text-deep-400 sm:hidden">Portals</p>
+              <div className="grid grid-cols-2 gap-3 sm:flex sm:gap-3">
                 {PORTAL_NAV.map((item) => (
                   <ButtonLink key={item.href} href={item.href} variant="secondary" size="sm">
                     {item.label}
                   </ButtonLink>
                 ))}
               </div>
-              <ButtonLink href="/contact" variant="primary" size="md" className="mt-3 w-full">
+              <ButtonLink
+                href="/contact"
+                variant="primary"
+                size="md"
+                className="mt-3 w-full sm:mt-0 sm:w-auto"
+              >
                 Book an assessment
               </ButtonLink>
             </div>
