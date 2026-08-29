@@ -35,3 +35,8 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# supabase CLI local state — version cache, linked-project ref and local keys.
+# Never commit: .temp can hold project refs and access tokens.
+supabase/.temp/
+supabase/.branches/
