@@ -116,8 +116,30 @@ A guard that only hides a link in the header is not a guard.
 | `/admin` with Supabase unconfigured | **404** — fails closed, verified |
 | `/admin` signed in as non-owner | **404** — enforced by the role check |
 | `role` escalation by a client | **Impossible** — no RLS policy permits it |
-| Owner email in the browser bundle | **Never** — no `NEXT_PUBLIC_` prefix |
-| `<OwnerEntry />` on the public site | Renders only for a verified owner |
+| Owner email in the browser bundle | **Never** — it lives only in the database |
+| Public pages made dynamic by this | **None** — all 26 stay static |
+
+## Where the owner's entry point lives
+
+At `/admin`. Bookmark it. Once signed in, the admin shell shows who you are
+and offers Sign out; signed out, it is a 404 like it is for everyone else.
+
+There is deliberately no owner button on the public site. An earlier version
+rendered one from the session in the public layout, which was measured and
+rejected: reading the session calls `cookies()` in a shared layout, and that
+opts the entire subtree into dynamic rendering. With Supabase configured it
+turned **15 static marketing pages into server-rendered ones**, adding a
+Supabase round-trip to every visit by every student and parent — a permanent
+cost on the public site so that one person might see a floating button.
+
+The public site is now verified to stay fully static with Supabase configured:
+0 dynamic public routes. Only `/admin`, `/admin/signout` and `/auth/callback`
+render on demand.
+
+If you do want the floating button, the version that does not cost anything is
+a small client-side check that runs only when an auth cookie is already
+present. Ask and I will add it — the guard is unaffected either way, since the
+button is only a link and `/admin` is protected server-side regardless.
 
 ## Data
 

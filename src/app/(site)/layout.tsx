@@ -2,7 +2,6 @@ import { SiteHeader } from '@/components/layout/SiteHeader'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
 import { PageTransition } from '@/components/motion/PageTransition'
-import { OwnerEntry } from '@/components/admin/OwnerEntry'
 
 /**
  * Chrome for the public website: header, footer and the floating WhatsApp
@@ -24,8 +23,6 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </PageTransition>
       <SiteFooter />
       <WhatsAppButton />
-      {/* Renders only for a verified owner; absent from everyone else's HTML. */}
-      <OwnerEntry />
     </>
   )
 }

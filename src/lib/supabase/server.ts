@@ -10,7 +10,9 @@ import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from './env'
  * and renders without one.
  */
 export async function createClient() {
-  if (!IS_SUPABASE_CONFIGURED) return null
+  // Also bail during a static export: reading cookies() there would opt the
+  // whole tree into dynamic rendering and fail the build.
+  if (!IS_SUPABASE_CONFIGURED || process.env.STATIC_EXPORT === 'true') return null
 
   const cookieStore = await cookies()
 
