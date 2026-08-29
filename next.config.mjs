@@ -17,9 +17,23 @@
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 
+/**
+ * Two build modes, one codebase.
+ *
+ *   STATIC_EXPORT=true  → the public marketing site as flat files, for GitHub
+ *                         Pages. No server, so no middleware runs and the
+ *                         admin routes are stripped from the artifact.
+ *   default             → a normal Next.js server build, for Vercel. The
+ *                         /admin guard in middleware.ts runs for real.
+ *
+ * Keeping both means the live Pages site stays up while the authenticated
+ * deployment is set up alongside it, rather than going dark during the move.
+ */
+const isStaticExport = process.env.STATIC_EXPORT === 'true'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  ...(isStaticExport ? { output: 'export' } : {}),
   reactStrictMode: true,
   poweredByHeader: false,
 

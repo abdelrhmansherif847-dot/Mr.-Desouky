@@ -50,8 +50,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Remove the authenticated application from the public build
+        run: |
+          # This artifact is the public marketing site and nothing else.
+          #
+          # GitHub Pages is static: no server, so middleware never runs and
+          # there is nowhere to enforce a check a visitor cannot skip.
+          # Publishing the admin area here and relying on an unlinked URL
+          # would be obscurity, not security.
+          #
+          # So the authenticated application is deleted before the build
+          # rather than stripped after it. Nothing admin-related reaches the
+          # bundle -- no routes, no chunks, no guard that cannot run.
+          # The authenticated deployment (Vercel) builds from the same commit
+          # with these intact. See docs/ADMIN.md.
+          rm -rf src/app/admin src/app/auth middleware.ts
+          echo "Public-only build: admin, auth routes and middleware removed."
+
       - name: Build
         env:
+          # Flat files for Pages. The server build (Vercel) omits this and
+          # gets middleware-enforced /admin instead.
+          STATIC_EXPORT: 'true'
           # A project site is served from /<repo>/, a user site or custom
           # domain from /. `configure-pages` resolves which applies, so the
           # build is correct either way without editing anything by hand.
@@ -62,31 +82,16 @@ jobs:
           NEXT_PUBLIC_CONTACT_ENDPOINT: ${{ vars.NEXT_PUBLIC_CONTACT_ENDPOINT }}
         run: npm run build
 
-      - name: Strip the internal admin area from the public artifact
-        run: |
-          # GitHub Pages is static: there is no server, so there is nowhere to
-          # run an authorization check a visitor cannot skip. Publishing the
-          # admin pages and relying on an unlinked URL would be obscurity, not
-          # security -- anyone who guessed /admin/ would get the page.
-          #
-          # So the admin routes are not published at all. This is the only
-          # genuine protection available on this host: a file that was never
-          # deployed cannot be fetched or bypassed.
-          #
-          # To publish them again -- only once a real server-side session
-          # guard exists -- delete this step. See docs/ADMIN.md.
-          rm -rf out/admin
-          if find out -path '*admin*' | grep -q .; then
-            echo "::error::admin routes still present in the artifact"
-            find out -path '*admin*'
-            exit 1
-          fi
-          echo "Admin routes excluded from the public artifact."
-
       - name: Verify the export looks deployable
         run: |
           test -f out/index.html || { echo "::error::out/index.html missing"; exit 1; }
           test -f out/404.html   || { echo "::error::out/404.html missing";  exit 1; }
+          # Fail loudly rather than publish an unprotected admin route.
+          if find out \( -path '*admin*' -o -path '*auth*' \) | grep -q .; then
+            echo "::error::admin or auth routes present in the public artifact"
+            find out \( -path '*admin*' -o -path '*auth*' \)
+            exit 1
+          fi
           # Jekyll ignores directories beginning with an underscore, which
           # would strip _next/ and leave the site unstyled.
           touch out/.nojekyll

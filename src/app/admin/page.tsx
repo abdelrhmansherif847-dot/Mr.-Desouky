@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { AccessNotice } from '@/components/admin/AccessNotice'
+import { OwnerBar } from '@/components/admin/OwnerBar'
 import { ArrowRight } from '@/components/ui/Button'
 
 /**
@@ -12,7 +13,11 @@ import { ArrowRight } from '@/components/ui/Button'
  */
 export default function AdminOverviewPage() {
   return (
-    <AdminShell title="Admin" subtitle="Internal tools. Separate from the public website.">
+    <AdminShell
+      title="Admin"
+      subtitle="Internal tools. Separate from the public website."
+      actions={<OwnerBar />}
+    >
       <div className="space-y-6">
         <AccessNotice />
 
