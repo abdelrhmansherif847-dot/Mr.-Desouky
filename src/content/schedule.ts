@@ -1,9 +1,20 @@
 /**
- * WEEKLY TEACHING SCHEDULE
- * =======================
- * The single source of truth for the schedule. Every component reads from
- * here — nothing about days, times, names or session types is hardcoded in
- * the UI, so updating the timetable means editing this file and nothing else.
+ * WEEKLY TEACHING SCHEDULE — structure only
+ * =========================================
+ * The single source of truth for the timetable's shape. Every component reads
+ * from here, so updating days, times or session types means editing this file
+ * and nothing else.
+ *
+ * ⚠️  NO REAL STUDENT NAMES IN THIS FILE.
+ *
+ * Groups are anonymised — مجموعة أ, ب, ج, د, هـ — because this repository is
+ * public. Anything committed here is readable by anyone, and a static export
+ * bakes it into the published HTML, so there is nowhere in this project that
+ * a real name could sit and stay private.
+ *
+ * Real names belong in a database read through an authenticated API, once the
+ * admin area runs on a host with a server. Until then, keep the placeholders:
+ * the timetable's shape is what this file is for. See docs/ADMIN.md.
  *
  * The content is Arabic and the schedule renders right-to-left. English day
  * names are carried alongside for scanning, not for translation.
@@ -34,7 +45,7 @@ export type TimeSlot = {
 export type Session = {
   slotId: string
   kind: SessionKind
-  /** The student group, e.g. "يوسف + صحابه". Absent for breaks and open time. */
+  /** The student group, e.g. "مجموعة أ". Absent for breaks and open time. */
   group?: string
   /** Marks a session added on top of the usual week. */
   additional?: boolean
@@ -77,14 +88,14 @@ export const SCHEDULE_DAYS: ScheduleDay[] = [
     english: 'Sunday',
     weekday: 0,
     sessions: [
-      { slotId: 't1', kind: 'lesson', group: 'يوسف + صحابه' },
+      { slotId: 't1', kind: 'lesson', group: 'مجموعة أ' },
       { slotId: 't2', kind: 'break' },
-      { slotId: 't3', kind: 'lesson', group: 'مصطفى' },
+      { slotId: 't3', kind: 'lesson', group: 'مجموعة ب' },
       { slotId: 't4', kind: 'break' },
-      { slotId: 't5', kind: 'lesson', group: 'ريم + ياسين + رويا' },
+      { slotId: 't5', kind: 'lesson', group: 'مجموعة ج' },
       { slotId: 't6', kind: 'break' },
       { slotId: 't7', kind: 'open' },
-      { slotId: 't8', kind: 'lesson', group: 'رقية + زينب + أسماء' },
+      { slotId: 't8', kind: 'lesson', group: 'مجموعة د' },
     ],
   },
   {
@@ -100,7 +111,7 @@ export const SCHEDULE_DAYS: ScheduleDay[] = [
         span: 4,
         note: 'أول محاضرة الساعة 4:00 م',
       },
-      { slotId: 't5', kind: 'lesson', group: 'أحمد + أسر' },
+      { slotId: 't5', kind: 'lesson', group: 'مجموعة هـ' },
       { slotId: 't6', kind: 'break' },
       { slotId: 't7', kind: 'open' },
       { slotId: 't8', kind: 'open' },
@@ -112,14 +123,14 @@ export const SCHEDULE_DAYS: ScheduleDay[] = [
     english: 'Wednesday',
     weekday: 3,
     sessions: [
-      { slotId: 't1', kind: 'lesson', group: 'يوسف + صحابه' },
+      { slotId: 't1', kind: 'lesson', group: 'مجموعة أ' },
       { slotId: 't2', kind: 'break' },
-      { slotId: 't3', kind: 'lesson', group: 'مصطفى' },
+      { slotId: 't3', kind: 'lesson', group: 'مجموعة ب' },
       { slotId: 't4', kind: 'break' },
-      { slotId: 't5', kind: 'lesson', group: 'أحمد + أسر' },
+      { slotId: 't5', kind: 'lesson', group: 'مجموعة هـ' },
       { slotId: 't6', kind: 'break' },
-      { slotId: 't7', kind: 'lesson', group: 'أحمد + أسر', additional: true },
-      { slotId: 't8', kind: 'lesson', group: 'رقية + زينب + أسماء' },
+      { slotId: 't7', kind: 'lesson', group: 'مجموعة هـ', additional: true },
+      { slotId: 't8', kind: 'lesson', group: 'مجموعة د' },
     ],
   },
   {
@@ -128,14 +139,14 @@ export const SCHEDULE_DAYS: ScheduleDay[] = [
     english: 'Saturday',
     weekday: 6,
     sessions: [
-      { slotId: 't1', kind: 'lesson', group: 'يوسف + صحابه' },
+      { slotId: 't1', kind: 'lesson', group: 'مجموعة أ' },
       { slotId: 't2', kind: 'break' },
-      { slotId: 't3', kind: 'lesson', group: 'مصطفى' },
+      { slotId: 't3', kind: 'lesson', group: 'مجموعة ب' },
       { slotId: 't4', kind: 'break' },
-      { slotId: 't5', kind: 'lesson', group: 'أحمد + أسر' },
+      { slotId: 't5', kind: 'lesson', group: 'مجموعة هـ' },
       { slotId: 't6', kind: 'break' },
-      { slotId: 't7', kind: 'lesson', group: 'أحمد + أسر' },
-      { slotId: 't8', kind: 'lesson', group: 'رقية + زينب + أسماء' },
+      { slotId: 't7', kind: 'lesson', group: 'مجموعة هـ' },
+      { slotId: 't8', kind: 'lesson', group: 'مجموعة د' },
     ],
   },
 ]
@@ -165,9 +176,9 @@ export const SCHEDULE_RULES: ScheduleNote[] = [
 
 /** Recent changes to the timetable, so nobody works from an old copy. */
 export const SCHEDULE_UPDATES: ScheduleNote[] = [
-  { text: 'تم إضافة معاد إضافي لأحمد + أسر يوم الأربعاء.' },
-  { text: 'تم شيل رقية + زينب + أسماء من يوم الثلاثاء.' },
-  { text: 'تم شيل ريم + ياسين + رويا من يوم الأربعاء.' },
+  { text: 'تم إضافة معاد إضافي لمجموعة هـ يوم الأربعاء.' },
+  { text: 'تم شيل مجموعة د من يوم الثلاثاء.' },
+  { text: 'تم شيل مجموعة ج من يوم الأربعاء.' },
 ]
 
 /* -------------------------------- helpers ------------------------------- */

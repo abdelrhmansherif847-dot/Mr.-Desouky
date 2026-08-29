@@ -92,13 +92,12 @@ past version of it — is readable by anyone, and a static site has no server to
 enforce a login. See [`ADMIN.md`](ADMIN.md).
 
 - [ ] Confirm the four teaching days and every time slot
-- [ ] Confirm the student group names as they should appear publicly
-      (`يوسف + صحابه`, `مصطفى`, `أحمد + أسر`, `رقية + زينب + أسماء`,
-      `ريم + ياسين + رويا`)
-- [ ] **Decide whether student first names should be in a public repository.**
-      They are, today, including in past commits. If that is not intended:
-      make the repository private, and/or replace the names with group labels
-      (e.g. `مجموعة أ`) — this file is the only place to change.
+- [ ] Group labels are anonymised (`مجموعة أ` … `مجموعة هـ`) and should stay
+      that way while this repository is public — see the warning at the top of
+      the file
+- [ ] Real names are still in one earlier commit (`e7d7114`). Removing them
+      from the current file does not remove them from history — see
+      [`ADMIN.md`](ADMIN.md) for the two ways to deal with that
 - [ ] Confirm the standing rules in `SCHEDULE_RULES`
 - [ ] Keep `SCHEDULE_UPDATES` current, or empty it once the changes are old news
 

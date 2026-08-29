@@ -74,13 +74,13 @@ export function SiteHeader() {
           : 'border-b border-transparent bg-white',
       )}
     >
-      <div className="container-page lg:px-5 xl:px-10">
-        <div className="flex h-[4.5rem] items-center justify-between gap-2 lg:h-20 xl:gap-4">
-          <LogoLink roleClassName="lg:hidden xl:block" nameClassName="lg:text-[0.9rem] xl:text-[1.05rem]" />
+      <div className="container-page lg:px-4 xl:px-10">
+        <div className="flex h-[4.5rem] items-center justify-between gap-2 lg:h-20 xl:gap-6">
+          <LogoLink nameClassName="brand-name" roleClassName="brand-role" />
 
           {/* ---------- Desktop navigation ---------- */}
           <nav aria-label="Main" className="hidden lg:block">
-            <ul className="flex items-center gap-0.5">
+            <ul className="flex items-center">
               {PRIMARY_NAV.map((item) => {
                 const active = isActive(pathname, item.href)
                 const hasChildren = Boolean(item.children?.length)
@@ -101,7 +101,7 @@ export function SiteHeader() {
                       aria-expanded={hasChildren ? openMenu === item.href : undefined}
                       onFocus={() => hasChildren && setOpenMenu(item.href)}
                       className={cn(
-                        'group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg px-1.5 py-2 text-[0.8rem] font-medium transition-colors duration-200 ease-smooth xl:px-3 xl:text-[0.9rem]',
+                        'nav-link group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg py-2 font-medium transition-colors duration-200 ease-smooth',
                         active
                           ? 'text-sky-600'
                           : 'text-deep-600 hover:bg-deep-50 hover:text-deep-800',
@@ -184,7 +184,7 @@ export function SiteHeader() {
               href={PORTAL_NAV[1].href}
               variant="secondary"
               size="sm"
-              className="!px-3 !text-[0.82rem] xl:!px-4 xl:!text-sm"
+              className="!py-2 !text-[clamp(0.8rem,0.4rem+0.625vw,0.9rem)] !px-[clamp(0.6rem,-1.2rem+2.8vw,1.25rem)]"
             >
               {PORTAL_NAV[1].label}
             </ButtonLink>

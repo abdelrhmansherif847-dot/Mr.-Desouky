@@ -20,9 +20,23 @@ decoration — it hides nothing. Anyone who types `/admin` sees the page, and
 everything in the JavaScript bundle can be downloaded.
 
 **Separately: this repository is public.** Everything committed to it is
-readable by anyone, whether or not a route is linked. That includes
-`src/content/schedule.ts` and the student names in it — and it includes every
-past commit, so deleting the file later does not unpublish it.
+readable by anyone, whether or not a route is linked — and that includes every
+past commit.
+
+Group names in `src/content/schedule.ts` are therefore anonymised
+(`مجموعة أ` … `مجموعة هـ`). Keep them that way: a static export bakes whatever
+is in that file into the published HTML, so there is nowhere in this project
+where a real name could sit and stay private.
+
+⚠️ **Real first names are still in commit `e7d7114`.** Removing them from the
+current file does not remove them from history. Two ways to deal with that:
+
+* **Make the repository private.** Fastest, and the right move if the site
+  will move to a private host anyway. It limits future exposure rather than
+  undoing past exposure.
+* **Purge them from history** with `git filter-repo` (or BFG) and force-push.
+  This rewrites every commit after that point, so anyone else with a clone
+  must re-clone. Say the word and I will do it.
 
 What is in place today is *privacy by intent*, which is worth having but is
 not security:
@@ -57,9 +71,9 @@ Real student records belong in a database read through an authenticated API,
 not in `src/content`. Until then, treat everything in this repository as
 public.
 
-If you want the current timetable private *now*, the quickest route is to make
-the repository private — but note the names are already in the published
-history, so that limits future exposure rather than undoing past exposure.
+The admin area is a foundation for a later phase, not a product being built
+now. It holds the schedule view and nothing speculative; new tools get added
+when they are actually built.
 
 ---
 

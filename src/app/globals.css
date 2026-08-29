@@ -108,6 +108,27 @@
     @apply relative inline-block after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-calm hover:after:origin-left hover:after:scale-x-100;
   }
 
+
+  /*
+   * Header sizing scales continuously with the viewport instead of stepping at
+   * a breakpoint. Between a small laptop and a wide desktop the navigation
+   * grows smoothly, so the bar never jumps at 1280 and never leaves an
+   * obviously empty stretch in between. Above the container's max width the
+   * clamp holds it steady.
+   */
+  .nav-link {
+    font-size: clamp(0.8rem, 0.4rem + 0.625vw, 0.9rem);
+    padding-inline: clamp(0.375rem, -1.125rem + 2.34vw, 0.75rem);
+  }
+
+  .brand-name {
+    font-size: clamp(0.82rem, 0.13rem + 1.08vw, 1.05rem);
+  }
+
+  .brand-role {
+    font-size: clamp(0.56rem, 0.2125rem + 0.547vw, 0.65rem);
+  }
+
   /* Skip link for keyboard users. */
   .skip-link {
     @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-deep-700 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white;
