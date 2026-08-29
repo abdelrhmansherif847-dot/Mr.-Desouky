@@ -74,13 +74,13 @@ export function SiteHeader() {
           : 'border-b border-transparent bg-white',
       )}
     >
-      <div className="container-page lg:px-4 xl:px-10">
-        <div className="flex h-[4.5rem] items-center justify-between gap-2 lg:h-20 xl:gap-6">
-          <LogoLink nameClassName="brand-name" roleClassName="brand-role" />
+      <div className="container-page">
+        <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+          <LogoLink />
 
           {/* ---------- Desktop navigation ---------- */}
-          <nav aria-label="Main" className="hidden lg:block">
-            <ul className="flex items-center">
+          <nav aria-label="Main" className="hidden xl:block">
+            <ul className="flex items-center gap-1">
               {PRIMARY_NAV.map((item) => {
                 const active = isActive(pathname, item.href)
                 const hasChildren = Boolean(item.children?.length)
@@ -101,7 +101,7 @@ export function SiteHeader() {
                       aria-expanded={hasChildren ? openMenu === item.href : undefined}
                       onFocus={() => hasChildren && setOpenMenu(item.href)}
                       className={cn(
-                        'nav-link group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg py-2 font-medium transition-colors duration-200 ease-smooth',
+                        'group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium transition-colors duration-200 ease-smooth',
                         active
                           ? 'text-sky-600'
                           : 'text-deep-600 hover:bg-deep-50 hover:text-deep-800',
@@ -173,19 +173,14 @@ export function SiteHeader() {
           </nav>
 
           {/* ---------- Desktop portal actions ---------- */}
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             <Link
               href={PORTAL_NAV[0].href}
-              className="whitespace-nowrap rounded-lg px-1.5 py-2 text-[0.82rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800 xl:px-3 xl:text-[0.9rem]"
+              className="whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800"
             >
               {PORTAL_NAV[0].label}
             </Link>
-            <ButtonLink
-              href={PORTAL_NAV[1].href}
-              variant="secondary"
-              size="sm"
-              className="!py-2 !text-[clamp(0.8rem,0.4rem+0.625vw,0.9rem)] !px-[clamp(0.6rem,-1.2rem+2.8vw,1.25rem)]"
-            >
+            <ButtonLink href={PORTAL_NAV[1].href} variant="secondary" size="sm">
               {PORTAL_NAV[1].label}
             </ButtonLink>
           </div>
@@ -197,7 +192,7 @@ export function SiteHeader() {
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? 'Close menu' : 'Open menu'}
-            className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 lg:hidden"
+            className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 xl:hidden"
           >
             <span className="relative block h-3.5 w-5">
               <span
@@ -223,73 +218,84 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* ---------- Mobile drawer — designed for mobile, not squeezed ---------- */}
+      {/* ---------- Drawer — full-bleed on phones, a right-anchored panel above ---------- */}
       <div
         id="mobile-nav"
         inert={!open}
         aria-hidden={!open}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setOpen(false)
+        }}
         className={cn(
-          'fixed inset-x-0 bottom-0 top-[4.5rem] z-40 overflow-y-auto overscroll-contain',
-          'border-t border-deep-100 bg-white lg:hidden',
-          'transition-[opacity,transform,visibility] duration-200 ease-smooth',
-          'motion-reduce:transition-none',
-          open ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-1 opacity-0',
+          'fixed inset-x-0 bottom-0 top-[4.5rem] z-40 lg:top-20 xl:hidden',
+          'transition-[opacity,visibility] duration-200 ease-smooth motion-reduce:transition-none',
+          'sm:bg-deep-900/25',
+          open ? 'visible opacity-100' : 'invisible opacity-0',
         )}
       >
-        <nav aria-label="Mobile" className="container-page pb-10 pt-6">
-          <ul className="space-y-1">
-            {PRIMARY_NAV.map((item) => {
-              const active = isActive(pathname, item.href)
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex items-baseline justify-between gap-4 rounded-xl px-4 py-3.5 transition-colors duration-200 ease-smooth active:scale-[0.99] motion-reduce:active:scale-100',
-                      active ? 'bg-sky-50 text-sky-700' : 'text-deep-700 hover:bg-mist',
-                    )}
-                  >
-                    <span className="font-display text-lg font-semibold">{item.label}</span>
-                    {active ? (
-                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-sky-500">
-                        here
-                      </span>
+        <div
+          className={cn(
+            'h-full overflow-y-auto overscroll-contain border-t border-deep-100 bg-white',
+            'transition-transform duration-200 ease-smooth motion-reduce:transition-none',
+            'sm:ms-auto sm:h-auto sm:max-h-full sm:w-[26rem] sm:rounded-bl-card sm:border-s sm:shadow-lift',
+            open ? 'translate-y-0' : '-translate-y-1',
+          )}
+        >
+          <nav aria-label="Mobile" className="container-page pb-10 pt-6 sm:px-6 lg:px-6">
+            <ul className="space-y-1">
+              {PRIMARY_NAV.map((item) => {
+                const active = isActive(pathname, item.href)
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'flex items-baseline justify-between gap-4 rounded-xl px-4 py-3.5 transition-colors duration-200 ease-smooth active:scale-[0.99] motion-reduce:active:scale-100',
+                        active ? 'bg-sky-50 text-sky-700' : 'text-deep-700 hover:bg-mist',
+                      )}
+                    >
+                      <span className="font-display text-lg font-semibold">{item.label}</span>
+                      {active ? (
+                        <span className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-sky-500">
+                          here
+                        </span>
+                      ) : null}
+                    </Link>
+
+                    {item.children?.length ? (
+                      <ul className="mb-1 ml-4 mt-1 space-y-0.5 border-l border-deep-100 pl-3">
+                        {item.children.slice(1).map((child) => (
+                          <li key={child.href}>
+                            <Link
+                              href={child.href}
+                              className="block rounded-lg px-3 py-2.5 text-[0.92rem] text-deep-500 transition-colors duration-200 hover:bg-mist hover:text-deep-700"
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
-                  </Link>
+                  </li>
+                )
+              })}
+            </ul>
 
-                  {item.children?.length ? (
-                    <ul className="mb-1 ml-4 mt-1 space-y-0.5 border-l border-deep-100 pl-3">
-                      {item.children.slice(1).map((child) => (
-                        <li key={child.href}>
-                          <Link
-                            href={child.href}
-                            className="block rounded-lg px-3 py-2.5 text-[0.92rem] text-deep-500 transition-colors duration-200 hover:bg-mist hover:text-deep-700"
-                          >
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              )
-            })}
-          </ul>
-
-          <div className="mt-8 border-t border-deep-100 pt-6">
-            <p className="eyebrow mb-3 text-deep-400">Portals</p>
-            <div className="grid grid-cols-2 gap-3">
-              {PORTAL_NAV.map((item) => (
-                <ButtonLink key={item.href} href={item.href} variant="secondary" size="sm">
-                  {item.label}
-                </ButtonLink>
-              ))}
+            <div className="mt-8 border-t border-deep-100 pt-6">
+              <p className="eyebrow mb-3 text-deep-400">Portals</p>
+              <div className="grid grid-cols-2 gap-3">
+                {PORTAL_NAV.map((item) => (
+                  <ButtonLink key={item.href} href={item.href} variant="secondary" size="sm">
+                    {item.label}
+                  </ButtonLink>
+                ))}
+              </div>
+              <ButtonLink href="/contact" variant="primary" size="md" className="mt-3 w-full">
+                Book an assessment
+              </ButtonLink>
             </div>
-            <ButtonLink href="/contact" variant="primary" size="md" className="mt-3 w-full">
-              Book an assessment
-            </ButtonLink>
-          </div>
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
   )
