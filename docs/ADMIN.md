@@ -1,129 +1,123 @@
-# Admin area
+# Owner / admin access
 
-Internal tools for running the teaching practice. Deliberately separate from
-the public website: not in the navigation, not in the sitemap, not indexed.
+## What the inspection found
 
-```
-/admin            overview
-/admin/schedule   the weekly timetable
-```
+There is **no authentication in this project.** Not partial, not stubbed —
+none:
 
----
-
-## ⚠️ It is not protected, and on this hosting it cannot be
-
-Read this before putting anything real here.
-
-The site is a **static export served by GitHub Pages**. There is no server, so
-there is nothing to check a login. A sign-in screen on a static site is
-decoration — it hides nothing. Anyone who types `/admin` sees the page, and
-everything in the JavaScript bundle can be downloaded.
-
-**Separately: this repository is public.** Everything committed to it is
-readable by anyone, whether or not a route is linked — and that includes every
-past commit.
-
-Group names in `src/content/schedule.ts` are therefore anonymised
-(`مجموعة أ` … `مجموعة هـ`). Keep them that way: a static export bakes whatever
-is in that file into the published HTML, so there is nowhere in this project
-where a real name could sit and stay private.
-
-⚠️ **Real first names are still in commit `e7d7114`.** Removing them from the
-current file does not remove them from history. Two ways to deal with that:
-
-* **Make the repository private.** Fastest, and the right move if the site
-  will move to a private host anyway. It limits future exposure rather than
-  undoing past exposure.
-* **Purge them from history** with `git filter-repo` (or BFG) and force-push.
-  This rewrites every commit after that point, so anyone else with a clone
-  must re-clone. Say the word and I will do it.
-
-What is in place today is *privacy by intent*, which is worth having but is
-not security:
-
-| Measure | Effect |
+| Looked for | Result |
 | --- | --- |
-| Absent from all public navigation | Visitors do not stumble into it |
-| `robots: noindex, nofollow` on every admin page | Kept out of search results |
-| `Disallow: /admin/` in `robots.txt` | Well-behaved crawlers skip it |
-| Excluded from `sitemap.xml` | Not advertised |
+| Auth library in `package.json` | none (deps are `next`, `react`, `react-dom`) |
+| User store, session, or token handling | none |
+| Password or credential input anywhere | none |
+| `/login/student`, `/login/parent` | honest "not open yet" screens; no form, no sign-in |
+| `getViewer()` in `src/lib/portal/auth.ts` | returns `null` unconditionally |
+| Portal data | clearly-labelled sample data |
 
-None of that stops someone who knows the URL.
+So there is no existing login for an owner role to attach to. The role model
+and the attachment point now exist (`src/lib/admin/auth.ts`), but nothing
+authenticates yet.
 
----
+## What can and cannot be secured on the current host
 
-## Making it genuinely private
+The site is `output: 'export'` on GitHub Pages: static files, **no server, no
+request handler.** Nothing runs between a visitor and a file. That has one
+absolute consequence:
 
-Two things are needed, and both matter — either alone is not enough.
+> **No authorization of any kind can be enforced on this host.** Any check
+> would run in the visitor's browser, in JavaScript they downloaded and can
+> read and edit. A login screen here authenticates nothing.
 
-**1. A server to enforce a session.**
-Move off static export to a Node host (Vercel is the least friction for
-Next.js), then:
+This is why `getOwnerSession()` returns `null` rather than comparing an email
+in the browser. A client-side `email === OWNER` check is worse than no check:
+it enforces nothing *and* publishes the answer.
 
-* add a provider — Auth.js, Supabase Auth or Clerk;
-* implement `getAdminViewer()` in [`src/lib/admin/auth.ts`](../src/lib/admin/auth.ts);
-* guard `/admin/:path*` in `middleware.ts`, not in the component — a check
-  inside a page still ships the page;
-* set `IS_ADMIN_AUTH_ENABLED = true` and remove `<AccessNotice />`.
+### What is genuinely protected today
 
-**2. The data behind that server.**
-Real student records belong in a database read through an authenticated API,
-not in `src/content`. Until then, treat everything in this repository as
-public.
+**The admin routes are not published.** `.github/workflows/deploy-pages.yml`
+deletes `out/admin` before uploading and fails the build if anything matching
+`admin` survives. A file that was never deployed cannot be fetched, guessed,
+or bypassed.
 
-The admin area is a foundation for a later phase, not a product being built
-now. It holds the schedule view and nothing speculative; new tools get added
-when they are actually built.
+That is real, and different in kind from hiding a link. Previously
+`out/admin/index.html` *was* deployed, so anyone who guessed the URL got it.
 
----
+Consequence to be aware of: **`/admin` is now 404 on the live site.** Run it
+locally with `npm run dev` → `http://localhost:3000/admin`.
 
-## Architecture
+### What is UI-level only
 
-The public site and the admin area are siblings, not parent and child:
+`<OwnerEntry />` renders the dashboard link only when `getOwnerSession()`
+returns an owner. Because that is always `null` today, the markup is absent
+from every visitor's HTML — including yours. It is the correct integration
+point, not a working entry point, and it starts working by itself once auth
+is wired up.
 
+## Minimum infrastructure for real authorization
+
+Three things, none optional:
+
+1. **A host that runs server code** — Vercel, Netlify, Cloudflare Pages with
+   Functions, or any Node server. Remove `output: 'export'` from
+   `next.config.mjs`. Steps 2 and 3 cannot be enforced without this.
+2. **An identity provider** issuing verifiable sessions — Auth.js (NextAuth),
+   Supabase Auth, or Clerk. Sessions must be `httpOnly`, `Secure`,
+   `SameSite=Lax`.
+3. **A middleware guard** on `/admin/:path*`.
+
+Then set `ADMIN_EMAIL` as a host environment variable — no `NEXT_PUBLIC_`
+prefix, so Next.js cannot inline it into the browser bundle — and flip
+`IS_ADMIN_AUTH_ENABLED` to `true`.
+
+### The guard, ready to paste
+
+Create `middleware.ts` at the repository root. This runs on the server for
+every matching request, before any page renders:
+
+```ts
+import { NextResponse, type NextRequest } from 'next/server'
+import { getOwnerSession } from '@/lib/admin/auth'
+
+export async function middleware(request: NextRequest) {
+  const owner = await getOwnerSession()
+
+  // 404, not 403: a stranger should not learn that this area exists.
+  if (!owner) {
+    return NextResponse.rewrite(new URL('/404', request.url), { status: 404 })
+  }
+  return NextResponse.next()
+}
+
+export const config = { matcher: ['/admin/:path*'] }
 ```
-src/app/
-├── layout.tsx        document shell only — fonts, metadata, global styles
-├── (site)/
-│   ├── layout.tsx    public chrome: SiteHeader, PageTransition, SiteFooter, WhatsApp
-│   └── …             every public page and both portals
-└── admin/
-    ├── layout.tsx    noindex; inherits no public chrome
-    ├── page.tsx      overview
-    └── schedule/     the weekly timetable
+
+Then delete the "Strip the internal admin area" step from the deploy workflow
+— but **only after** the guard is verified working, because that step is the
+only thing protecting the area until then.
+
+### Verifying it actually works
+
+Do not trust the UI. Check the wire:
+
+```bash
+curl -si https://<host>/admin/ | head -1        # expect 404 when signed out
+curl -si https://<host>/admin/schedule/ | head -1
 ```
 
-`(site)` is a route group, so it does not appear in any URL — every public page
-still lives exactly where it did. The split exists so `/admin` can render its
-own chrome instead of the marketing header and footer.
+Sign in as a non-owner account and repeat. Both must still be 404. A guard
+that only hides the link in the header is not a guard.
 
-**Design language is shared, product identity is not.** The admin area uses the
-same tokens, type, spacing and motion system as the site, but reads as a
-different product: a deep header, an "Internal" marker, a denser working
-surface and no marketing links.
+## Data
 
----
+Anything committed to this repository is public while the repository is
+public, regardless of any login. Real student records belong in a database
+read through an authenticated API — never in `src/content`.
 
-## Adding a tool
+`src/content/schedule.ts` is anonymised (`مجموعة أ` … `مجموعة هـ`) and carries
+a warning header. Keep it that way.
 
-1. Put its data in `src/content/` (or, later, behind the API).
-2. Create `src/app/admin/<tool>/page.tsx` and wrap it in `<AdminShell>`.
-3. Add it to `ADMIN_NAV` in
-   [`src/components/admin/AdminShell.tsx`](../src/components/admin/AdminShell.tsx).
-4. Leave `<AccessNotice />` in place until auth is real.
+**Outstanding:** real student first names remain in the history of commit
+`e7d7114`. Two options, and a history rewrite needs an explicit go-ahead:
 
-The overview page lists Students, Attendance and Payments as the next tools;
-they are placeholders marked "Not built yet" rather than dead links.
-
----
-
-## The weekly schedule
-
-Lives at `/admin/schedule`, built from
-[`src/content/schedule.ts`](../src/content/schedule.ts) — days, time slots,
-groups, session types and notes. Editing that one file updates both the
-desktop timeline and the mobile day view.
-
-It was briefly a public page at `/schedule`. It is not any more: a timetable
-with student first names is an operational tool, not marketing, and the public
-site is better without it.
+- make the repository private, or
+- purge with `git filter-repo` and force-push.
