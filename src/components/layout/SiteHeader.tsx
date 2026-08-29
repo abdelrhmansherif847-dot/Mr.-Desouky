@@ -66,159 +66,174 @@ export function SiteHeader() {
   }
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300 ease-calm',
-        scrolled
-          ? 'border-b border-deep-100 bg-white/92 backdrop-blur-md'
-          : 'border-b border-transparent bg-white',
-      )}
-    >
-      <div className="container-page">
-        <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
-          <LogoLink />
+    <>
+      <header
+        className={cn(
+          'sticky top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300 ease-calm',
+          scrolled
+            ? 'border-b border-deep-100 bg-white/92 backdrop-blur-md'
+            : 'border-b border-transparent bg-white',
+        )}
+      >
+        <div className="container-page">
+          <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+            <LogoLink />
 
-          {/* ---------- Desktop navigation ---------- */}
-          <nav aria-label="Main" className="hidden xl:block">
-            <ul className="flex items-center gap-1">
-              {PRIMARY_NAV.map((item) => {
-                const active = isActive(pathname, item.href)
-                const hasChildren = Boolean(item.children?.length)
+            {/* ---------- Desktop navigation ---------- */}
+            <nav aria-label="Main" className="hidden xl:block">
+              <ul className="flex items-center gap-1">
+                {PRIMARY_NAV.map((item) => {
+                  const active = isActive(pathname, item.href)
+                  const hasChildren = Boolean(item.children?.length)
 
-                return (
-                  <li
-                    key={item.href}
-                    className="relative"
-                    onMouseEnter={() => {
-                      cancelClose()
-                      if (hasChildren) setOpenMenu(item.href)
-                    }}
-                    onMouseLeave={hasChildren ? scheduleClose : undefined}
-                  >
-                    <Link
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      aria-expanded={hasChildren ? openMenu === item.href : undefined}
-                      onFocus={() => hasChildren && setOpenMenu(item.href)}
-                      className={cn(
-                        'group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium transition-colors duration-200 ease-smooth',
-                        active
-                          ? 'text-sky-600'
-                          : 'text-deep-600 hover:bg-deep-50 hover:text-deep-800',
-                      )}
+                  return (
+                    <li
+                      key={item.href}
+                      className="relative"
+                      onMouseEnter={() => {
+                        cancelClose()
+                        if (hasChildren) setOpenMenu(item.href)
+                      }}
+                      onMouseLeave={hasChildren ? scheduleClose : undefined}
                     >
-                      {item.label}
-                      {hasChildren ? (
-                        <svg
-                          viewBox="0 0 12 12"
-                          aria-hidden="true"
-                          className={cn(
-                            'h-2.5 w-2.5 opacity-60 transition-transform duration-300 ease-calm motion-reduce:transition-none',
-                            openMenu === item.href && 'rotate-180',
-                          )}
-                        >
-                          <path
-                            d="M2.5 4.5 6 8l3.5-3.5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      ) : null}
-                      {active ? (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-center animate-indicator-in rounded-full bg-sky-500"
-                        />
-                      ) : (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-center scale-x-0 rounded-full bg-deep-200 transition-transform duration-300 ease-calm group-hover/nav:scale-x-100 motion-reduce:transition-none"
-                        />
-                      )}
-                    </Link>
-
-                    {hasChildren && openMenu === item.href ? (
-                      <div
-                        className="absolute left-0 top-full w-80 pt-3"
-                        onMouseEnter={cancelClose}
-                        onMouseLeave={scheduleClose}
+                      <Link
+                        href={item.href}
+                        aria-current={active ? 'page' : undefined}
+                        aria-expanded={hasChildren ? openMenu === item.href : undefined}
+                        onFocus={() => hasChildren && setOpenMenu(item.href)}
+                        className={cn(
+                          'group/nav relative flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium transition-colors duration-200 ease-smooth',
+                          active
+                            ? 'text-sky-600'
+                            : 'text-deep-600 hover:bg-deep-50 hover:text-deep-800',
+                        )}
                       >
-                        <div className="animate-fade-up rounded-card border border-deep-100 bg-white p-2 shadow-lift">
-                          {item.children!.map((child) => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className="block rounded-lg px-3 py-2.5 transition-colors duration-200 hover:bg-mist"
-                            >
-                              <span className="block text-sm font-semibold text-deep-700">
-                                {child.label}
-                              </span>
-                              {child.description ? (
-                                <span className="mt-0.5 block text-xs leading-relaxed text-deep-400">
-                                  {child.description}
+                        {item.label}
+                        {hasChildren ? (
+                          <svg
+                            viewBox="0 0 12 12"
+                            aria-hidden="true"
+                            className={cn(
+                              'h-2.5 w-2.5 opacity-60 transition-transform duration-300 ease-calm motion-reduce:transition-none',
+                              openMenu === item.href && 'rotate-180',
+                            )}
+                          >
+                            <path
+                              d="M2.5 4.5 6 8l3.5-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : null}
+                        {active ? (
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-center animate-indicator-in rounded-full bg-sky-500"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-center scale-x-0 rounded-full bg-deep-200 transition-transform duration-300 ease-calm group-hover/nav:scale-x-100 motion-reduce:transition-none"
+                          />
+                        )}
+                      </Link>
+
+                      {hasChildren && openMenu === item.href ? (
+                        <div
+                          className="absolute left-0 top-full w-80 pt-3"
+                          onMouseEnter={cancelClose}
+                          onMouseLeave={scheduleClose}
+                        >
+                          <div className="animate-fade-up rounded-card border border-deep-100 bg-white p-2 shadow-lift">
+                            {item.children!.map((child) => (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                className="block rounded-lg px-3 py-2.5 transition-colors duration-200 hover:bg-mist"
+                              >
+                                <span className="block text-sm font-semibold text-deep-700">
+                                  {child.label}
                                 </span>
-                              ) : null}
-                            </Link>
-                          ))}
+                                {child.description ? (
+                                  <span className="mt-0.5 block text-xs leading-relaxed text-deep-400">
+                                    {child.description}
+                                  </span>
+                                ) : null}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
 
-          {/* ---------- Desktop portal actions ---------- */}
-          <div className="hidden items-center gap-2 xl:flex">
-            <Link
-              href={PORTAL_NAV[0].href}
-              className="whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800"
+            {/* ---------- Desktop portal actions ---------- */}
+            <div className="hidden items-center gap-2 xl:flex">
+              <Link
+                href={PORTAL_NAV[0].href}
+                className="whitespace-nowrap rounded-lg px-3 py-2 text-[0.9rem] font-medium text-deep-600 transition-colors duration-200 hover:bg-deep-50 hover:text-deep-800"
+              >
+                {PORTAL_NAV[0].label}
+              </Link>
+              <ButtonLink href={PORTAL_NAV[1].href} variant="secondary" size="sm">
+                {PORTAL_NAV[1].label}
+              </ButtonLink>
+            </div>
+
+            {/* ---------- Mobile trigger ---------- */}
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-controls="mobile-nav"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 xl:hidden"
             >
-              {PORTAL_NAV[0].label}
-            </Link>
-            <ButtonLink href={PORTAL_NAV[1].href} variant="secondary" size="sm">
-              {PORTAL_NAV[1].label}
-            </ButtonLink>
+              <span className="relative block h-3.5 w-5">
+                <span
+                  className={cn(
+                    'absolute left-0 block h-0.5 w-5 rounded-full bg-current transition-[transform,top] duration-300 ease-calm',
+                    open ? 'top-1.5 rotate-45' : 'top-0',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'absolute left-0 top-1.5 block h-0.5 w-5 rounded-full bg-current transition-opacity duration-200',
+                    open && 'opacity-0',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'absolute left-0 block h-0.5 w-5 rounded-full bg-current transition-[transform,top] duration-300 ease-calm',
+                    open ? 'top-1.5 -rotate-45' : 'top-3',
+                  )}
+                />
+              </span>
+            </button>
           </div>
-
-          {/* ---------- Mobile trigger ---------- */}
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            className="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border border-deep-100 text-deep-700 transition-colors duration-200 hover:bg-deep-50 xl:hidden"
-          >
-            <span className="relative block h-3.5 w-5">
-              <span
-                className={cn(
-                  'absolute left-0 block h-0.5 w-5 rounded-full bg-current transition-[transform,top] duration-300 ease-calm',
-                  open ? 'top-1.5 rotate-45' : 'top-0',
-                )}
-              />
-              <span
-                className={cn(
-                  'absolute left-0 top-1.5 block h-0.5 w-5 rounded-full bg-current transition-opacity duration-200',
-                  open && 'opacity-0',
-                )}
-              />
-              <span
-                className={cn(
-                  'absolute left-0 block h-0.5 w-5 rounded-full bg-current transition-[transform,top] duration-300 ease-calm',
-                  open ? 'top-1.5 -rotate-45' : 'top-3',
-                )}
-              />
-            </span>
-          </button>
         </div>
-      </div>
+      </header>
 
-      {/* ---------- Drawer — full-bleed on phones, a right-anchored panel above ---------- */}
+      {/*
+        ---------- Drawer ----------
+
+        This MUST stay a sibling of <header>, never a child of it.
+
+        When the page is scrolled the header gains `backdrop-blur-md`, and a
+        backdrop-filter makes an element the containing block for every
+        `position: fixed` descendant. Nested inside, the drawer would resolve
+        `top-[4.5rem] bottom-0` against the 72px header box instead of the
+        viewport and collapse to zero height — so the menu opened correctly at
+        the top of a page and silently opened *nothing* anywhere else.
+
+        Full-bleed on phones; a right-anchored panel over a dimmed page above.
+      */}
       <div
         id="mobile-nav"
         inert={!open}
@@ -227,7 +242,9 @@ export function SiteHeader() {
           if (event.target === event.currentTarget) setOpen(false)
         }}
         className={cn(
-          'fixed inset-x-0 bottom-0 top-[4.5rem] z-40 lg:top-20 xl:hidden',
+          // Above the floating WhatsApp action (z-40), which otherwise painted
+          // over the menu's own buttons, and below the header (z-50).
+          'fixed inset-x-0 bottom-0 top-[4.5rem] z-[45] lg:top-20 xl:hidden',
           'transition-[opacity,visibility] duration-200 ease-smooth motion-reduce:transition-none',
           'sm:bg-deep-900/25',
           open ? 'visible opacity-100' : 'invisible opacity-0',
@@ -241,7 +258,16 @@ export function SiteHeader() {
             open ? 'translate-y-0' : '-translate-y-1',
           )}
         >
-          <nav aria-label="Mobile" className="container-page pb-10 pt-6 sm:px-6 lg:px-6">
+          <nav
+            aria-label="Mobile"
+            // Closing on route change alone leaves the drawer open when the
+            // link points at the page you are already on — tapping "Home" from
+            // Home looked like the menu had jammed.
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest('a')) setOpen(false)
+            }}
+            className="container-page pb-10 pt-6 sm:px-6 lg:px-6"
+          >
             <ul className="space-y-1">
               {PRIMARY_NAV.map((item) => {
                 const active = isActive(pathname, item.href)
@@ -297,6 +323,6 @@ export function SiteHeader() {
           </nav>
         </div>
       </div>
-    </header>
+    </>
   )
 }
