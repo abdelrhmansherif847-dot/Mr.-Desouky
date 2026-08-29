@@ -68,7 +68,6 @@ only optional ones are for contact-form delivery (below).
 | `/` | Who, what, how the system works, why to trust it |
 | `/programs` | All four programs, compared side by side |
 | `/programs/[slug]` | SAT Basic · SAT Advanced · EST Basic · EST Advanced |
-| `/schedule` | The weekly teaching timetable — Arabic, right-to-left |
 | `/method` | The Desouky Method — READ · ANALYZE · PLAN · SOLVE · CHECK |
 | `/journey` | The seven-stage student journey |
 | `/how-it-works` | The educational system, stage by stage |
@@ -99,6 +98,19 @@ Both seams are documented and ready:
 
 Portals are `noindex` and excluded from the sitemap.
 
+### Admin area — internal
+
+| Route | Purpose |
+| --- | --- |
+| `/admin` | Overview of the internal tools |
+| `/admin/schedule` | The weekly teaching timetable — Arabic, right-to-left |
+
+Not in the navigation, not in the sitemap, `noindex` and disallowed in
+`robots.txt`. **It is not access-controlled** — a static site has no server to
+check a login, and this repository is public, so nothing in it is private.
+[`docs/ADMIN.md`](docs/ADMIN.md) explains what that means and what real
+protection requires.
+
 ---
 
 ## Project structure
@@ -106,10 +118,10 @@ Portals are `noindex` and excluded from the sitemap.
 ```
 src/
 ├── app/                      routes (Next.js App Router)
-│   ├── layout.tsx            fonts, metadata, header/footer, JSON-LD
+│   ├── layout.tsx            document shell — fonts, metadata, JSON-LD
 │   ├── page.tsx              home
 │   ├── contact/              contact page
-│   ├── schedule/             weekly timetable page
+│   ├── admin/                internal tools — own chrome, noindex
 │   ├── sitemap.ts robots.ts  SEO
 │   ├── student/  parent/     portals (own layout + nav)
 │   └── login/                portal entry screens

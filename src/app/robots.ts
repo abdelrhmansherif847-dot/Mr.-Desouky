@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
         `${SITE.basePath}/student/`,
         `${SITE.basePath}/parent/`,
         `${SITE.basePath}/login/`,
+        `${SITE.basePath}/admin/`,
       ],
     },
     sitemap: `${SITE.url}/sitemap.xml`,

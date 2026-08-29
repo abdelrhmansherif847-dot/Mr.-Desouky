@@ -80,22 +80,25 @@ on the site asserts a fact that has not been confirmed.
 
 ---
 
-## 5. Weekly schedule — confirm before publishing
+## 5. Weekly schedule — internal, not public
 
-**File: `src/content/schedule.ts`**
+**File: `src/content/schedule.ts`** · shown at `/admin/schedule`
 
-The whole timetable — days, time slots, student groups, breaks, open time and
-notes — lives in this one file. Editing it updates both the desktop grid and
-the mobile day view; no component needs touching.
+The timetable is no longer part of the public website. It lives in the admin
+area: not in the navigation, not in the sitemap, `noindex`.
+
+**It is still not private.** This repository is public, so the file — and every
+past version of it — is readable by anyone, and a static site has no server to
+enforce a login. See [`ADMIN.md`](ADMIN.md).
 
 - [ ] Confirm the four teaching days and every time slot
 - [ ] Confirm the student group names as they should appear publicly
       (`يوسف + صحابه`, `مصطفى`, `أحمد + أسر`, `رقية + زينب + أسماء`,
       `ريم + ياسين + رويا`)
-- [ ] **Decide whether student first names should be public at all.** They are
-      currently visible to anyone who finds the page. If that is not intended,
-      replace them with group labels (e.g. `مجموعة أ`) — the file is the only
-      place to change.
+- [ ] **Decide whether student first names should be in a public repository.**
+      They are, today, including in past commits. If that is not intended:
+      make the repository private, and/or replace the names with group labels
+      (e.g. `مجموعة أ`) — this file is the only place to change.
 - [ ] Confirm the standing rules in `SCHEDULE_RULES`
 - [ ] Keep `SCHEDULE_UPDATES` current, or empty it once the changes are old news
 

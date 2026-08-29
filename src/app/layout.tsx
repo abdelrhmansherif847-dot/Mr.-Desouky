@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic, Inter, Plus_Jakarta_Sans } from 'next/font/google'
-import { SiteHeader } from '@/components/layout/SiteHeader'
-import { SiteFooter } from '@/components/layout/SiteFooter'
-import { WhatsAppButton } from '@/components/layout/WhatsAppButton'
-import { PageTransition } from '@/components/motion/PageTransition'
 import { SITE } from '@/content/site'
 import { JsonLd, organizationJsonLd, personJsonLd } from '@/lib/seo'
 import './globals.css'
@@ -115,15 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body className="flex min-h-dvh flex-col">
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <SiteHeader />
-        <PageTransition id="main" className="flex-1">
-          {children}
-        </PageTransition>
-        <SiteFooter />
-        <WhatsAppButton />
+        {children}
         <JsonLd data={[organizationJsonLd(), personJsonLd()]} />
       </body>
     </html>

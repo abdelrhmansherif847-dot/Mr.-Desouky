@@ -12,6 +12,10 @@ import { cn } from '@/lib/utils'
 
 type LogoProps = {
   variant?: 'color' | 'mono'
+  /** Extra classes for the role line — lets the header hide it where space is tight. */
+  roleClassName?: string
+  /** Extra classes for the name — lets the header shrink it where space is tight. */
+  nameClassName?: string
   /** Hides the typographic wordmark and shows the mark alone. */
   markOnly?: boolean
   size?: 'sm' | 'md' | 'lg'
@@ -50,7 +54,7 @@ export function LogoMark({ variant = 'color', size = 'md', className }: Omit<Log
   )
 }
 
-export function Logo({ variant = 'color', markOnly = false, size = 'md', className }: LogoProps) {
+export function Logo({ variant = 'color', markOnly = false, size = 'md', className, roleClassName, nameClassName }: LogoProps) {
   const dark = variant === 'mono'
 
   return (
@@ -62,6 +66,7 @@ export function Logo({ variant = 'color', markOnly = false, size = 'md', classNa
             className={cn(
               'font-display text-[0.98rem] font-bold tracking-tight sm:text-[1.05rem]',
               dark ? 'text-white' : 'text-deep-700',
+              nameClassName,
             )}
           >
             {SITE.name}
@@ -70,6 +75,7 @@ export function Logo({ variant = 'color', markOnly = false, size = 'md', classNa
             className={cn(
               'mt-1 font-mono text-[0.6rem] uppercase tracking-[0.16em] sm:text-[0.65rem]',
               dark ? 'text-sky-300' : 'text-sky-600',
+              roleClassName,
             )}
           >
             {SITE.role}
@@ -80,14 +86,14 @@ export function Logo({ variant = 'color', markOnly = false, size = 'md', classNa
   )
 }
 
-export function LogoLink({ variant = 'color', size = 'md', className }: LogoProps) {
+export function LogoLink({ variant = 'color', size = 'md', className, roleClassName, nameClassName }: LogoProps) {
   return (
     <Link
       href="/"
       aria-label={`${SITE.name} — home`}
       className={cn('group inline-flex items-center rounded-lg', className)}
     >
-      <Logo variant={variant} size={size} />
+      <Logo variant={variant} size={size} roleClassName={roleClassName} nameClassName={nameClassName} />
     </Link>
   )
 }

@@ -1,11 +1,20 @@
 import Link from 'next/link'
+import { SiteHeader } from '@/components/layout/SiteHeader'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { ArrowRight, ButtonLink } from '@/components/ui/Button'
 import { GlyphMark } from '@/components/brand/MathTexture'
 import { PRIMARY_NAV } from '@/content/site'
 
+/**
+ * The global 404 is outside the (site) route group — an unmatched URL belongs
+ * to no group — so it brings the public header and footer along itself.
+ */
 export default function NotFound() {
   return (
-    <section className="relative overflow-hidden bg-paper">
+    <>
+      <SiteHeader />
+      <main id="main" className="flex-1">
+        <section className="relative overflow-hidden bg-paper">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 texture-grid mask-fade-b opacity-70" />
 
       <div className="container-page relative py-20 sm:py-28 lg:py-36">
@@ -49,6 +58,9 @@ export default function NotFound() {
           </div>
         </div>
       </div>
-    </section>
+        </section>
+      </main>
+      <SiteFooter />
+    </>
   )
 }
