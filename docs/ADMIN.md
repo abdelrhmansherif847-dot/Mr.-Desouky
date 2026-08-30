@@ -109,15 +109,35 @@ A guard that only hides a link in the header is not a guard.
 
 ## What is enforced today, precisely
 
-| | Status |
+Verified against the live project with two temporary accounts (one student,
+one owner), since deleted. The database is back to 0 users, 0 profiles.
+
+| Check | Result |
 | --- | --- |
+| Supabase security advisors | **0 issues** |
+| Rows a student can read | **1** — their own only |
+| Rows an owner can read | **all** |
+| `is_owner()` for a student / owner | **false / true** |
+| Student promoting themselves to owner | **refused** — `role is not user-modifiable` |
+| Student editing another person's row | **0 rows** — RLS matched nothing |
+| Student renaming themselves | **allowed** — the lock is not over-broad |
+| Student INSERT into profiles | **refused** — `permission denied` |
+| Anonymous SELECT from profiles | **refused** — `permission denied` |
+| `/admin` with Supabase unconfigured | **404** — fails closed |
 | `/admin` on GitHub Pages | **Not published.** Cannot be fetched |
-| `/admin` on Vercel, signed out | **404** — server-enforced, verified |
-| `/admin` with Supabase unconfigured | **404** — fails closed, verified |
-| `/admin` signed in as non-owner | **404** — enforced by the role check |
-| `role` escalation by a client | **Impossible** — no RLS policy permits it |
 | Owner email in the browser bundle | **Never** — it lives only in the database |
 | Public pages made dynamic by this | **None** — all 26 stay static |
+
+Two of those matter more than the rest. A student INSERT is refused by
+*privileges*, before RLS is even consulted; and the escalation is refused by a
+*trigger*, not by a policy — so neither depends on a policy expression being
+written correctly.
+
+**Not yet verified end to end:** a real browser sign-in against
+`/admin`, because this sandbox's egress policy blocks `*.supabase.co`. The
+authorization logic is proven at the database layer above, and the middleware
+is proven to fail closed. The one untested link is the session cookie round
+trip, which the curl checks below confirm after deployment.
 
 ## Where the owner's entry point lives
 
