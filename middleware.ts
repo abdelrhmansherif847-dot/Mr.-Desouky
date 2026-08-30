@@ -19,18 +19,23 @@ const notFound = (request: NextRequest) =>
   NextResponse.rewrite(new URL('/404', request.url), { status: 404 })
 
 export async function middleware(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  // Unconfigured means unprotected, so refuse rather than fail open.
-  if (!url || !key) return notFound(request)
-
-  // The sign-in screen and the auth callback must stay reachable, or there
-  // would be no way for the owner to obtain a session in the first place.
+  // The sign-in screen is the front door and is checked FIRST, before
+  // anything else can refuse it. Ordering this after the configuration check
+  // below was a real bug: on a deployment missing the Supabase variables the
+  // login page answered 404, so there was no way to sign in and no way to see
+  // why. It reveals nothing a configured deployment does not — it cannot
+  // authenticate anyone, and it never discloses whether an address is known.
   const { pathname } = request.nextUrl
   if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
     return NextResponse.next({ request })
   }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  // Unconfigured means unprotected, so every other admin route is refused
+  // rather than failing open.
+  if (!url || !key) return notFound(request)
 
   let response = NextResponse.next({ request })
 
