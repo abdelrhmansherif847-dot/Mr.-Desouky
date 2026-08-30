@@ -121,6 +121,26 @@ Prefer the dashboard's Add User, or the Admin API, which set them correctly.
 Note that both are refused while sign-ups are closed (migration 0003), so
 re-open, create, then close again.
 
+## Email sending, and its limit
+
+Supabase's built-in email sender allows only a few messages per hour and is
+documented as being for testing, not production. Exceeding it returns:
+
+    429  over_email_send_rate_limit  "email rate limit exceeded"
+
+There is a second, shorter limit too — "you can only request this after 22
+seconds" — which is a per-request cooldown rather than the hourly quota.
+Waiting a minute clears that one; only time clears the quota.
+
+This bit during setup: several sign-in attempts in quick succession exhausted
+the hour, and the screen reported a generic failure, so it looked like a fault
+in the code. The form now shows the real message.
+
+**Before real use, attach your own SMTP sender** — Supabase → Project Settings
+→ Authentication → SMTP Settings. Resend, Postmark, SES or any provider works.
+The quota then becomes theirs rather than Supabase's shared test allowance,
+and messages stop landing in spam, which the default sender frequently does.
+
 ## Reading the real error
 
 The site deliberately shows the same neutral message whatever goes wrong, so

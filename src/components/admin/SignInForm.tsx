@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button'
 export function SignInForm({ configured }: { configured: boolean }) {
   const [email, setEmail] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [notice, setNotice] = useState<string | null>(null)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -36,9 +37,26 @@ export function SignInForm({ configured }: { configured: boolean }) {
       },
     })
 
-    // Same outcome either way, so a failure cannot be read as a signal about
-    // the address. Only a genuine transport failure shows an error.
-    setState(error && error.status !== 400 ? 'error' : 'sent')
+    // A 400 is reported as success on purpose: it is how an unknown address
+    // answers, and revealing it would turn this screen into a way to discover
+    // who can sign in.
+    //
+    // Everything else is shown verbatim. A rate limit or an outage says
+    // nothing about any particular address -- it is global -- and hiding it
+    // behind "could not be sent" cost real debugging time: the server was
+    // answering 429 "email rate limit exceeded" while this screen implied
+    // something was broken.
+    if (!error || error.status === 400) {
+      setState('sent')
+      return
+    }
+
+    setNotice(
+      error.status === 429
+        ? `${error.message} Supabase's built-in sender allows only a few emails per hour.`
+        : error.message,
+    )
+    setState('error')
   }
 
   return (
@@ -81,10 +99,8 @@ export function SignInForm({ configured }: { configured: boolean }) {
               {state === 'sending' ? 'Sending…' : 'Email me a link'}
             </Button>
 
-            {state === 'error' ? (
-              <p className="mt-3 text-sm text-alert-600">
-                That could not be sent just now. Please try again.
-              </p>
+            {state === 'error' && notice ? (
+              <p className="mt-3 break-words text-sm text-alert-600">{notice}</p>
             ) : null}
           </form>
         </>
