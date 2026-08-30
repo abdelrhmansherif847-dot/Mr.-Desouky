@@ -28,7 +28,12 @@ export function SignInForm({ configured }: { configured: boolean }) {
     )
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // Never create an account from this form. Sign-ups are closed in the
+        // database too; this simply avoids attempting one.
+        shouldCreateUser: false,
+      },
     })
 
     // Same outcome either way, so a failure cannot be read as a signal about
