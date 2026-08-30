@@ -92,6 +92,48 @@ select email, role from public.profiles where role = 'owner';   -- expect 1 row
 By hand, deliberately. An application that can grant `owner` is an application
 that can be tricked into granting it.
 
+## Creating accounts: use the Admin API, not raw SQL
+
+Creating a user with `insert into auth.users (...)` leaves several columns
+NULL that GoTrue scans into Go strings, which cannot hold NULL. Every
+subsequent sign-in attempt then fails with a 500 and this in the auth logs:
+
+    error finding user: sql: Scan error on column index 3,
+    name "confirmation_token": converting NULL to string is unsupported
+
+The owner account was created this way and hit exactly that. If you ever add
+an account by SQL again, set these to empty strings in the same statement:
+
+```sql
+update auth.users
+   set confirmation_token         = coalesce(confirmation_token, ''),
+       recovery_token             = coalesce(recovery_token, ''),
+       email_change               = coalesce(email_change, ''),
+       email_change_token_new     = coalesce(email_change_token_new, ''),
+       email_change_token_current = coalesce(email_change_token_current, ''),
+       phone_change               = coalesce(phone_change, ''),
+       phone_change_token         = coalesce(phone_change_token, ''),
+       reauthentication_token     = coalesce(reauthentication_token, '')
+ where id = '<the new user>';
+```
+
+Prefer the dashboard's Add User, or the Admin API, which set them correctly.
+Note that both are refused while sign-ups are closed (migration 0003), so
+re-open, create, then close again.
+
+## Reading the real error
+
+The site deliberately shows the same neutral message whatever goes wrong, so
+it cannot be used to probe. The actual reason is in the auth logs:
+
+```sql
+select timestamp, event_message from logs
+ where source = 'auth_logs' order by timestamp desc limit 25
+```
+
+That is how the NULL-column failure above was identified — the UI only said
+"That could not be sent just now."
+
 ## Verify it on the wire
 
 Do not trust the UI. Check the responses:
