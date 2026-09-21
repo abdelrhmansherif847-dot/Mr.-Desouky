@@ -150,6 +150,12 @@ const config: Config = {
           from: { transform: 'scaleX(0)', opacity: '0' },
           to: { transform: 'scaleX(1)', opacity: '1' },
         },
+        // A confirmation mark drawing itself, for the moment a sign-in
+        // succeeds. Same family as grow-bar: one direction, settling.
+        'draw-check': {
+          from: { strokeDashoffset: '32' },
+          to: { strokeDashoffset: '0' },
+        },
         // Mobile drawer.
         'drawer-in': {
           from: { opacity: '0', transform: 'translate3d(0, -8px, 0)' },
@@ -164,6 +170,7 @@ const config: Config = {
         'ambient-drift-slow': 'ambient-drift 32s cubic-bezier(0.4, 0, 0.2, 1) infinite',
         'ambient-breathe': 'ambient-breathe 14s cubic-bezier(0.4, 0, 0.2, 1) infinite',
         'indicator-in': 'indicator-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'draw-check': 'draw-check 0.62s cubic-bezier(0.16, 1, 0.3, 1) both',
         'drawer-in': 'drawer-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
       },
       transitionTimingFunction: {

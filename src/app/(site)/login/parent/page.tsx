@@ -1,4 +1,4 @@
-import { LoginPanel } from '@/components/portal/LoginPanel'
+import { PortalAuth } from '@/components/portal/PortalAuth'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata = {
@@ -12,16 +12,5 @@ export const metadata = {
 }
 
 export default function ParentLoginPage() {
-  return (
-    <LoginPanel
-      audience="Parent"
-      previewHref="/parent"
-      points={[
-        'Attendance and homework completion, session by session',
-        'Quiz and mock performance, with the trend over time',
-        'Which topics are secure and which are being worked on',
-        'Written feedback after every quiz and mock',
-      ]}
-    />
-  )
+  return <PortalAuth initial="parent" />
 }

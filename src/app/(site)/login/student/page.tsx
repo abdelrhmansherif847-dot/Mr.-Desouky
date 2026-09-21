@@ -1,4 +1,4 @@
-import { LoginPanel } from '@/components/portal/LoginPanel'
+import { PortalAuth } from '@/components/portal/PortalAuth'
 import { pageMeta } from '@/lib/seo'
 
 export const metadata = {
@@ -12,16 +12,5 @@ export const metadata = {
 }
 
 export default function StudentLoginPage() {
-  return (
-    <LoginPanel
-      audience="Student"
-      previewHref="/student"
-      points={[
-        'Where you are in the seven-stage journey',
-        'Upcoming sessions and what to prepare',
-        'Homework, quizzes, reviews and mock results',
-        'Your strengths, your weak topics, and the next action',
-      ]}
-    />
-  )
+  return <PortalAuth initial="student" />
 }

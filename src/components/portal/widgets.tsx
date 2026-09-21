@@ -81,7 +81,9 @@ export function StatTile({
     >
       <p className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-deep-300">{label}</p>
       <p className="mt-2 flex items-baseline gap-1">
-        <span className={cn('font-display text-2xl font-bold tabular-nums sm:text-3xl', tones[tone])}>
+        <span
+          className={cn('font-display text-2xl font-bold tabular-nums sm:text-3xl', tones[tone])}
+        >
           {countTo !== undefined ? <CountUp value={countTo} suffix={countSuffix} /> : value}
         </span>
         {unit ? <span className="text-sm font-medium text-deep-400">{unit}</span> : null}
@@ -103,11 +105,7 @@ const STATUS_STYLES = {
   weak: { label: 'Needs work', cls: 'bg-alert-50 text-alert-700 ring-alert-200/70' },
 } as const
 
-export function StatusPill({
-  status,
-}: {
-  status: SessionStatus | HomeworkStatus | TopicStatus
-}) {
+export function StatusPill({ status }: { status: SessionStatus | HomeworkStatus | TopicStatus }) {
   const style = STATUS_STYLES[status]
   return (
     <span

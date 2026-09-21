@@ -6,6 +6,8 @@ import { LogoMark } from '@/components/brand/Logo'
 import { ButtonLink } from '@/components/ui/Button'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 
+import { resolveDestination } from '@/lib/auth/destinations'
+
 /**
  * Completes sign-in from whichever form the link came back in:
  *
@@ -65,9 +67,13 @@ export function CompleteSignIn() {
         return setError('This link carried no sign-in token. It may already have been used.')
       }
 
+      // Where to land. Attacker-controlled, so it is allowlisted — see
+      // resolveDestination, which is unit-tested against hostile values.
+      const destination = resolveDestination(params.get('next'))
+
       // A full navigation, not a router push, so the request carries the
       // freshly written cookies and the middleware sees the session.
-      window.location.replace('/admin')
+      window.location.replace(destination)
     })().catch((cause) => {
       if (!cancelled) setError(cause instanceof Error ? cause.message : String(cause))
     })
