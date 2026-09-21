@@ -134,8 +134,14 @@ export function PortalAuth({ initial }: { initial: Audience }) {
           </div>
 
           {/* ---------- Right: the card ---------- */}
+          {/* Capped in the single-column layout. Left to fill the column it
+              reached 720px at tablet width, which put a 600px-wide field and
+              button on screen and made the form outweigh the message beside
+              it. max-w-md matches the plot and the rail exactly, so card,
+              curve and axis share one left edge and one width. Above lg the
+              grid column is already narrower, so nothing changes there. */}
           <div
-            className="animate-fade-up lg:justify-self-end lg:w-full"
+            className="max-w-md animate-fade-up lg:max-w-none lg:justify-self-end lg:w-full"
             style={{ animationDelay: `${staggerDelay(3)}ms` }}
           >
             <PortalSignInCard audience={audience} onAudienceChange={change} />
