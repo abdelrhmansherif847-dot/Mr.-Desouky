@@ -9,8 +9,7 @@ export type PortalNavItem = { label: string; href: string; icon: keyof typeof IC
 const ICONS = {
   overview: 'M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z',
   journey: 'M5 19V5m0 0 4 3-4 3m14 8V5m0 0-4 3 4 3M9 19h6',
-  sessions:
-    'M7 3v3m10-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z',
+  sessions: 'M7 3v3m10-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z',
   homework: 'M6 4h9l4 4v12H6V4Zm9 0v4h4M9 13h7M9 17h5',
   quizzes: 'M9 11l2 2 4-4m-9 9h12a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z',
   mocks: 'M4 19V9m5 10V5m5 14v-7m5 7V7',
@@ -19,11 +18,7 @@ const ICONS = {
 
 function Icon({ name, className }: { name: keyof typeof ICONS; className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={cn('h-[1.05rem] w-[1.05rem]', className)}
-      aria-hidden="true"
-    >
+    <svg viewBox="0 0 24 24" className={cn('h-[1.05rem] w-[1.05rem]', className)} aria-hidden="true">
       <path
         d={ICONS[name]}
         fill="none"
@@ -78,7 +73,9 @@ export function PortalShell({
                       aria-current={active ? 'page' : undefined}
                       className={cn(
                         'relative flex items-center gap-2 whitespace-nowrap rounded-t-lg px-3.5 py-3 text-sm font-medium transition-colors duration-200 sm:px-4',
-                        active ? 'text-sky-600' : 'text-deep-500 hover:bg-mist hover:text-deep-700',
+                        active
+                          ? 'text-sky-600'
+                          : 'text-deep-500 hover:bg-mist hover:text-deep-700',
                       )}
                     >
                       <Icon name={item.icon} />
