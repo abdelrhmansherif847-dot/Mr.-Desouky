@@ -8,6 +8,12 @@
 
 export type Audience = 'student' | 'parent'
 
+/**
+ * In the order they appear in the control, which is also the order the sign-in
+ * screen parks them in: Student on the left, Parent on the right.
+ */
+export const AUDIENCES = ['student', 'parent'] as const
+
 type AudienceCopy = {
   switchLabel: string
   eyebrow: string

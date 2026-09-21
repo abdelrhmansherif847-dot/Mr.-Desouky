@@ -39,6 +39,13 @@ export const DURATION = {
 export const EASING = {
   calm: 'cubic-bezier(0.16, 1, 0.3, 1)',
   smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  /**
+   * The only curve on the site that overshoots. A segmented control is a
+   * physical object being moved, and an object with mass settles rather than
+   * arriving exactly. Reserved for that; everything else still settles from
+   * one side.
+   */
+  spring: 'cubic-bezier(0.34, 1.42, 0.64, 1)',
 } as const
 
 /** Travel distance in px. Deliberately small — motion should be felt, not watched. */

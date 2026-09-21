@@ -189,6 +189,10 @@ const config: Config = {
       transitionTimingFunction: {
         calm: 'cubic-bezier(0.16, 1, 0.3, 1)',
         smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        // The one curve allowed to pass its destination and come back. Reserved
+        // for the segmented control, where a little overshoot is what makes a
+        // physical object read as having mass rather than being redrawn.
+        spring: 'cubic-bezier(0.34, 1.42, 0.64, 1)',
       },
     },
   },

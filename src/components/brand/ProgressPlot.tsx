@@ -13,6 +13,11 @@ import { cn } from '@/lib/utils'
  * Deliberately not a chart: no numbers, no axis labels, no claim about any
  * score. It is editorial texture that happens to be mathematically literate.
  *
+ * The points acknowledge a pointer resting on them — the dot grows a little
+ * and a soft halo comes up under it — and do nothing else. No tooltip, no
+ * value, no click target: it stays texture that happens to notice you rather
+ * than becoming a chart asking to be read.
+ *
  * Purely decorative and low contrast, so it never competes with the copy and
  * is hidden from assistive technology. Under reduced motion the global rule
  * removes the animation and the finished curve is simply present.
@@ -96,22 +101,45 @@ export function ProgressPlot({
         vectorEffect="non-scaling-stroke"
       />
 
-      {POINTS.map((point, index) => (
-        <circle
-          key={`${point.x}-${point.y}`}
-          cx={point.x}
-          cy={point.y}
-          r="3.2"
-          fill={index === POINTS.length - 1 ? '#7BCB8B' : '#AEDDF5'}
-          fillOpacity={index === POINTS.length - 1 ? 0.9 : 0.45}
-          className="animate-plot-point"
-          style={{
-            animationDelay: `${420 + index * 380}ms`,
-            transformOrigin: `${point.x}px ${point.y}px`,
-          }}
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
+      {POINTS.map((point, index) => {
+        const reached = index === POINTS.length - 1
+        const colour = reached ? '#7BCB8B' : '#AEDDF5'
+        const origin = { transformOrigin: `${point.x}px ${point.y}px` }
+        return (
+          <g key={`${point.x}-${point.y}`} className="plot-point">
+            {/* The arrival animation sits on this group and the hover response
+                on the dot inside it. Both are transforms, and an animation
+                with a fill mode would otherwise hold the dot at scale(1) and
+                silently win. */}
+            <g
+              className="animate-plot-point"
+              style={{ animationDelay: `${420 + index * 380}ms`, ...origin }}
+            >
+              <circle
+                className="plot-halo"
+                cx={point.x}
+                cy={point.y}
+                r="7"
+                fill={colour}
+                style={origin}
+              />
+              <circle
+                className="plot-dot"
+                cx={point.x}
+                cy={point.y}
+                r="3.2"
+                fill={colour}
+                fillOpacity={reached ? 0.9 : 0.45}
+                style={origin}
+                vectorEffect="non-scaling-stroke"
+              />
+            </g>
+            {/* A finger-and-pointer-sized target over the 3px dot. Invisible,
+                and the only part of the drawing that takes the pointer. */}
+            <circle cx={point.x} cy={point.y} r="10" fill="transparent" />
+          </g>
+        )
+      })}
     </svg>
   )
 }

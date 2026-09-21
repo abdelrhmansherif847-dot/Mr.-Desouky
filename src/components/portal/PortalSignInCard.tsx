@@ -8,7 +8,8 @@ import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/s
 import { CONTACT, whatsappLink } from '@/content/site'
 import { cn } from '@/lib/utils'
 import type { Audience } from './audience'
-import { AUDIENCE } from './audience'
+import { AUDIENCE, AUDIENCES } from './audience'
+import { AudienceSwap } from './AudienceSwap'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
@@ -118,11 +119,22 @@ export function PortalSignInCard({
             <>
               <AudienceSwitch audience={audience} onChange={onAudienceChange} />
 
-              <div className="mt-6">
-                <p className="eyebrow text-sky-600">{copy.eyebrow}</p>
-                <h2 className="mt-2 font-display text-xl font-bold text-deep-700">Sign in</h2>
-                <p className="mt-2 text-sm leading-relaxed text-deep-500">{copy.cardLead}</p>
-              </div>
+              {/* Only the words are handed over. The form below sits outside
+                  this wrapper on purpose: it is never keyed and never
+                  remounted, so whatever has been typed survives the switch. */}
+              <AudienceSwap
+                audience={audience}
+                className="mt-6"
+                render={(value) => (
+                  <>
+                    <p className="eyebrow text-sky-600">{AUDIENCE[value].eyebrow}</p>
+                    <h2 className="mt-2 font-display text-xl font-bold text-deep-700">Sign in</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-deep-500">
+                      {AUDIENCE[value].cardLead}
+                    </p>
+                  </>
+                )}
+              />
 
               {!IS_SUPABASE_CONFIGURED ? (
                 <p className="mt-6 rounded-card border border-alert-200 bg-alert-50/70 px-4 py-3 text-sm leading-relaxed text-alert-800">
@@ -225,9 +237,19 @@ export function PortalSignInCard({
 }
 
 /**
- * Two portals, one control. Buttons with aria-pressed rather than a tablist:
- * these swap the whole page context and the URL, so the tab/panel contract
- * would be a promise the page does not keep.
+ * Two portals, one control.
+ *
+ * Buttons with aria-pressed rather than a tablist: these swap the whole page
+ * context and the URL, so the tab/panel contract would be a promise the page
+ * does not keep. Arrow keys, Home and End still move between them, because a
+ * segmented control is read as one thing and should behave like one.
+ *
+ * The motion is carried entirely by the indicator. It is the only element that
+ * moves, it moves on the one curve in the system allowed to overshoot, and it
+ * settles — which is what makes the control read as an object with mass being
+ * slid across a track rather than two buttons restyling themselves. The labels
+ * only change colour; the icons lift a little under the pointer and grow when
+ * they take the pill.
  */
 function AudienceSwitch({
   audience,
@@ -236,40 +258,78 @@ function AudienceSwitch({
   audience: Audience
   onChange: (next: Audience) => void
 }) {
+  const buttons = useRef<Partial<Record<Audience, HTMLButtonElement | null>>>({})
+
+  const move = (next: Audience) => {
+    onChange(next)
+    buttons.current[next]?.focus()
+  }
+
   return (
     <div
       role="group"
       aria-label="Choose your portal"
+      onKeyDown={(event) => {
+        const next: Audience | null =
+          event.key === 'ArrowRight' || event.key === 'End'
+            ? 'parent'
+            : event.key === 'ArrowLeft' || event.key === 'Home'
+              ? 'student'
+              : null
+        if (!next) return
+        event.preventDefault()
+        move(next)
+      }}
       className="relative grid grid-cols-2 gap-1 rounded-full bg-deep-50 p-1 ring-1 ring-inset ring-deep-100"
     >
-      {/* The indicator carries the motion; the labels only change colour.
-          Moving one element rather than restyling two is what makes the
-          control feel physical rather than like a re-render. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_1px_2px_rgba(18,59,93,0.10),0_4px_12px_-4px_rgba(18,59,93,0.28)] ring-1 ring-inset ring-white transition-transform duration-[420ms] ease-calm motion-reduce:transition-none"
+        className={cn(
+          'absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white',
+          'shadow-[0_1px_2px_rgba(18,59,93,0.10),0_6px_16px_-6px_rgba(18,59,93,0.34)]',
+          'ring-1 ring-inset ring-white',
+          'transition-transform duration-[420ms] ease-spring motion-reduce:transition-none',
+        )}
         style={{ transform: audience === 'parent' ? 'translateX(calc(100% + 0.25rem))' : 'none' }}
       />
-      {(['student', 'parent'] as const).map((value) => {
+      {AUDIENCES.map((value) => {
         const active = audience === value
         return (
           <button
             key={value}
+            ref={(node) => {
+              buttons.current[value] = node
+            }}
             type="button"
             aria-pressed={active}
             onClick={() => onChange(value)}
             className={cn(
               'group relative z-10 flex items-center justify-center gap-2 rounded-full px-3 py-2.5',
-              'font-display text-sm font-semibold transition-colors duration-200 ease-smooth',
+              'font-display text-sm font-semibold',
+              'transition-[color,transform] duration-200 ease-smooth',
+              // The press is the touch equivalent of the hover response: there
+              // is no pointer to lean toward on a phone, so the control gives
+              // way under the finger instead.
+              'active:scale-[0.97] active:duration-[120ms] motion-reduce:active:scale-100',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2',
               active ? 'text-deep-700' : 'text-deep-500 hover:text-deep-700',
             )}
           >
+            {/* The unselected side warms slightly under the pointer, so the
+                control answers before it is pressed. */}
+            {active ? null : (
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 -z-10 rounded-full bg-white/70 opacity-0 transition-opacity duration-200 ease-smooth group-hover:opacity-100 motion-reduce:transition-none"
+              />
+            )}
             <AudienceIcon
               audience={value}
               className={cn(
-                'h-4 w-4 transition-colors duration-200 ease-smooth',
-                active ? 'text-sky-500' : 'text-deep-300 group-hover:text-deep-400',
+                'h-4 w-4 transition-[color,transform] duration-300 ease-calm motion-reduce:transition-none',
+                active
+                  ? 'scale-110 text-sky-500'
+                  : 'text-deep-300 group-hover:-translate-y-px group-hover:text-deep-400',
               )}
             />
             {AUDIENCE[value].switchLabel}
