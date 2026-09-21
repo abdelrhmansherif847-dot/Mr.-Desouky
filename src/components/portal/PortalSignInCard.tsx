@@ -91,115 +91,134 @@ export function PortalSignInCard({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-panel border border-white/12 bg-white/95 shadow-lift backdrop-blur-sm">
-      {/* Learn to Progress, as a hairline. The card's one piece of colour. */}
-      <span
+    <div className="group/card relative">
+      {/* A soft halo just outside the card, so it sits *in* the field rather
+          than on top of it. Blurred and behind — it never touches the text. */}
+      <div
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-sky-400 via-sky-500 to-growth-300"
+        className="absolute -inset-3 rounded-[2rem] bg-sky-400/[0.07] blur-2xl transition-colors duration-500 ease-calm group-focus-within/card:bg-sky-400/[0.14] motion-reduce:transition-none"
       />
-      <div className="p-6 sm:p-8">
-        {status === 'sent' ? (
-          <SentState audience={audience} email={email} onReset={() => setStatus('idle')} />
-        ) : (
-          <>
-            <AudienceSwitch audience={audience} onChange={onAudienceChange} />
 
-            <div className="mt-6">
-              <p className="eyebrow text-sky-600">{copy.eyebrow}</p>
-              <h2 className="mt-2 font-display text-xl font-bold text-deep-700">Sign in</h2>
-              <p className="mt-2 text-sm leading-relaxed text-deep-500">{copy.cardLead}</p>
-            </div>
+      <div className="relative overflow-hidden rounded-panel bg-white/[0.97] shadow-[0_2px_4px_rgba(6,21,37,0.06),0_28px_60px_-20px_rgba(6,21,37,0.55)] ring-1 ring-inset ring-white/60 backdrop-blur-xl transition-shadow duration-500 ease-calm group-focus-within/card:shadow-[0_2px_4px_rgba(6,21,37,0.06),0_34px_70px_-20px_rgba(6,21,37,0.62)] motion-reduce:transition-none">
+        {/* Learn to Progress, as a hairline. The card's one piece of colour. */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-sky-400 via-sky-500 to-growth-300"
+        />
+        {/* The inner highlight that makes a surface read as lit rather than
+          filled — one hairline of white just below the top edge. */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-x-0 top-[3px] h-px bg-gradient-to-r from-transparent via-white to-transparent"
+        />
+        <div className="p-6 sm:p-8">
+          {status === 'sent' ? (
+            <SentState audience={audience} email={email} onReset={() => setStatus('idle')} />
+          ) : (
+            <>
+              <AudienceSwitch audience={audience} onChange={onAudienceChange} />
 
-            {!IS_SUPABASE_CONFIGURED ? (
-              <p className="mt-6 rounded-card border border-alert-200 bg-alert-50/70 px-4 py-3 text-sm leading-relaxed text-alert-800">
-                Sign-in is not configured for this deployment yet.
-              </p>
-            ) : (
-              <form onSubmit={onSubmit} noValidate className="mt-6">
-                <label htmlFor={fieldId} className="block text-sm font-semibold text-deep-700">
-                  Email address
-                </label>
+              <div className="mt-6">
+                <p className="eyebrow text-sky-600">{copy.eyebrow}</p>
+                <h2 className="mt-2 font-display text-xl font-bold text-deep-700">Sign in</h2>
+                <p className="mt-2 text-sm leading-relaxed text-deep-500">{copy.cardLead}</p>
+              </div>
 
-                {/* The focus line draws in from the start edge — the same
+              {!IS_SUPABASE_CONFIGURED ? (
+                <p className="mt-6 rounded-card border border-alert-200 bg-alert-50/70 px-4 py-3 text-sm leading-relaxed text-alert-800">
+                  Sign-in is not configured for this deployment yet.
+                </p>
+              ) : (
+                <form onSubmit={onSubmit} noValidate className="mt-6">
+                  <label htmlFor={fieldId} className="block text-sm font-semibold text-deep-700">
+                    Email address
+                  </label>
+
+                  {/* The focus line draws in from the start edge — the same
                   gesture as link-underline, so focus feels part of the brand
                   rather than a browser default. */}
-                <div className="group relative mt-2">
-                  <input
-                    ref={inputRef}
-                    id={fieldId}
-                    name="email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    enterKeyHint="go"
-                    required
-                    value={email}
-                    aria-invalid={invalid || undefined}
-                    aria-describedby={invalid ? errorId : undefined}
+                  <div className="group relative mt-2">
+                    <input
+                      ref={inputRef}
+                      id={fieldId}
+                      name="email"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      enterKeyHint="go"
+                      required
+                      value={email}
+                      aria-invalid={invalid || undefined}
+                      aria-describedby={invalid ? errorId : undefined}
+                      disabled={status === 'sending'}
+                      onChange={(event) => {
+                        setEmail(event.target.value)
+                        if (status === 'error') setStatus('idle')
+                      }}
+                      placeholder="you@example.com"
+                      className={cn(
+                        'peer w-full rounded-card border bg-white px-4 py-3.5 text-[0.95rem] text-deep-700',
+                        'outline-none transition-[border-color,box-shadow] duration-200 ease-smooth',
+                        'placeholder:text-deep-300 disabled:cursor-not-allowed disabled:bg-deep-50',
+                        invalid
+                          ? 'border-alert-300 focus:border-alert-500 focus:ring-4 focus:ring-alert-100'
+                          : 'border-deep-200 hover:border-deep-300 focus:border-sky-400 focus:ring-4 focus:ring-sky-100',
+                      )}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'pointer-events-none absolute inset-x-4 bottom-0 h-0.5 origin-left scale-x-0 rounded-full',
+                        'transition-transform duration-300 ease-calm peer-focus:scale-x-100',
+                        'motion-reduce:transition-none',
+                        invalid ? 'bg-alert-500' : 'bg-sky-500',
+                      )}
+                    />
+                  </div>
+
+                  {invalid && notice ? (
+                    <p
+                      id={errorId}
+                      role="alert"
+                      className="mt-2.5 break-words text-sm text-alert-600"
+                    >
+                      {notice}
+                    </p>
+                  ) : null}
+
+                  <Button
+                    type="submit"
+                    size="lg"
                     disabled={status === 'sending'}
-                    onChange={(event) => {
-                      setEmail(event.target.value)
-                      if (status === 'error') setStatus('idle')
-                    }}
-                    placeholder="you@example.com"
                     className={cn(
-                      'peer w-full rounded-card border bg-white px-4 py-3.5 text-[0.95rem] text-deep-700',
-                      'outline-none transition-[border-color,box-shadow] duration-200 ease-smooth',
-                      'placeholder:text-deep-300 disabled:cursor-not-allowed disabled:bg-deep-50',
-                      invalid
-                        ? 'border-alert-300 focus:border-alert-500 focus:ring-4 focus:ring-alert-100'
-                        : 'border-deep-200 hover:border-deep-300 focus:border-sky-400 focus:ring-4 focus:ring-sky-100',
+                      'group mt-5 w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800',
+                      'hover:-translate-y-px hover:shadow-[0_10px_26px_-8px_rgba(15,121,172,0.7)]',
+                      'motion-reduce:hover:translate-y-0',
                     )}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      'pointer-events-none absolute inset-x-4 bottom-0 h-0.5 origin-left scale-x-0 rounded-full',
-                      'transition-transform duration-300 ease-calm peer-focus:scale-x-100',
-                      'motion-reduce:transition-none',
-                      invalid ? 'bg-alert-500' : 'bg-sky-500',
-                    )}
-                  />
-                </div>
-
-                {invalid && notice ? (
-                  <p
-                    id={errorId}
-                    role="alert"
-                    className="mt-2.5 break-words text-sm text-alert-600"
                   >
-                    {notice}
+                    {status === 'sending' ? (
+                      <>
+                        <Spinner />
+                        Sending your link…
+                      </>
+                    ) : (
+                      <>
+                        Email me a sign-in link
+                        <ArrowRight />
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="mt-4 text-xs leading-relaxed text-deep-400">
+                    No password — a one-time link is sent to your inbox. It works once and expires.
                   </p>
-                ) : null}
+                </form>
+              )}
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={status === 'sending'}
-                  className="group mt-5 w-full bg-sky-600 hover:bg-sky-700 active:bg-sky-800"
-                >
-                  {status === 'sending' ? (
-                    <>
-                      <Spinner />
-                      Sending your link…
-                    </>
-                  ) : (
-                    <>
-                      Email me a sign-in link
-                      <ArrowRight />
-                    </>
-                  )}
-                </Button>
-
-                <p className="mt-4 text-xs leading-relaxed text-deep-400">
-                  No password — a one-time link is sent to your inbox. It works once and expires.
-                </p>
-              </form>
-            )}
-
-            <Footnote audience={audience} />
-          </>
-        )}
+              <Footnote audience={audience} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -221,11 +240,14 @@ function AudienceSwitch({
     <div
       role="group"
       aria-label="Choose your portal"
-      className="relative grid grid-cols-2 gap-1 rounded-full bg-deep-50 p-1"
+      className="relative grid grid-cols-2 gap-1 rounded-full bg-deep-50 p-1 ring-1 ring-inset ring-deep-100"
     >
+      {/* The indicator carries the motion; the labels only change colour.
+          Moving one element rather than restyling two is what makes the
+          control feel physical rather than like a re-render. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-card transition-transform duration-300 ease-calm motion-reduce:transition-none"
+        className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_1px_2px_rgba(18,59,93,0.10),0_4px_12px_-4px_rgba(18,59,93,0.28)] ring-1 ring-inset ring-white transition-transform duration-[420ms] ease-calm motion-reduce:transition-none"
         style={{ transform: audience === 'parent' ? 'translateX(calc(100% + 0.25rem))' : 'none' }}
       />
       {(['student', 'parent'] as const).map((value) => {
@@ -237,17 +259,59 @@ function AudienceSwitch({
             aria-pressed={active}
             onClick={() => onChange(value)}
             className={cn(
-              'relative z-10 rounded-full px-4 py-2 font-display text-sm font-semibold',
-              'transition-colors duration-200 ease-smooth',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2',
+              'group relative z-10 flex items-center justify-center gap-2 rounded-full px-3 py-2.5',
+              'font-display text-sm font-semibold transition-colors duration-200 ease-smooth',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2',
               active ? 'text-deep-700' : 'text-deep-500 hover:text-deep-700',
             )}
           >
+            <AudienceIcon
+              audience={value}
+              className={cn(
+                'h-4 w-4 transition-colors duration-200 ease-smooth',
+                active ? 'text-sky-500' : 'text-deep-300 group-hover:text-deep-400',
+              )}
+            />
             {AUDIENCE[value].switchLabel}
           </button>
         )
       })}
     </div>
+  )
+}
+
+/**
+ * Two marks drawn from the same geometric vocabulary as the rest of the site.
+ *
+ * Student — four ascending strokes: practice accumulating into progress.
+ * Parent  — a point held within an arc: watching over, not intervening.
+ *
+ * Abstract on purpose. Illustrated characters would age the product and talk
+ * down to the sixteen-year-olds who actually use it.
+ */
+function AudienceIcon({ audience, className }: { audience: Audience; className?: string }) {
+  if (audience === 'student') {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className={className}>
+        <path
+          d="M2.5 12.5v-2.2M6.5 12.5V7.6M10.5 12.5V4.9M14 12.5V2.5"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" className={className}>
+      <path
+        d="M2 9.5a6 6 0 0 1 12 0"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <circle cx="8" cy="11.6" r="1.7" fill="currentColor" />
+    </svg>
   )
 }
 

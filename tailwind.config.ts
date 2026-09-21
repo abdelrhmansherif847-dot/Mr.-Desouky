@@ -150,6 +150,17 @@ const config: Config = {
           from: { transform: 'scaleX(0)', opacity: '0' },
           to: { transform: 'scaleX(1)', opacity: '1' },
         },
+        // A plotted line drawing itself left to right. Paths carry
+        // pathLength="1" so one keyframe serves any length of curve.
+        'draw-path': {
+          from: { strokeDashoffset: '1' },
+          to: { strokeDashoffset: '0' },
+        },
+        // A plotted point arriving on the curve.
+        'plot-point': {
+          from: { opacity: '0', transform: 'scale(0.4)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
         // A confirmation mark drawing itself, for the moment a sign-in
         // succeeds. Same family as grow-bar: one direction, settling.
         'draw-check': {
@@ -170,6 +181,8 @@ const config: Config = {
         'ambient-drift-slow': 'ambient-drift 32s cubic-bezier(0.4, 0, 0.2, 1) infinite',
         'ambient-breathe': 'ambient-breathe 14s cubic-bezier(0.4, 0, 0.2, 1) infinite',
         'indicator-in': 'indicator-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'draw-path': 'draw-path 1.8s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'plot-point': 'plot-point 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
         'draw-check': 'draw-check 0.62s cubic-bezier(0.16, 1, 0.3, 1) both',
         'drawer-in': 'drawer-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both',
       },

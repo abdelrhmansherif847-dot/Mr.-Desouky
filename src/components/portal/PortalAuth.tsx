@@ -3,6 +3,7 @@
 import { Fragment, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { MathTexture } from '@/components/brand/MathTexture'
+import { ProgressPlot } from '@/components/brand/ProgressPlot'
 import { LEARNING_LOOP } from '@/content/philosophy'
 import { staggerDelay } from '@/lib/motion'
 import { cn } from '@/lib/utils'
@@ -44,23 +45,28 @@ export function PortalAuth({ initial }: { initial: Audience }) {
     <section className="relative isolate flex min-h-[calc(100vh-4.5rem)] items-center overflow-hidden bg-deep-800">
       {/* ---------- Background, in layers, all decorative ---------- */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        {/* A single sky glow behind the headline, so the field is lit from one
-            direction rather than evenly filled. */}
-        <div
-          data-ambient=""
-          className="absolute -left-[20%] top-[-30%] h-[80vh] w-[80vw] rounded-full bg-sky-500/25 blur-[130px] animate-ambient-breathe"
-        />
-        <div className="absolute -right-[15%] bottom-[-30%] h-[60vh] w-[60vw] rounded-full bg-growth-500/10 blur-[130px]" />
-        <div className="absolute inset-0 texture-grid-dark opacity-50" />
-        {/* Glyphs belong in the margins. Full-bleed they ran straight through
-            the headline and the paragraph, which read as noise rather than
-            texture — so they are confined to the outer field on wide screens
-            and to the lower band on a phone, where the copy is not. */}
-        <div className="absolute inset-x-0 bottom-0 top-1/2 lg:right-[46%] lg:top-[52%]">
+        {/* 1 — the field itself, lit from the upper left rather than flat. */}
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_12%_0%,#154063_0%,#0E2F4A_45%,#0A2137_100%)]" />
+
+        {/* 2 — graph paper, the workbook underneath everything. */}
+        <div className="absolute inset-0 texture-grid-dark opacity-[0.45] mask-fade-b" />
+
+        {/* 3 — glyphs, in the margins only. */}
+        <div className="absolute inset-x-0 bottom-0 h-[22%] opacity-50 lg:right-[58%] lg:top-[82%] lg:h-auto">
           <MathTexture tone="dark" density="sparse" ambient />
         </div>
-        {/* Anchors the composition so the field does not float. */}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-deep-900/70 to-transparent" />
+
+        {/* 4 — one controlled focal glow, behind the card, so the eye lands
+            where the work is. It breathes over 14s: felt, not watched. */}
+        <div
+          data-ambient=""
+          className="absolute right-[-10%] top-[8%] h-[62vh] w-[62vw] rounded-full bg-sky-500/[0.13] blur-[130px] animate-ambient-breathe lg:right-[2%] lg:w-[44vw]"
+        />
+        <div className="absolute -left-[18%] top-[-12%] h-[48vh] w-[48vw] rounded-full bg-sky-400/[0.08] blur-[120px]" />
+
+        {/* 5 — vignette, to seat the composition. */}
+        <div className="absolute inset-0 bg-[radial-gradient(100%_70%_at_50%_45%,transparent_35%,rgba(6,21,37,0.55)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-deep-900 to-transparent" />
       </div>
 
       <div className="container-page relative w-full py-14 sm:py-20 lg:py-24">
@@ -124,7 +130,7 @@ export function PortalAuth({ initial }: { initial: Audience }) {
               </ul>
             </div>
 
-            <LearningLoop />
+            <LearningLoop audience={audience} />
           </div>
 
           {/* ---------- Right: the card ---------- */}
@@ -141,20 +147,29 @@ export function PortalAuth({ initial }: { initial: Audience }) {
 }
 
 /**
- * The brand's own four-step loop, as a rail that fills on entrance.
+ * The brand's own four-step loop — as the axis a progress curve is plotted
+ * against. Understand, Practice, Improve, Perform stop being a list and
+ * become the horizontal scale of a real graph, which is the most honest way
+ * this site can say "mathematics" and "progress" in one mark.
  *
  * Progress is what this whole system is about, so the one piece of motion that
  * is not an entrance says exactly that — it grows, once, in one direction,
  * and stops. grow-bar is the existing token used for every other progress bar
  * on the site, so this reads as the same idea, not a new one.
  */
-function LearningLoop() {
+function LearningLoop({ audience }: { audience: Audience }) {
   return (
     <div
       className="mt-10 animate-fade-up border-t border-white/10 pt-7"
       style={{ animationDelay: `${staggerDelay(5)}ms` }}
     >
-      <div className="flex max-w-md items-center gap-2 sm:gap-3">
+      {/* The aspect is fixed and matches the plot's viewBox exactly, so the
+          curve is never stretched and the points stay circular at any width. */}
+      <div className="relative aspect-[4/1] w-full max-w-md">
+        <ProgressPlot annotated={audience === 'parent'} />
+      </div>
+
+      <div className="mt-2.5 flex max-w-md items-center gap-2 sm:gap-3">
         {LEARNING_LOOP.map((step, index) => (
           <Fragment key={step}>
             <span className="shrink-0 font-mono text-[0.55rem] uppercase tracking-[0.14em] text-deep-100/55 sm:text-[0.62rem] sm:tracking-[0.16em]">
