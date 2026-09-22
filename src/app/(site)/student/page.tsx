@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { PreviewNotice } from '@/components/portal/PreviewNotice'
-import { Panel, StatTile, StatusPill, DateChip, EmptyState } from '@/components/portal/widgets'
+import { Panel, StatTile } from '@/components/portal/widgets'
+import { Attention } from '@/components/portal/dashboard/Attention'
+import { NextSession } from '@/components/portal/dashboard/NextSession'
+import { QuickAccess } from '@/components/portal/dashboard/QuickAccess'
+import { WeekBoard } from '@/components/portal/dashboard/WeekBoard'
 import { ProgressBar, ProgressRing } from '@/components/ui/Progress'
 import { ArrowRight } from '@/components/ui/Button'
 import {
@@ -11,11 +15,22 @@ import {
   mockTrend,
   quizAverage,
   topicsByStatus,
-  upcomingSessions,
 } from '@/lib/portal/data'
 import { JOURNEY_STAGES } from '@/content/journey'
 import { formatLongDate } from '@/lib/utils'
 
+/**
+ * The student's dashboard.
+ *
+ * Ordered by the questions a student actually arrives with, in the order they
+ * ask them: what do I have next, what does my week look like, where am I in
+ * the programme, how am I doing, what needs me, and where else can I go. Each
+ * block answers exactly one of those, which is why there is no block here that
+ * merely looks like a dashboard.
+ *
+ * Everything reads from the portal data seam, so connecting real records
+ * changes src/lib/portal/data.ts and nothing on this page.
+ */
 export default async function StudentOverviewPage() {
   const record = await getStudentRecord()
   const attendance = attendanceRate(record)
@@ -23,10 +38,11 @@ export default async function StudentOverviewPage() {
   const quizAvg = quizAverage(record)
   const mock = latestMock(record)
   const trend = mockTrend(record)
-  const upcoming = upcomingSessions(record)
   const stage = JOURNEY_STAGES[record.profile.currentStageIndex]
   const nextStage = JOURNEY_STAGES[record.profile.currentStageIndex + 1]
-  const journeyPct = Math.round(((record.profile.currentStageIndex + 1) / JOURNEY_STAGES.length) * 100)
+  const journeyPct = Math.round(
+    ((record.profile.currentStageIndex + 1) / JOURNEY_STAGES.length) * 100,
+  )
   const weak = topicsByStatus(record, 'weak')
   const strong = topicsByStatus(record, 'strong')
   const latestFeedback = record.feedback[0]
@@ -35,7 +51,13 @@ export default async function StudentOverviewPage() {
     <div className="space-y-5">
       <PreviewNotice audience="student" />
 
-      {/* ---------- Where am I ---------- */}
+      {/* ---------- What do I have next? ---------- */}
+      <NextSession />
+
+      {/* ---------- What is my week? ---------- */}
+      <WeekBoard />
+
+      {/* ---------- Where am I in the programme? ---------- */}
       <section className="overflow-hidden rounded-panel border border-deep-100 bg-white">
         <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-12 lg:gap-8 lg:p-8">
           <div className="flex items-center gap-6 lg:col-span-4">
@@ -64,7 +86,9 @@ export default async function StudentOverviewPage() {
                   What comes next
                 </dt>
                 <dd className="mt-1.5 text-sm leading-relaxed text-deep-600">
-                  {nextStage ? `${nextStage.index} — ${nextStage.title}: ${nextStage.tagline}` : 'Exam day.'}
+                  {nextStage
+                    ? `${nextStage.index} — ${nextStage.title}: ${nextStage.tagline}`
+                    : 'Exam day.'}
                 </dd>
               </div>
             </dl>
@@ -80,7 +104,7 @@ export default async function StudentOverviewPage() {
         </div>
       </section>
 
-      {/* ---------- Headline numbers ---------- */}
+      {/* ---------- How am I doing? ---------- */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
           label="Attendance"
@@ -121,47 +145,13 @@ export default async function StudentOverviewPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-12">
-        {/* ---------- Upcoming sessions ---------- */}
-        <div className="lg:col-span-7">
-          <Panel
-            title="Upcoming sessions"
-            description="What is next, and what to prepare"
-            action={
-              <Link href="/student/sessions" className="inline-block py-1 text-xs font-semibold text-sky-600 hover:text-sky-700">
-                All sessions
-              </Link>
-            }
-          >
-            {upcoming.length === 0 ? (
-              <EmptyState>No sessions scheduled.</EmptyState>
-            ) : (
-              <ul className="space-y-3">
-                {upcoming.slice(0, 3).map((session) => (
-                  <li key={session.id} className="flex items-start gap-4 rounded-card bg-mist p-4">
-                    <DateChip iso={session.date} tone="sky" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-display text-sm font-bold text-deep-700">{session.topic}</p>
-                        <StatusPill status={session.status} />
-                      </div>
-                      <p className="mt-1 text-xs text-deep-400">
-                        {formatLongDate(session.date)} · {session.time} · {session.stage}
-                      </p>
-                      {session.prepare ? (
-                        <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs leading-relaxed text-deep-600">
-                          {session.prepare}
-                        </p>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+        {/* ---------- What needs me? ---------- */}
+        <div className="lg:col-span-5">
+          <Attention record={record} />
         </div>
 
         {/* ---------- Latest feedback ---------- */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-7">
           <Panel title="Latest feedback" description={latestFeedback?.source}>
             {latestFeedback ? (
               <dl className="space-y-3.5">
@@ -179,9 +169,7 @@ export default async function StudentOverviewPage() {
                   </div>
                 ))}
               </dl>
-            ) : (
-              <EmptyState>No feedback yet.</EmptyState>
-            )}
+            ) : null}
           </Panel>
         </div>
 
@@ -204,7 +192,7 @@ export default async function StudentOverviewPage() {
           </Panel>
         </div>
 
-        {/* ---------- Weaknesses — the one place red belongs ---------- */}
+        {/* ---------- Needs work — the one place red belongs ---------- */}
         <div className="lg:col-span-6">
           <Panel
             title="Needs work"
@@ -265,6 +253,9 @@ export default async function StudentOverviewPage() {
           </Panel>
         </div>
       </div>
+
+      {/* ---------- Where else can I go? ---------- */}
+      <QuickAccess />
     </div>
   )
 }
