@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { callbackUrl } from '@/lib/auth/destinations'
 import { LogoMark } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 
@@ -30,7 +31,7 @@ export function SignInForm({ configured }: { configured: boolean }) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: callbackUrl(window.location.origin, '/admin'),
         // Never create an account from this form. Sign-ups are closed in the
         // database too; this simply avoids attempting one.
         shouldCreateUser: false,

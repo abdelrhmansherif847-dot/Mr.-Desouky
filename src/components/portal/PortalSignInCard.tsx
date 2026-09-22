@@ -4,6 +4,7 @@ import { useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight } from '@/components/ui/Button'
+import { callbackUrl } from '@/lib/auth/destinations'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import { CONTACT, whatsappLink } from '@/content/site'
 import { cn } from '@/lib/utils'
@@ -69,11 +70,10 @@ export function PortalSignInCard({
     // site. The wait is hidden by the sending state that is already showing.
     const { createBrowserClient } = await import('@supabase/ssr')
     const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    const next = encodeURIComponent(copy.destination)
     const { error } = await supabase.auth.signInWithOtp({
       email: address,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${next}`,
+        emailRedirectTo: callbackUrl(window.location.origin, copy.destination),
         shouldCreateUser: false,
       },
     })

@@ -141,6 +141,43 @@ in the code. The form now shows the real message.
 The quota then becomes theirs rather than Supabase's shared test allowance,
 and messages stop landing in spam, which the default sender frequently does.
 
+## The magic link must use token_hash, not the default URL
+
+**Supabase → Authentication → Email Templates → Magic Link** must build the
+link like this:
+
+    {{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=magiclink
+
+not the default `{{ .ConfirmationURL }}`. This is not cosmetic. It is the
+difference between sign-in working and sign-in never working at all.
+
+The default `{{ .ConfirmationURL }}` sends the visitor to Supabase's own
+`/auth/v1/verify`, which redirects back with `?code=`. That code belongs to a
+PKCE flow, and PKCE's code verifier is stored in a cookie belonging to the
+browser that *requested* the link. A magic link is opened in whatever browser
+the mail client picks — on a phone, the mail app's own in-app browser, which
+has a different cookie jar. The verifier is therefore missing,
+`exchangeCodeForSession` throws `AuthPKCECodeVerifierMissingError` before it
+even reaches the network, and no session is created. `@supabase/ssr`'s
+`createBrowserClient` hardcodes `flowType: "pkce"` and will not let you turn
+this off, so the template is where it has to be solved.
+
+`{{ .TokenHash }}` instead lands the visitor straight on `/auth/callback`,
+which redeems it with `verifyOtp` over a POST. No verifier is involved, so any
+browser on any device works, and nothing secret is ever in the URL — the
+session comes back in the response body.
+
+**Both sign-in forms must send an `emailRedirectTo` that already has a query
+string**, because the template appends with `&`. `/auth/callback` on its own
+would become `/auth/callback&token_hash=…`, where the token is part of the
+path and the link is dead. `callbackUrl()` in `src/lib/auth/destinations.ts`
+is the single place that builds it, for exactly this reason — do not hand
+`signInWithOtp` a redirect URL built by hand.
+
+How to tell this is wrong from the logs: `GET /auth/v1/verify` returning 303
+with `action: login` and no error, followed by **no** `POST /auth/v1/token`
+request at all, and `select count(*) from auth.sessions` returning 0.
+
 ## Reading the real error
 
 The site deliberately shows the same neutral message whatever goes wrong, so

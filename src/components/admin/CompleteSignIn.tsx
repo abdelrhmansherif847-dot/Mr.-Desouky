@@ -11,14 +11,30 @@ import { resolveDestination } from '@/lib/auth/destinations'
 /**
  * Completes sign-in from whichever form the link came back in:
  *
- *   ?code=…                        PKCE. Exchanged for a session.
- *   #access_token=&refresh_token=  Implicit. Set directly.
+ *   ?token_hash=&type=            The one the email actually sends. Redeemed
+ *                                 with verifyOtp.
+ *   ?code=…                       PKCE. Exchanged for a session. Legacy —
+ *                                 kept only for links already in an inbox.
+ *   #access_token=&refresh_token= Implicit. Set directly. Never produced by
+ *                                 this application.
  *
- * Running in the browser is what makes handling both possible — a fragment is
- * never sent to a server, so the previous server-side handler could only ever
- * see the first form and bounced the second back to the login page, looping
- * forever. @supabase/ssr's browser client writes the same cookies the server
- * middleware reads, so the guard sees the session on the next request.
+ * token_hash is what makes the link work at all. The previous flow was PKCE,
+ * whose code verifier lives in the cookie jar of the browser that *asked* for
+ * the link — and a magic link is opened in whatever browser the mail client
+ * chooses, which on a phone is the mail app's own. The verifier was therefore
+ * absent, exchangeCodeForSession threw before it ever reached the network, and
+ * no session was created: auth.sessions had zero rows for the life of the
+ * project. verifyOtp needs no verifier, so the link works from any browser on
+ * any device.
+ *
+ * Nothing secret travels in the URL either way: the hash is redeemed over a
+ * POST and the session comes back in the response body.
+ *
+ * Running in the browser is what makes handling all three possible — a
+ * fragment is never sent to a server, so the original server-side handler
+ * could only ever see a code and bounced the rest back to the login page,
+ * looping forever. @supabase/ssr's browser client writes the same cookies the
+ * server middleware reads, so the guard sees the session on the next request.
  *
  * On failure this shows the real reason. The page is only reached by following
  * a link from your own inbox, and a generic message here costs an hour of
@@ -48,11 +64,29 @@ export function CompleteSignIn() {
       if (denied) return setError(denied)
 
       const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      const tokenHash = params.get('token_hash')
       const code = params.get('code')
       const accessToken = hash.get('access_token')
       const refreshToken = hash.get('refresh_token')
 
-      if (code) {
+      if (tokenHash) {
+        // The type is the constant this application sends, never the `type` in
+        // the URL. Reading it from the query would let a crafted link choose
+        // which kind of token to redeem; there is only one kind here, because
+        // every link is a magic link and sign-ups are closed.
+        const { data, error: failure } = await supabase.auth.verifyOtp({
+          type: 'magiclink',
+          token_hash: tokenHash,
+        })
+        if (cancelled) return
+        if (failure) return setError(failure.message)
+        // A verified link that yields no session would mean the token was
+        // accepted but redeemed into something other than a session. Naming it
+        // separately keeps that from looking like a silent success.
+        if (!data.session) {
+          return setError('That link was accepted but no session was returned.')
+        }
+      } else if (code) {
         const { error: failure } = await supabase.auth.exchangeCodeForSession(code)
         if (cancelled) return
         if (failure) return setError(failure.message)

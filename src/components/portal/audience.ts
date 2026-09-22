@@ -6,6 +6,8 @@
  * between them lives here, so the two screens cannot drift apart.
  */
 
+import type { Destination } from '@/lib/auth/destinations'
+
 export type Audience = 'student' | 'parent'
 
 /**
@@ -21,8 +23,11 @@ type AudienceCopy = {
   heading: string
   lead: string
   cardLead: string
-  /** Where a verified session lands. Allowlisted in the auth callback. */
-  destination: string
+  /**
+   * Where a verified session lands. Typed against the allowlist, so a portal
+   * cannot be given a destination the callback would refuse.
+   */
+  destination: Destination
   previewHref: string
   points: string[]
 }
