@@ -206,6 +206,87 @@ curl -s -o /dev/null -w '%{http_code}\n' -L https://<host>/admin/schedule/
 
 A guard that only hides a link in the header is not a guard.
 
+## Accounts, approval and the portals
+
+Signing in is not getting in. A student or parent portal renders only when all
+four hold:
+
+1. the session verifies with the auth server (`getUser()`, never `getSession()`),
+2. a `public.profiles` row exists for that user,
+3. `profiles.status` is `approved`,
+4. `profiles.role` matches the portal — `student` for `/student`, `parent` for
+   `/parent`.
+
+`middleware.ts` enforces this before any portal page renders, and the portal
+layouts check it a second time through `getViewer()` in
+`src/lib/portal/auth.ts`, so neither is the only line of defence.
+
+| Who | `/student`, `/parent` | `/admin` |
+| --- | --- | --- |
+| Anonymous | redirected to that portal's login | 404 |
+| Signed in, `pending` | `/account/pending` | 404 |
+| Signed in, `suspended` | `/account/suspended` | 404 |
+| Approved student on `/parent` (or parent on `/student`) | sent to their own portal | 404 |
+| Owner | sent to `/admin` | allowed |
+
+`/admin` still answers 404 to everyone but the owner, exactly as before. The
+portals redirect instead, because they are advertised product surfaces.
+
+The public sample-data preview lives at `/preview/student` and
+`/preview/parent`. It renders only the fictional sample record, reads no
+session, queries nothing, is `noindex`, and is published on GitHub Pages
+while the real portals are stripped from that build.
+
+### Account states
+
+`public.profiles.status` is one of `pending`, `approved`, `suspended`
+(migration 0004). A new account starts `pending`. Nobody can change their own
+status, role or email: migration 0004 limits the `UPDATE` privilege for
+signed-in users to `full_name` and `phone`, and the
+`private.enforce_role_immutable` trigger refuses the rest again.
+
+Verified on the live project after 0004, as `authenticated` holding the
+owner's own identity, inside a block that always aborts:
+
+| Attempt | Result |
+| --- | --- |
+| `set status = …` | **refused** — permission denied |
+| `set role = …` | **refused** — permission denied |
+| `set email = …` | **refused** — permission denied |
+| `set full_name = …` | allowed, own row only |
+| `set phone = …` | allowed, own row only |
+
+### Approving, suspending and correcting accounts
+
+Approval is manual for now and happens in the Supabase **SQL editor**, which
+runs as `postgres` and so is not bound by the limits above. There is
+deliberately no approval endpoint in the application yet: one would need a
+privileged database function, which is exactly the kind of RPC migration 0002
+removed.
+
+```sql
+-- Who is waiting
+select email, full_name, phone, role, created_at
+  from public.profiles
+ where status = 'pending'
+ order by created_at;
+
+-- Approve
+update public.profiles set status = 'approved' where email = 'someone@example.com';
+
+-- Suspend, and reinstate
+update public.profiles set status = 'suspended' where email = 'someone@example.com';
+update public.profiles set status = 'approved'  where email = 'someone@example.com';
+
+-- Correct the role chosen at sign-up
+update public.profiles set role = 'parent' where email = 'someone@example.com';
+
+-- Check the result: expect exactly one row
+select email, role, status from public.profiles where email = 'someone@example.com';
+```
+
+Never set `role = 'owner'` from these commands. There is one owner.
+
 ## What is enforced today, precisely
 
 Verified against the live project with two temporary accounts (one student,

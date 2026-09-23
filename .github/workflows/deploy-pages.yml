@@ -64,8 +64,15 @@ jobs:
           # bundle -- no routes, no chunks, no guard that cannot run.
           # The authenticated deployment (Vercel) builds from the same commit
           # with these intact. See docs/ADMIN.md.
-          rm -rf src/app/admin src/app/auth middleware.ts
-          echo "Public-only build: admin, auth routes and middleware removed."
+          #
+          # The student and parent portals and the account notices go too:
+          # they are authenticated routes, and a static shell of them here
+          # would be a portal with no guard in front of it. The public
+          # sample-data preview under /preview/* is kept, so the demo still
+          # works on Pages.
+          rm -rf src/app/admin src/app/auth middleware.ts \
+                 "src/app/(site)/student" "src/app/(site)/parent" "src/app/(site)/account"
+          echo "Public-only build: admin, auth, portal and account routes and middleware removed."
 
       - name: Build
         env:
@@ -92,6 +99,15 @@ jobs:
             find out \( -path '*admin*' -o -path '*auth*' \)
             exit 1
           fi
+          # Anchored at the top level on purpose: an unanchored match on
+          # '*student*' would also hit out/preview/student and
+          # out/login/student, which must be published.
+          if find out -mindepth 1 -maxdepth 1 \( -name student -o -name parent -o -name account \) | grep -q .; then
+            echo "::error::protected portal or account routes present in the public artifact"
+            find out -mindepth 1 -maxdepth 1 \( -name student -o -name parent -o -name account \)
+            exit 1
+          fi
+          test -f out/preview/student/index.html || { echo "::error::public preview missing"; exit 1; }
           # Jekyll ignores directories beginning with an underscore, which
           # would strip _next/ and leave the site unstyled.
           touch out/.nojekyll
