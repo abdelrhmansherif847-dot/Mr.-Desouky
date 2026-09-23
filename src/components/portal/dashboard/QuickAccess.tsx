@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Reveal } from '@/components/motion/Reveal'
 import { cn } from '@/lib/utils'
+import type { StudentBase } from '@/components/portal/base'
 
 /**
  * The doors out of the dashboard.
@@ -33,12 +34,12 @@ const ICONS = {
   notifications: 'M12 4a5 5 0 0 0-5 5v3l-1.5 3h13L17 12V9a5 5 0 0 0-5-5Zm-2 14a2 2 0 0 0 4 0',
 } as const
 
-const DESTINATIONS: Destination[] = [
-  { label: 'My Journey', description: 'The seven stages, and where you are', icon: 'journey', href: '/student/journey' },
-  { label: 'Sessions', description: 'Every session, attended and ahead', icon: 'sessions', href: '/student/sessions' },
-  { label: 'Homework', description: 'What is set, done and due', icon: 'homework', href: '/student/homework' },
-  { label: 'Quizzes & Reviews', description: 'Scores, and the reason behind each', icon: 'quizzes', href: '/student/quizzes' },
-  { label: 'Mock Exams', description: 'Full papers under real timing', icon: 'mocks', href: '/student/mocks' },
+const destinations = (base: StudentBase): Destination[] => [
+  { label: 'My Journey', description: 'The seven stages, and where you are', icon: 'journey', href: `${base}/journey` },
+  { label: 'Sessions', description: 'Every session, attended and ahead', icon: 'sessions', href: `${base}/sessions` },
+  { label: 'Homework', description: 'What is set, done and due', icon: 'homework', href: `${base}/homework` },
+  { label: 'Quizzes & Reviews', description: 'Scores, and the reason behind each', icon: 'quizzes', href: `${base}/quizzes` },
+  { label: 'Mock Exams', description: 'Full papers under real timing', icon: 'mocks', href: `${base}/mocks` },
   { label: 'Results', description: 'A single record of every score', icon: 'results' },
   { label: 'Transcript', description: 'Your formal progress summary', icon: 'transcript' },
   { label: 'Notifications', description: 'Announcements and reminders', icon: 'notifications' },
@@ -59,7 +60,7 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
   )
 }
 
-export function QuickAccess() {
+export function QuickAccess({ base }: { base: StudentBase }) {
   return (
     <section aria-labelledby="quick-access-heading">
       <div className="mb-3.5 flex items-baseline justify-between gap-4">
@@ -70,7 +71,7 @@ export function QuickAccess() {
       </div>
 
       <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {DESTINATIONS.map((item, index) => {
+        {destinations(base).map((item, index) => {
           const body = (
             <>
               <span

@@ -1,26 +1,27 @@
+import { createClient } from '@/lib/supabase/server'
+
 /**
- * AUTHENTICATION SEAM
- * ===================
- * There is deliberately NO authentication implemented in this codebase.
+ * WHO IS LOOKING AT THE PORTAL
+ * ============================
+ * Authentication is not authorization. Four things must all be true before a
+ * portal renders anything:
  *
- * The portals currently render sample data behind a clearly-labelled preview,
- * so there is nothing private to protect and no login that could give a false
- * impression of security. That is the honest state of things until a backend
- * exists.
+ *   1. The session verifies with the auth server — getUser(), never
+ *      getSession(), which only decodes a cookie the client can forge.
+ *   2. A profile row exists for that user.
+ *   3. The account is approved. A verified email alone grants nothing; new
+ *      accounts wait in 'pending' until the owner approves them.
+ *   4. The role is student or parent. The owner manages from /admin and has
+ *      no portal of their own; any other role has no portal at all.
  *
- * When the portals go live, this is where auth plugs in:
+ * middleware.ts enforces exactly this before a request reaches a page. This
+ * function is the second, independent check the portal layouts make, so that
+ * a misconfigured matcher — or a host that does not run middleware — still
+ * cannot render a portal to someone who should not see it.
  *
- *  1. Add a provider — Auth.js (NextAuth), Supabase Auth, Clerk, or a custom
- *     session cookie. Whatever it is, sessions must be httpOnly, Secure and
- *     SameSite=Lax at minimum.
- *  2. Implement `getViewer()` below to read the real session.
- *  3. Add `src/app/(portal)/layout.tsx` guards — or better, a `middleware.ts`
- *     matching `/student/:path*` and `/parent/:path*` — that redirect
- *     unauthenticated visitors to the matching login page.
- *  4. Switch `IS_SAMPLE_DATA` off in `data.ts` and point the two record
- *     functions at the real store, scoped to the viewer's own id.
- *  5. A parent must only ever be able to read their own children's records —
- *     enforce that in the data layer, not in the UI.
+ * `role` and `status` are not writable by any signed-in user: migration 0004
+ * limits their UPDATE privilege to full_name and phone, and a trigger refuses
+ * the rest again. So the values read here are ones only the owner can set.
  */
 
 export type Viewer =
@@ -28,10 +29,27 @@ export type Viewer =
   | { kind: 'parent'; id: string; name: string }
   | null
 
-/** Always returns null today. Real session lookup goes here. */
 export async function getViewer(): Promise<Viewer> {
-  return null
+  const supabase = await createClient()
+  if (!supabase) return null
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+  if (error || !user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, status, full_name')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.status !== 'approved') return null
+  if (profile.role !== 'student' && profile.role !== 'parent') return null
+
+  return { kind: profile.role, id: user.id, name: profile.full_name?.trim() ?? '' }
 }
 
-/** True once a real auth provider is wired up above. */
-export const IS_AUTH_ENABLED = false
+/** A real provider is wired up: portals require a verified, approved account. */
+export const IS_AUTH_ENABLED = true

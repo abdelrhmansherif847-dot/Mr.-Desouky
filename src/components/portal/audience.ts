@@ -40,7 +40,7 @@ export const AUDIENCE: Record<Audience, AudienceCopy> = {
     lead: 'Continue your learning journey with Mr. Desouky — your sessions, your homework, your results, and exactly what comes next.',
     cardLead: 'Sign in to pick up where you left off.',
     destination: '/student',
-    previewHref: '/student',
+    previewHref: '/preview/student',
     points: [
       'Where you are in the seven-stage journey',
       'Homework, quizzes and mock results as they happen',
@@ -54,7 +54,7 @@ export const AUDIENCE: Record<Audience, AudienceCopy> = {
     lead: 'Stay connected to your student’s learning journey — attendance, effort and results, with the reasoning behind them.',
     cardLead: 'Sign in to see how your student is progressing.',
     destination: '/parent',
-    previewHref: '/parent',
+    previewHref: '/preview/parent',
     points: [
       'Attendance and homework completion, session by session',
       'Quiz and mock performance, with the trend over time',
