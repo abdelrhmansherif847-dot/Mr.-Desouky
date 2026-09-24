@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useState } from 'react'
-import { Button, ArrowRight } from '@/components/ui/Button'
+import Link from 'next/link'
 import { callbackUrl } from '@/lib/auth/destinations'
 import {
   LIMITS,
@@ -11,8 +11,23 @@ import {
   signUpOutcome,
 } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
+import { AccountPath } from './AccountPath'
 import { AUDIENCE, type Audience } from './audience'
-import { AccountFormShell, Done, Field, FormError, NotConfigured, TextLink } from './AccountForm'
+import { AudienceSwap } from './AudienceSwap'
+import { AudienceSwitch } from './AudienceSwitch'
+import {
+  AuthAlert,
+  AuthCard,
+  AuthField,
+  AuthSubmit,
+  AuthSuccess,
+  CardFoot,
+  ContactLine,
+  NotConfigured,
+  PasswordField,
+  PasswordRules,
+} from './AuthCard'
+import { AuthStage, StageIntro } from './AuthStage'
 
 /**
  * Create an account.
@@ -27,8 +42,14 @@ import { AccountFormShell, Done, Field, FormError, NotConfigured, TextLink } fro
  * Every successful submission shows the same "check your inbox" screen,
  * including for an address that already has an account, so the form cannot
  * be used to discover who is registered.
+ *
+ * Student / Parent is state, exactly as on the sign-in screen: one form, never
+ * keyed or remounted, so everything typed survives a change of mind. The
+ * address stays where it was for the same measured reason (see PortalAuth).
+ * Whichever is selected when the form is sent is what is requested.
  */
-export function SignUpForm({ audience }: { audience: Audience }) {
+export function SignUpForm({ audience: initial }: { audience: Audience }) {
+  const [audience, setAudience] = useState<Audience>(initial)
   const copy = AUDIENCE[audience]
   const id = useId()
   const errorId = `${id}-error`
@@ -84,112 +105,174 @@ export function SignUpForm({ audience }: { audience: Audience }) {
   }
 
   const invalid = Boolean(error)
+  const clear = () => {
+    if (error) setError(null)
+  }
 
   return (
-    <AccountFormShell
-      eyebrow={copy.eyebrow}
-      title={audience === 'parent' ? 'Create a parent account' : 'Create a student account'}
-      lead={
-        <>
-          Every account is reviewed and approved by Eng. Abdelrhman Desouky before it opens
-          {audience === 'parent' ? ', and linked to your student' : ''}.
-        </>
+    <AuthStage
+      intro={
+        <AudienceSwap
+          audience={audience}
+          render={(value) => (
+            <StageIntro
+              eyebrow={AUDIENCE[value].signup.eyebrow}
+              title={AUDIENCE[value].signup.heading}
+              lead={AUDIENCE[value].signup.lead}
+            />
+          )}
+        />
       }
-      footer={
-        <>
-          Already have an account? <TextLink href={`/login/${audience}`}>Sign in</TextLink>
-        </>
+      detail={
+        <div className="border-t border-white/10 pt-7">
+          <p className="eyebrow text-sky-300">What happens next</p>
+          <AudienceSwap
+            audience={audience}
+            className="mt-5"
+            render={(value) => <AccountPath audience={value} current={done ? 1 : 0} />}
+          />
+        </div>
       }
     >
-      {!IS_SUPABASE_CONFIGURED ? (
-        <NotConfigured />
-      ) : done ? (
-        <Done title="Check your inbox">
-          If this address can be registered, a confirmation link is on its way. Open it on this
-          device. Once confirmed, your account waits for approval — you will be able to sign in
-          when it has been approved.
-        </Done>
-      ) : (
-        <form onSubmit={onSubmit} noValidate>
-          <Field
-            id={`${id}-name`}
-            label="Full name"
-            name="name"
-            autoComplete="name"
-            maxLength={LIMITS.name}
-            required
-            value={fullName}
-            disabled={sending}
-            invalid={invalid}
-            describedBy={errorId}
-            onChange={(event) => setFullName(event.target.value)}
-          />
-          <Field
-            id={`${id}-phone`}
-            label="Phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            maxLength={LIMITS.phone}
-            required
-            value={phone}
-            disabled={sending}
-            invalid={invalid}
-            describedBy={errorId}
-            hint="So Mr. Desouky can reach you. It is not used to sign in."
-            onChange={(event) => setPhone(event.target.value)}
-          />
-          <Field
-            id={`${id}-email`}
-            label="Email address"
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            disabled={sending}
-            invalid={invalid}
-            describedBy={errorId}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <Field
-            id={`${id}-password`}
-            label="Password"
-            name="new-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            disabled={sending}
-            invalid={invalid}
-            describedBy={errorId}
-            hint={`At least ${LIMITS.passwordMin} characters.`}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <Field
-            id={`${id}-confirm`}
-            label="Confirm password"
-            name="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirm}
-            disabled={sending}
-            invalid={invalid}
-            describedBy={errorId}
-            onChange={(event) => setConfirm(event.target.value)}
-          />
+      <AuthCard>
+        {done ? (
+          <>
+            <AuthSuccess title="Check your inbox">
+              If this address can be registered, a confirmation link is on its way. Open it on this
+              device. Once confirmed, your account waits for approval — you can sign in as soon as it
+              has been approved.
+            </AuthSuccess>
+            <CardFoot>
+              <ContactLine lead="Nothing arrived? Check spam, then message" />
+            </CardFoot>
+          </>
+        ) : (
+          <>
+            <AudienceSwitch audience={audience} onChange={setAudience} />
+            <AudienceSwap
+              audience={audience}
+              className="mt-6"
+              render={(value) => (
+                <>
+                  <p className="eyebrow text-sky-700">{AUDIENCE[value].eyebrow}</p>
+                  <h2 className="mt-2 font-display text-xl font-bold text-deep-700">
+                    {AUDIENCE[value].signup.cardTitle}
+                  </h2>
+                  <p className="mt-2 text-sm leading-relaxed text-deep-500">
+                    {AUDIENCE[value].signup.cardLead}
+                  </p>
+                </>
+              )}
+            />
 
-          <FormError id={errorId} message={error} />
+            {!IS_SUPABASE_CONFIGURED ? (
+              <NotConfigured what="Registration" />
+            ) : (
+              <form onSubmit={onSubmit} noValidate className="mt-6">
+                <fieldset disabled={sending} className="space-y-4">
+                  <legend className="sr-only">About you</legend>
+                  <AuthField
+                    id={`${id}-name`}
+                    label="Full name"
+                    name="name"
+                    autoComplete="name"
+                    maxLength={LIMITS.name}
+                    required
+                    value={fullName}
+                    invalid={invalid}
+                    errorId={errorId}
+                    onChange={(event) => {
+                      setFullName(event.target.value)
+                      clear()
+                    }}
+                  />
+                  <AuthField
+                    id={`${id}-phone`}
+                    label="Phone"
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    maxLength={LIMITS.phone}
+                    required
+                    value={phone}
+                    invalid={invalid}
+                    errorId={errorId}
+                    hint="So Mr. Desouky can reach you. It is never used to sign in."
+                    onChange={(event) => {
+                      setPhone(event.target.value)
+                      clear()
+                    }}
+                  />
+                </fieldset>
 
-          <Button type="submit" size="lg" disabled={sending} className="mt-6 w-full">
-            {sending ? 'Creating your account…' : 'Create account'}
-            {sending ? null : <ArrowRight />}
-          </Button>
-        </form>
-      )}
-    </AccountFormShell>
+                <fieldset disabled={sending} className="mt-6 space-y-4 border-t border-deep-100 pt-6">
+                  <legend className="sr-only">Your sign-in</legend>
+                  <AuthField
+                    id={`${id}-email`}
+                    label="Email address"
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    invalid={invalid}
+                    errorId={errorId}
+                    placeholder="you@example.com"
+                    onChange={(event) => {
+                      setEmail(event.target.value)
+                      clear()
+                    }}
+                  />
+                  <PasswordField
+                    id={`${id}-password`}
+                    label="Password"
+                    name="new-password"
+                    autoComplete="new-password"
+                    required
+                    value={password}
+                    invalid={invalid}
+                    errorId={errorId}
+                    onChange={(event) => {
+                      setPassword(event.target.value)
+                      clear()
+                    }}
+                  />
+                  <PasswordField
+                    id={`${id}-confirm`}
+                    label="Confirm password"
+                    name="confirm-password"
+                    autoComplete="new-password"
+                    required
+                    value={confirm}
+                    invalid={invalid}
+                    errorId={errorId}
+                    hint={<PasswordRules password={password} confirm={confirm} min={LIMITS.passwordMin} />}
+                    onChange={(event) => {
+                      setConfirm(event.target.value)
+                      clear()
+                    }}
+                  />
+                </fieldset>
+
+                <AuthAlert id={errorId} message={error} />
+
+                <AuthSubmit busy={sending} busyLabel="Creating your account…">
+                  Create account
+                </AuthSubmit>
+              </form>
+            )}
+
+            <CardFoot>
+              Already have an account?{' '}
+              <Link href={`/login/${audience}`} className="link-underline font-semibold text-sky-700">
+                Sign in
+              </Link>
+            </CardFoot>
+          </>
+        )}
+      </AuthCard>
+    </AuthStage>
   )
 }

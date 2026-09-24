@@ -1,23 +1,22 @@
 'use client'
 
-import { Fragment, useRef, useState } from 'react'
-import { MathTexture } from '@/components/brand/MathTexture'
+import { Fragment, useState } from 'react'
 import { ProgressPlot } from '@/components/brand/ProgressPlot'
 import { LEARNING_LOOP } from '@/content/philosophy'
 import { staggerDelay } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { AUDIENCE, type Audience } from './audience'
 import { AudienceSwap } from './AudienceSwap'
+import { AuthStage, StageIntro, StagePoints } from './AuthStage'
 import { PortalSignInCard } from './PortalSignInCard'
-import { usePointerField } from './usePointerField'
 
 /**
  * The Student / Parent authentication experience.
  *
- * Composition: a cinematic deep-blue field carrying the brand's own textures —
- * graph paper, mathematical glyphs, a single sky glow — with the sign-in card
- * lifted off it. On a phone the same field runs the full height and the
- * composition becomes vertical, so nothing is a squeezed desktop layout.
+ * Set on AuthStage, the field every account screen shares: the headline, then
+ * the card, then the detail — side by side on a wide screen, stacked on a
+ * phone with the card second, so it is reached without scrolling past the
+ * whole story.
  *
  * Switching portal is state, and only state. The address is deliberately left
  * alone, which is a decision worth recording because the obvious alternatives
@@ -47,143 +46,35 @@ import { usePointerField } from './usePointerField'
  */
 export function PortalAuth({ initial }: { initial: Audience }) {
   const [audience, setAudience] = useState<Audience>(initial)
-  const field = useRef<HTMLElement>(null)
-
-  usePointerField(field)
 
   return (
-    <section
-      ref={field}
-      className="relative isolate flex min-h-[calc(100vh-4.5rem)] items-center overflow-hidden bg-deep-800"
-    >
-      {/* ---------- Background, in layers, all decorative ---------- */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        {/* 1 — the field itself, lit from the upper left rather than flat. */}
-        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_12%_0%,#154063_0%,#0E2F4A_45%,#0A2137_100%)]" />
-
-        {/* 2 — graph paper, the workbook underneath everything. It moves
-            against the pointer, which is what reads as depth: the paper is
-            behind the glass, so it should appear to lag behind it. */}
-        <div className="pointer-parallax absolute inset-0 texture-grid-dark opacity-[0.45] mask-fade-b [--parallax-x:-10px] [--parallax-y:-6px]" />
-
-        {/* 3 — glyphs, in the margins only. They keep their own slow drift;
-            the wrapper carries the pointer response so the two never fight
-            over the same transform. */}
-        <div className="pointer-parallax absolute inset-x-0 bottom-0 h-[22%] opacity-50 [--parallax-x:-16px] [--parallax-y:-9px] lg:right-[58%] lg:top-[82%] lg:h-auto">
-          <MathTexture tone="dark" density="sparse" ambient />
-        </div>
-
-        {/* 4 — one controlled focal glow, behind the card, so the eye lands
-            where the work is. It breathes over 14s: felt, not watched, and it
-            leans toward the pointer the furthest of any layer — it is light,
-            not an object, so it is allowed to follow. The breathing is opacity
-            only, which is what leaves the transform free for the lean. */}
-        <div
-          data-ambient=""
-          className="pointer-parallax absolute right-[-10%] top-[8%] h-[62vh] w-[62vw] rounded-full bg-sky-500/[0.13] blur-[130px] animate-ambient-breathe [--parallax-x:26px] [--parallax-y:18px] lg:right-[2%] lg:w-[44vw]"
-        />
-        {/* The counterweight, on its own 32-second drift and out of phase with
-            everything else, so the field never pulses as one. */}
-        <div
-          data-ambient=""
-          className="absolute -left-[18%] top-[-12%] h-[48vh] w-[48vw] rounded-full bg-sky-400/[0.08] blur-[120px] animate-ambient-drift-slow"
-        />
-
-        {/* 5 — vignette, to seat the composition. */}
-        <div className="absolute inset-0 bg-[radial-gradient(100%_70%_at_50%_45%,transparent_35%,rgba(6,21,37,0.55)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-deep-900 to-transparent" />
-      </div>
-
-      <div className="container-page relative w-full py-14 sm:py-20 lg:py-24">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_minmax(0,25rem)] lg:gap-16 xl:gap-20">
-          {/* ---------- Left: the cinematic half ---------- */}
-          <div className="max-w-xl">
-            {/* Both portals' words live here; one is shown. See AudienceSwap
-                for why both are rendered and why nothing tracks direction. */}
-            <AudienceSwap
-              audience={audience}
-              render={(value) => {
-                const copy = AUDIENCE[value]
-                return (
-                  <>
-                    <p
-                      className="eyebrow flex items-center gap-2.5 animate-fade-up text-sky-300"
-                      style={{ animationDelay: `${staggerDelay(1)}ms` }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        data-ambient=""
-                        className="inline-block h-1.5 w-1.5 rounded-full bg-sky-400 animate-ambient-breathe"
-                      />
-                      {copy.eyebrow}
-                    </p>
-
-                    <h1
-                      className="mt-4 text-balance text-display-lg text-white animate-fade-up"
-                      style={{ animationDelay: `${staggerDelay(2)}ms` }}
-                    >
-                      {copy.heading}
-                    </h1>
-
-                    <p
-                      className="mt-5 max-w-md text-base leading-relaxed text-deep-100/75 animate-fade-up sm:text-[1.05rem]"
-                      style={{ animationDelay: `${staggerDelay(3)}ms` }}
-                    >
-                      {copy.lead}
-                    </p>
-
-                    <ul className="mt-8 space-y-3.5">
-                      {copy.points.map((point, index) => (
-                        <li
-                          key={point}
-                          className="flex items-start gap-3 text-sm text-deep-100/80 animate-fade-up"
-                          style={{ animationDelay: `${staggerDelay(4 + index)}ms` }}
-                        >
-                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/8 ring-1 ring-inset ring-white/15">
-                            <svg viewBox="0 0 16 16" className="h-3 w-3 text-growth-300" aria-hidden="true">
-                              <path
-                                d="M3.5 8.5 6.5 11.5 12.5 5"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </span>
-                          {point}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )
-              }}
+    <AuthStage
+      intro={
+        // Both portals' words live here; one is shown. See AudienceSwap for
+        // why both are rendered and why nothing tracks direction.
+        <AudienceSwap
+          audience={audience}
+          render={(value) => (
+            <StageIntro
+              eyebrow={AUDIENCE[value].eyebrow}
+              title={AUDIENCE[value].heading}
+              lead={AUDIENCE[value].lead}
             />
-
-            <LearningLoop audience={audience} />
-          </div>
-
-          {/* ---------- Right: the card ---------- */}
-          {/* Capped in the single-column layout. Left to fill the column it
-              reached 720px at tablet width, which put a 600px-wide field and
-              button on screen and made the form outweigh the message beside
-              it. max-w-md matches the plot and the rail exactly, so card,
-              curve and axis share one left edge and one width. Above lg the
-              grid column is already narrower, so nothing changes there. */}
-          {/* The entrance lives on the outer element and the pointer lean on
-              the inner one, because both are transforms and one element can
-              only carry a single transform at a time. */}
-          <div
-            className="max-w-md animate-fade-up lg:max-w-none lg:justify-self-end lg:w-full"
-            style={{ animationDelay: `${staggerDelay(3)}ms` }}
-          >
-            <div className="card-tilt">
-              <PortalSignInCard audience={audience} onAudienceChange={setAudience} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+          )}
+        />
+      }
+      detail={
+        <>
+          <AudienceSwap
+            audience={audience}
+            render={(value) => <StagePoints points={AUDIENCE[value].points} />}
+          />
+          <LearningLoop audience={audience} />
+        </>
+      }
+    >
+      <PortalSignInCard audience={audience} onAudienceChange={setAudience} />
+    </AuthStage>
   )
 }
 

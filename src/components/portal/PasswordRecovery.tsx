@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useState } from 'react'
-import { Button, ArrowRight } from '@/components/ui/Button'
+import Link from 'next/link'
 import { recoveryUrl, resolveDestination, loginFor } from '@/lib/auth/destinations'
 import {
   LIMITS,
@@ -11,7 +11,26 @@ import {
   updatePasswordOutcome,
 } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
-import { AccountFormShell, Done, Field, FormError, NotConfigured, TextLink } from './AccountForm'
+import {
+  AuthAlert,
+  AuthCard,
+  AuthField,
+  AuthSubmit,
+  AuthSuccess,
+  CardFoot,
+  CardHeading,
+  ContactLine,
+  NotConfigured,
+  PasswordField,
+  PasswordRules,
+} from './AuthCard'
+import { AuthStage, StageIntro, StagePoints } from './AuthStage'
+
+const RECOVERY_POINTS = [
+  'The link works once, on this device, then expires',
+  'Your new password works straight away',
+  'Your account, your portal and your progress are untouched',
+]
 
 /** Which portal the reset was started from, read from `?for=` in the browser. */
 function portalFromQuery(): '/student' | '/parent' {
@@ -59,47 +78,75 @@ export function RequestPasswordReset() {
   }
 
   return (
-    <AccountFormShell
-      eyebrow="Account"
-      title="Reset your password"
-      lead="Enter the email address your account uses and we will send you a link to choose a new password."
-      footer={
-        <>
-          Remembered it? <TextLink href={back}>Back to sign in</TextLink>
-        </>
+    <AuthStage
+      intro={
+        <StageIntro
+          eyebrow="Account recovery"
+          title="Back in, in two steps."
+          lead="We email you a link. Open it on this device and choose a new password — that is all."
+        />
       }
+      detail={<StagePoints points={RECOVERY_POINTS} />}
     >
-      {!IS_SUPABASE_CONFIGURED ? (
-        <NotConfigured />
-      ) : done ? (
-        <Done title="Check your inbox">
-          If that address has an account, a reset link is on its way. Open it on this device — it
-          works once and expires. If you asked a moment ago, wait a minute before asking again.
-        </Done>
-      ) : (
-        <form onSubmit={onSubmit} noValidate>
-          <Field
-            id={`${id}-email`}
-            label="Email address"
-            name="email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            disabled={sending}
-            invalid={Boolean(error)}
-            describedBy={errorId}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-          <FormError id={errorId} message={error} />
-          <Button type="submit" size="lg" disabled={sending} className="mt-6 w-full">
-            {sending ? 'Sending…' : 'Send reset link'}
-            {sending ? null : <ArrowRight />}
-          </Button>
-        </form>
-      )}
-    </AccountFormShell>
+      <AuthCard>
+        {!IS_SUPABASE_CONFIGURED ? (
+          <>
+            <CardHeading eyebrow="Step 1 of 2" title="Reset your password" />
+            <NotConfigured what="Password reset" />
+          </>
+        ) : done ? (
+          <>
+            <AuthSuccess title="Check your inbox" tone="sky">
+              If that address has an account, a reset link is on its way. Open it on this device — it
+              works once and expires. If you asked a moment ago, wait a minute before asking again.
+            </AuthSuccess>
+            <CardFoot>
+              <ContactLine lead="Nothing arrived? Check spam, then message" />
+            </CardFoot>
+          </>
+        ) : (
+          <>
+            <CardHeading
+              eyebrow="Step 1 of 2"
+              title="Reset your password"
+              lead="Enter the email address your account uses."
+            />
+            <form onSubmit={onSubmit} noValidate className="mt-6">
+              <AuthField
+                id={`${id}-email`}
+                label="Email address"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                required
+                value={email}
+                disabled={sending}
+                invalid={Boolean(error)}
+                errorId={errorId}
+                placeholder="you@example.com"
+                onChange={(event) => {
+                  setEmail(event.target.value)
+                  if (error) setError(null)
+                }}
+              />
+              <AuthAlert id={errorId} message={error} />
+              <AuthSubmit busy={sending} busyLabel="Sending…">
+                Send reset link
+              </AuthSubmit>
+            </form>
+          </>
+        )}
+        {done ? null : (
+          <CardFoot>
+            Remembered it?{' '}
+            <Link href={back} className="link-underline font-semibold text-sky-700">
+              Back to sign in
+            </Link>
+          </CardFoot>
+        )}
+      </AuthCard>
+    </AuthStage>
   )
 }
 
@@ -158,59 +205,77 @@ export function UpdatePassword() {
   }
 
   return (
-    <AccountFormShell
-      eyebrow="Account"
-      title="Choose a new password"
-      footer={
-        <>
-          Link expired? <TextLink href="/account/reset-password">Request a new one</TextLink>
-        </>
+    <AuthStage
+      intro={
+        <StageIntro
+          eyebrow="Account recovery"
+          title="Choose a new password."
+          lead="Something you will remember and nobody could guess. It replaces your old password as soon as you save it."
+        />
       }
+      detail={<StagePoints points={RECOVERY_POINTS} />}
     >
-      {!IS_SUPABASE_CONFIGURED ? (
-        <NotConfigured />
-      ) : hasSession === null ? (
-        <p className="text-sm text-deep-500">One moment…</p>
-      ) : !hasSession ? (
-        <Done title="This reset link has expired">
-          Reset links work once and expire. Request a new one and open it a single time.
-        </Done>
-      ) : (
-        <form onSubmit={onSubmit} noValidate>
-          <Field
-            id={`${id}-password`}
-            label="New password"
-            name="new-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            disabled={sending}
-            invalid={Boolean(error)}
-            describedBy={errorId}
-            hint={`At least ${LIMITS.passwordMin} characters.`}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <Field
-            id={`${id}-confirm`}
-            label="Confirm new password"
-            name="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={confirm}
-            disabled={sending}
-            invalid={Boolean(error)}
-            describedBy={errorId}
-            onChange={(event) => setConfirm(event.target.value)}
-          />
-          <FormError id={errorId} message={error} />
-          <Button type="submit" size="lg" disabled={sending} className="mt-6 w-full">
-            {sending ? 'Saving…' : 'Save new password'}
-            {sending ? null : <ArrowRight />}
-          </Button>
-        </form>
-      )}
-    </AccountFormShell>
+      <AuthCard>
+        <CardHeading eyebrow="Step 2 of 2" title="Your new password" />
+        {!IS_SUPABASE_CONFIGURED ? (
+          <NotConfigured what="Password reset" />
+        ) : hasSession === null ? (
+          <p className="mt-6 flex items-center gap-2 text-sm text-deep-500" role="status">
+            Checking your reset link…
+          </p>
+        ) : !hasSession ? (
+          <div className="mt-6 rounded-card border border-deep-100 bg-mist px-4 py-4" role="status">
+            <p className="font-display text-base font-bold text-deep-700">This reset link has expired</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-deep-600">
+              Reset links work once and expire. Request a new one and open it a single time.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={onSubmit} noValidate className="mt-6 space-y-4">
+            <PasswordField
+              id={`${id}-password`}
+              label="New password"
+              name="new-password"
+              autoComplete="new-password"
+              required
+              value={password}
+              disabled={sending}
+              invalid={Boolean(error)}
+              errorId={errorId}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                if (error) setError(null)
+              }}
+            />
+            <PasswordField
+              id={`${id}-confirm`}
+              label="Confirm new password"
+              name="confirm-password"
+              autoComplete="new-password"
+              required
+              value={confirm}
+              disabled={sending}
+              invalid={Boolean(error)}
+              errorId={errorId}
+              hint={<PasswordRules password={password} confirm={confirm} min={LIMITS.passwordMin} />}
+              onChange={(event) => {
+                setConfirm(event.target.value)
+                if (error) setError(null)
+              }}
+            />
+            <AuthAlert id={errorId} message={error} />
+            <AuthSubmit busy={sending} busyLabel="Saving…">
+              Save new password
+            </AuthSubmit>
+          </form>
+        )}
+        <CardFoot>
+          Link expired?{' '}
+          <Link href="/account/reset-password" className="link-underline font-semibold text-sky-700">
+            Request a new one
+          </Link>
+        </CardFoot>
+      </AuthCard>
+    </AuthStage>
   )
 }
