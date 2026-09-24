@@ -353,3 +353,42 @@ until the tables exist.
 **Outstanding:** real student first names remain in the history of commit
 `e7d7114`. Either make the repository private, or purge with `git filter-repo`
 and force-push. A history rewrite needs an explicit go-ahead.
+
+## CAPTCHA (Cloudflare Turnstile)
+
+Registration, sign-in and password reset carry a Turnstile token, and
+**Supabase Auth verifies it** — not this application. The browser talks to
+Supabase directly with the public anon key, so a check in our own code could
+be skipped; a check inside Supabase cannot. Supabase verifies the token before
+it looks at the email address, so a failed check reveals nothing about whether
+an account exists.
+
+| Key | Where it lives |
+|---|---|
+| Site key (public) | Vercel env var `NEXT_PUBLIC_TURNSTILE_SITE_KEY` |
+| Secret key | Supabase → Authentication → Bot and Abuse Protection → Enable CAPTCHA protection → Turnstile. Nowhere else. |
+
+Behaviour by configuration:
+
+- **No site key:** the sign-up form refuses to submit ("Registration is not
+  open yet") and never calls Supabase. Sign-in, magic links and reset behave
+  exactly as before.
+- **Site key set, Supabase CAPTCHA off:** every form shows the widget and
+  sends a token; Supabase ignores it. Safe, but not yet enforced.
+- **Site key set, Supabase CAPTCHA on:** enforced for sign-up, password
+  sign-in, magic links (including the owner's) and reset.
+
+**Order matters.** Supabase's switch covers the owner's magic link too, and
+production and previews share one Supabase project. Turning it on while any
+deployment that serves sign-in lacks the site key — including the current
+production build — locks that deployment's sign-in out. So:
+
+1. Create the Turnstile widget in Cloudflare. Hostnames: `www.mrdesouky.com`,
+   `mrdesouky.com`, and any preview host used for testing.
+2. Set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` in Vercel for Preview (and later
+   Production) and redeploy.
+3. Only once production runs this code with the key set, enable CAPTCHA in
+   Supabase with the secret key.
+4. Then, and only then, open registration (`allow_signups`).
+
+To undo: switch CAPTCHA off in Supabase first, then remove the key.
