@@ -16,6 +16,14 @@
 
 type AuthFailure = { status?: number; code?: string; message: string } | null
 
+/** Supabase's answer when the token is missing, expired, reused or invalid. */
+export function isCaptchaFailure(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return error.code === 'captcha_failed' || /captcha/i.test(error.message ?? '')
+}
+
+export const CAPTCHA_FAILED = 'The security check did not go through. Please try it again.'
+
 export type Outcome = { ok: true } | { ok: false; message: string }
 
 const TRY_AGAIN = 'Something went wrong on our side. Please try again in a moment.'
@@ -23,6 +31,9 @@ const TRY_AGAIN = 'Something went wrong on our side. Please try again in a momen
 /** Password sign-in. */
 export function signInOutcome(error: AuthFailure): Outcome {
   if (!error) return { ok: true }
+  // Checked first: Supabase refuses a bad CAPTCHA with a 400 too, before it
+  // has looked at the address, so it must not read as a credential failure.
+  if (isCaptchaFailure(error)) return { ok: false, message: CAPTCHA_FAILED }
   if (error.code === 'invalid_credentials' || error.status === 400) {
     return { ok: false, message: 'That email and password do not match an account.' }
   }
@@ -41,6 +52,7 @@ export function signInOutcome(error: AuthFailure): Outcome {
 
 /** Account creation. `ok` means "tell them to check their inbox". */
 export function signUpOutcome(error: AuthFailure): Outcome {
+  if (isCaptchaFailure(error)) return { ok: false, message: CAPTCHA_FAILED }
   if (!error || error.code === 'user_already_exists') return { ok: true }
   // Closed at the dashboard (signup_disabled) or in the database, where the
   // trigger's refusal surfaces as a generic 500 "Database error saving new
@@ -69,6 +81,9 @@ export function signUpOutcome(error: AuthFailure): Outcome {
  * reporting it would confirm that the address has one.
  */
 export function resetOutcome(error: AuthFailure): Outcome {
+  // Before the 400 rule below: a refused CAPTCHA means no email was sent,
+  // and it is decided before the address is looked at, so saying so is safe.
+  if (isCaptchaFailure(error)) return { ok: false, message: CAPTCHA_FAILED }
   if (!error || error.status === 400 || error.status === 422 || error.status === 429) {
     return { ok: true }
   }
@@ -124,4 +139,15 @@ export function phoneProblem(phone: string): string | null {
 
 export function looksLikeEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+/**
+ * Emailed sign-in link. A 400 is how an unknown address answers, so it is
+ * reported as sent; a refused CAPTCHA is not, because nothing was sent and
+ * the refusal happened before the address was looked at.
+ */
+export function magicLinkOutcome(error: AuthFailure): Outcome | 'sent' {
+  if (isCaptchaFailure(error)) return { ok: false, message: CAPTCHA_FAILED }
+  if (!error || error.status === 400) return 'sent'
+  return { ok: false, message: error.message }
 }

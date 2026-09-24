@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
+import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
+import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, captchaProblem } from '@/lib/auth/captcha'
 import { recoveryUrl, resolveDestination, loginFor } from '@/lib/auth/destinations'
 import {
   LIMITS,
@@ -53,6 +55,8 @@ export function RequestPasswordReset() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [back, setBack] = useState('/login/student')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   useEffect(() => {
     // Deferred so no state is set synchronously while the effect runs.
@@ -63,6 +67,8 @@ export function RequestPasswordReset() {
     event.preventDefault()
     if (!IS_SUPABASE_CONFIGURED || sending) return
     if (!looksLikeEmail(email)) return setError('Enter the email address your account uses.')
+    const missing = captchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+    if (missing) return setError(missing)
 
     setError(null)
     setSending(true)
@@ -70,7 +76,9 @@ export function RequestPasswordReset() {
     const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     const { error: failure } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: recoveryUrl(window.location.origin, portalFromQuery()),
+      captchaToken: captchaToken ?? undefined,
     })
+    captcha.current?.reset()
     setSending(false)
     const outcome = resetOutcome(failure)
     if (!outcome.ok) return setError(outcome.message)
@@ -130,6 +138,18 @@ export function RequestPasswordReset() {
                   if (error) setError(null)
                 }}
               />
+              {IS_CAPTCHA_CONFIGURED ? (
+                <Turnstile
+                  ref={captcha}
+                  action="recover"
+                  className="mt-5"
+                  onToken={(value) => {
+                    setCaptchaToken(value)
+                    // Only the prompt is answered by a new token; see SignUpForm.
+                    if (value) setError((current) => (current === CAPTCHA_PROMPT ? null : current))
+                  }}
+                />
+              ) : null}
               <AuthAlert id={errorId} message={error} />
               <AuthSubmit busy={sending} busyLabel="Sending…">
                 Send reset link

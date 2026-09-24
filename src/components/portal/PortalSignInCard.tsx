@@ -2,8 +2,10 @@
 
 import { useId, useRef, useState } from 'react'
 import Link from 'next/link'
+import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
+import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, captchaProblem } from '@/lib/auth/captcha'
 import { callbackUrl } from '@/lib/auth/destinations'
-import { looksLikeEmail, signInOutcome } from '@/lib/auth/errors'
+import { CAPTCHA_FAILED, isCaptchaFailure, looksLikeEmail, signInOutcome } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import type { Audience } from './audience'
 import { AUDIENCE } from './audience'
@@ -68,6 +70,8 @@ export function PortalSignInCard({
   const [notice, setNotice] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   const invalid = status === 'error'
 
@@ -88,9 +92,19 @@ export function PortalSignInCard({
       passwordRef.current?.focus()
       return
     }
+    // Only when a site key is configured: then Supabase requires a token too.
+    const missing = captchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+    if (missing) {
+      setNotice(missing)
+      setStatus('error')
+      return
+    }
 
     setNotice(null)
     setStatus('sending')
+    const token = captchaToken ?? undefined
+    // A token works once, whatever the outcome; ask for a fresh one now.
+    captcha.current?.reset()
 
     // Loaded on submit, not on render. The auth library is ~260KB raw and is
     // useless until someone actually signs in, so keeping it out of the
@@ -100,7 +114,11 @@ export function PortalSignInCard({
     const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
     if (mode === 'password') {
-      const { error } = await supabase.auth.signInWithPassword({ email: address, password })
+      const { error } = await supabase.auth.signInWithPassword({
+        email: address,
+        password,
+        options: { captchaToken: token },
+      })
       const outcome = signInOutcome(error)
       if (outcome.ok) {
         // A full navigation, so the request carries the new session cookies
@@ -119,9 +137,17 @@ export function PortalSignInCard({
       options: {
         emailRedirectTo: callbackUrl(window.location.origin, copy.destination),
         shouldCreateUser: false,
+        captchaToken: token,
       },
     })
 
+    // Before the 400 rule: a refused CAPTCHA means nothing was sent, and it is
+    // decided before the address is looked at, so it reveals nothing.
+    if (isCaptchaFailure(error)) {
+      setNotice(CAPTCHA_FAILED)
+      setStatus('error')
+      return
+    }
     if (!error || error.status === 400) {
       setStatus('sent')
       return
@@ -229,6 +255,19 @@ export function PortalSignInCard({
                   ) : null}
                 </div>
               </div>
+
+              {IS_CAPTCHA_CONFIGURED ? (
+                <Turnstile
+                  ref={captcha}
+                  action="login"
+                  className="mt-5"
+                  onToken={(value) => {
+                    setCaptchaToken(value)
+                    // Only the prompt is answered by a new token; see SignUpForm.
+                    if (value && status === 'error' && notice === CAPTCHA_PROMPT) setStatus('idle')
+                  }}
+                />
+              ) : null}
 
               <AuthAlert id={errorId} message={invalid ? notice : null} />
 

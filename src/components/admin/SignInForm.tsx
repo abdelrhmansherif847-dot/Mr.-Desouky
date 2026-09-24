@@ -1,8 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
+import { IS_CAPTCHA_CONFIGURED, captchaProblem } from '@/lib/auth/captcha'
 import { callbackUrl } from '@/lib/auth/destinations'
+import { CAPTCHA_FAILED, isCaptchaFailure } from '@/lib/auth/errors'
 import { LogoMark } from '@/components/brand/Logo'
 import { Button } from '@/components/ui/Button'
 
@@ -18,10 +21,21 @@ export function SignInForm({ configured }: { configured: boolean }) {
   const [email, setEmail] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [notice, setNotice] = useState<string | null>(null)
+  // Only drawn when a Turnstile site key is configured. Supabase's CAPTCHA
+  // setting covers this endpoint too, so once it is on, this link needs a
+  // token like every other auth request. With no key, nothing here changes.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!configured) return
+    const missing = captchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+    if (missing) {
+      setNotice(missing)
+      setState('error')
+      return
+    }
     setState('sending')
 
     const supabase = createBrowserClient(
@@ -35,8 +49,18 @@ export function SignInForm({ configured }: { configured: boolean }) {
         // Never create an account from this form. Sign-ups are closed in the
         // database too; this simply avoids attempting one.
         shouldCreateUser: false,
+        captchaToken: captchaToken ?? undefined,
       },
     })
+    captcha.current?.reset()
+
+    // A refused CAPTCHA means nothing was sent. It is decided before the
+    // address is looked at, so saying so reveals nothing about it.
+    if (isCaptchaFailure(error)) {
+      setNotice(CAPTCHA_FAILED)
+      setState('error')
+      return
+    }
 
     // A 400 is reported as success on purpose: it is how an unknown address
     // answers, and revealing it would turn this screen into a way to discover
@@ -95,6 +119,15 @@ export function SignInForm({ configured }: { configured: boolean }) {
               onChange={(event) => setEmail(event.target.value)}
               className="mt-2 w-full rounded-lg border border-deep-200 px-3.5 py-2.5 text-sm text-deep-700 outline-none transition-colors duration-200 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             />
+
+            {IS_CAPTCHA_CONFIGURED ? (
+              <Turnstile
+                ref={captcha}
+                action="magiclink"
+                className="mt-5"
+                onToken={setCaptchaToken}
+              />
+            ) : null}
 
             <Button type="submit" size="lg" className="mt-5 w-full" disabled={state === 'sending'}>
               {state === 'sending' ? 'Sending…' : 'Email me a link'}

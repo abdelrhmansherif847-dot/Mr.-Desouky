@@ -1,7 +1,9 @@
 'use client'
 
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import Link from 'next/link'
+import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
+import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, signUpCaptchaProblem } from '@/lib/auth/captcha'
 import { callbackUrl } from '@/lib/auth/destinations'
 import {
   LIMITS,
@@ -39,6 +41,11 @@ import { AuthStage, StageIntro } from './AuthStage'
  * account and, for a parent, links it to a student. Whether sign-up is open
  * at all is decided in the database too (private.auth_settings), not here.
  *
+ * A CAPTCHA result is required before anything is sent (lib/auth/captcha):
+ * with no site key configured, or no token yet, the request is never made.
+ * Supabase then verifies the token itself, so the check cannot be skipped by
+ * calling the API directly.
+ *
  * Every successful submission shows the same "check your inbox" screen,
  * including for an address that already has an account, so the form cannot
  * be used to discover who is registered.
@@ -62,6 +69,8 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -73,7 +82,8 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
       (name.length > LIMITS.name ? `Keep your name under ${LIMITS.name} characters.` : null) ??
       phoneProblem(phone) ??
       (!looksLikeEmail(email) ? 'Enter a valid email address.' : null) ??
-      passwordProblem(password, confirm)
+      passwordProblem(password, confirm) ??
+      signUpCaptchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
     if (problem) return setError(problem)
 
     setError(null)
@@ -93,9 +103,13 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
           phone: phone.trim(),
           intended_role: audience,
         },
+        // Verified by Supabase before it looks at anything else.
+        captchaToken: captchaToken ?? undefined,
       },
     })
 
+    // A token works once, whatever the outcome.
+    captcha.current?.reset()
     setSending(false)
     const outcome = signUpOutcome(failure)
     if (!outcome.ok) return setError(outcome.message)
@@ -255,6 +269,21 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     }}
                   />
                 </fieldset>
+
+                {IS_CAPTCHA_CONFIGURED ? (
+                  <Turnstile
+                    ref={captcha}
+                    action="signup"
+                    className="mt-6 border-t border-deep-100 pt-6"
+                    onToken={(token) => {
+                      setCaptchaToken(token)
+                      // A fresh token answers the prompt, and nothing else: it
+                      // also arrives right after a refused request, whose
+                      // message must stay on screen.
+                      if (token) setError((current) => (current === CAPTCHA_PROMPT ? null : current))
+                    }}
+                  />
+                ) : null}
 
                 <AuthAlert id={errorId} message={error} />
 
