@@ -23,6 +23,9 @@
  * token whenever a site key is configured. See docs/ADMIN.md for the order
  * of switching it on.
  */
+// Type-only, so this module still loads on its own under `npm test`.
+import type { FormError } from './errors'
+
 export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
 
 /** A site key is configured, so the widget is shown and its token sent. */
@@ -53,4 +56,25 @@ export function signUpCaptchaProblem(configured: boolean, token: string | null):
 export function captchaProblem(configured: boolean, token: string | null): string | null {
   if (configured && !token) return CAPTCHA_PROMPT
   return null
+}
+
+/*
+ * The same two checks, with an owner (see lib/auth/errors). A missing token
+ * belongs to the security check and never marks an input. With no site key,
+ * "registration is not open yet" is about the form, not the widget.
+ */
+export function signUpCaptchaError(configured: boolean, token: string | null): FormError | null {
+  const message = signUpCaptchaProblem(configured, token)
+  if (!message) return null
+  return { owner: message === CAPTCHA_PROMPT ? 'captcha' : 'form', message }
+}
+
+export function captchaError(configured: boolean, token: string | null): FormError | null {
+  const message = captchaProblem(configured, token)
+  return message ? { owner: 'captcha', message } : null
+}
+
+/** A new token answers the prompt, and only the prompt — never a refusal. */
+export function answeredByToken(error: FormError | null): boolean {
+  return error !== null && error.owner === 'captcha' && error.message === CAPTCHA_PROMPT
 }
