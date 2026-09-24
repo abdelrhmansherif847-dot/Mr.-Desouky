@@ -14,7 +14,7 @@
  * form look broken.
  */
 
-type AuthFailure = { status?: number; code?: string; message: string } | null
+export type AuthFailure = { status?: number; code?: string; message: string } | null
 
 /** Supabase's answer when the token is missing, expired, reused or invalid. */
 export function isCaptchaFailure(error: { code?: string; message?: string } | null): boolean {
@@ -150,4 +150,109 @@ export function magicLinkOutcome(error: AuthFailure): Outcome | 'sent' {
   if (isCaptchaFailure(error)) return { ok: false, message: CAPTCHA_FAILED }
   if (!error || error.status === 400) return 'sent'
   return { ok: false, message: error.message }
+}
+
+/*
+ * Who an error belongs to.
+ *
+ * Every form shows one error line, and that line always has an owner: the
+ * one input it is about, the security check, or the form as a whole. Only
+ * the input that owns the error is marked invalid (red border, aria-invalid).
+ * A missing or refused CAPTCHA, and anything the server says about the
+ * request as a whole, never marks an input — the name, email and passwords
+ * were fine, and painting them red says otherwise.
+ *
+ * The words are unchanged; the functions below only decide who owns them.
+ */
+
+/** Inputs that can be marked invalid. */
+export type FieldName = 'name' | 'phone' | 'email' | 'password' | 'confirmPassword'
+
+/** Everything an error can belong to. 'captcha' and 'form' never mark an input. */
+export type ErrorOwner = FieldName | 'captcha' | 'form'
+
+export type FormError = { owner: ErrorOwner; message: string }
+
+/** Whether this input is the one the current error is about. */
+export function fieldInvalid(error: FormError | null, field: FieldName): boolean {
+  return error !== null && error.owner === field
+}
+
+/** Whether the current error is about the security check. */
+export function captchaInvalid(error: FormError | null): boolean {
+  return error !== null && error.owner === 'captcha'
+}
+
+/**
+ * A new password and its confirmation, with passwordProblem's words. Length
+ * belongs to the password; a mismatch belongs to the confirmation, because
+ * the password itself is fine.
+ */
+export function newPasswordProblem(password: string, confirm: string): FormError | null {
+  const message = passwordProblem(password, confirm)
+  if (!message) return null
+  // Compared with itself, the password only fails on its own length. Whatever
+  // is left is the two not matching.
+  const own = passwordProblem(password, password)
+  return { owner: own ? 'password' : 'confirmPassword', message }
+}
+
+/**
+ * Sign-up's own fields, in the order and with the words the form always
+ * used. The security check comes after these (lib/auth/captcha).
+ */
+export function signUpFieldProblem(values: {
+  fullName: string
+  phone: string
+  email: string
+  password: string
+  confirm: string
+}): FormError | null {
+  const name = values.fullName.trim()
+  if (!name) return { owner: 'name', message: 'Enter your full name.' }
+  if (name.length > LIMITS.name) {
+    return { owner: 'name', message: `Keep your name under ${LIMITS.name} characters.` }
+  }
+  const phone = phoneProblem(values.phone)
+  if (phone) return { owner: 'phone', message: phone }
+  if (!looksLikeEmail(values.email)) return { owner: 'email', message: 'Enter a valid email address.' }
+  return newPasswordProblem(values.password, values.confirm)
+}
+
+/** signUpOutcome with an owner. Null means "check your inbox". */
+export function signUpFailure(error: AuthFailure): FormError | null {
+  const outcome = signUpOutcome(error)
+  if (outcome.ok) return null
+  if (isCaptchaFailure(error)) return { owner: 'captcha', message: outcome.message }
+  if (error?.code === 'weak_password') return { owner: 'password', message: outcome.message }
+  if (error?.code === 'email_address_invalid' || error?.code === 'validation_failed') {
+    return { owner: 'email', message: outcome.message }
+  }
+  return { owner: 'form', message: outcome.message }
+}
+
+/**
+ * signInOutcome with an owner. "That email and password do not match" is
+ * about the pair — marking either one alone would hint at which was wrong —
+ * so it belongs to the form.
+ */
+export function signInFailure(error: AuthFailure): FormError | null {
+  const outcome = signInOutcome(error)
+  if (outcome.ok) return null
+  return { owner: isCaptchaFailure(error) ? 'captcha' : 'form', message: outcome.message }
+}
+
+/** resetOutcome with an owner. Null means "check your inbox". */
+export function resetFailure(error: AuthFailure): FormError | null {
+  const outcome = resetOutcome(error)
+  if (outcome.ok) return null
+  return { owner: isCaptchaFailure(error) ? 'captcha' : 'form', message: outcome.message }
+}
+
+/** updatePasswordOutcome with an owner. */
+export function updatePasswordFailure(error: AuthFailure): FormError | null {
+  const outcome = updatePasswordOutcome(error)
+  if (outcome.ok) return null
+  const aboutPassword = error?.code === 'weak_password' || error?.code === 'same_password'
+  return { owner: aboutPassword ? 'password' : 'form', message: outcome.message }
 }
