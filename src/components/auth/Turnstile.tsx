@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef, useState } from 'react'
 import { TURNSTILE_SCRIPT, TURNSTILE_SITE_KEY } from '@/lib/auth/captcha'
 import { cn } from '@/lib/utils'
 
@@ -63,8 +63,16 @@ export const Turnstile = forwardRef<
     action: 'signup' | 'login' | 'magiclink' | 'recover'
     onToken: (token: string | null) => void
     className?: string
+    /**
+     * The form's current error is about the security check. It is the only
+     * part of the form marked — the inputs around it stay as they are.
+     */
+    invalid?: boolean
+    /** The form's error line, announced with the check while it is invalid. */
+    errorId?: string
   }
->(function Turnstile({ action, onToken, className }, ref) {
+>(function Turnstile({ action, onToken, className, invalid, errorId }, ref) {
+  const labelId = useId()
   const container = useRef<HTMLDivElement>(null)
   const widget = useRef<string | null>(null)
   const api = useRef<TurnstileApi | null>(null)
@@ -122,8 +130,22 @@ export const Turnstile = forwardRef<
   }, [])
 
   return (
-    <div className={className}>
-      <p className="text-sm font-semibold text-deep-700">Security check</p>
+    <div
+      role="group"
+      aria-labelledby={labelId}
+      aria-describedby={invalid && errorId ? errorId : undefined}
+      data-invalid={invalid || undefined}
+      className={className}
+    >
+      <p
+        id={labelId}
+        className={cn(
+          'text-sm font-semibold transition-colors duration-200 ease-smooth',
+          invalid ? 'text-alert-600' : 'text-deep-700',
+        )}
+      >
+        Security check
+      </p>
       <div
         ref={container}
         className={cn('mt-2 flex w-full items-start', compact ? 'min-h-[140px]' : 'min-h-[65px]')}
