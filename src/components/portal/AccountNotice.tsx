@@ -31,6 +31,11 @@ export function AccountNotice({
             <Link href="/" className="link-underline font-semibold text-deep-500">
               Back to the website
             </Link>
+            <form action="/auth/signout" method="post">
+              <button type="submit" className="link-underline font-semibold text-deep-500">
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
       </div>

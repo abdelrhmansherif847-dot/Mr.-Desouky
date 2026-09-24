@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
         `${SITE.basePath}/preview/`,
         `${SITE.basePath}/account/`,
         `${SITE.basePath}/login/`,
+        `${SITE.basePath}/signup/`,
         `${SITE.basePath}/admin/`,
       ],
     },

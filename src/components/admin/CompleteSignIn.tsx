@@ -6,13 +6,14 @@ import { LogoMark } from '@/components/brand/Logo'
 import { ButtonLink } from '@/components/ui/Button'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 
-import { resolveDestination } from '@/lib/auth/destinations'
+import { afterVerify, loginFor, parseLinkType, resolveDestination } from '@/lib/auth/destinations'
 
 /**
  * Completes sign-in from whichever form the link came back in:
  *
  *   ?token_hash=&type=            The one the email actually sends. Redeemed
- *                                 with verifyOtp.
+ *                                 with verifyOtp, as the allowlisted type:
+ *                                 magiclink, signup, recovery or email_change.
  *   ?code=…                       PKCE. Exchanged for a session. Legacy —
  *                                 kept only for links already in an inbox.
  *   #access_token=&refresh_token= Implicit. Set directly. Never produced by
@@ -46,6 +47,9 @@ export function CompleteSignIn() {
   const shown = IS_SUPABASE_CONFIGURED
     ? error
     : 'This deployment has no Supabase project configured.'
+  // The sign-in screen to go back to. Set from the link once in the browser,
+  // so the server render and the first client render agree.
+  const [retry, setRetry] = useState('/admin/login')
 
   useEffect(() => {
     if (!IS_SUPABASE_CONFIGURED) return
@@ -58,6 +62,7 @@ export function CompleteSignIn() {
 
       const params = new URLSearchParams(window.location.search)
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      setRetry(loginFor(resolveDestination(params.get('next'))))
 
       // Supabase reports its own failures this way — an expired or reused link.
       const denied = params.get('error_description') ?? hash.get('error_description')
@@ -69,21 +74,24 @@ export function CompleteSignIn() {
       const accessToken = hash.get('access_token')
       const refreshToken = hash.get('refresh_token')
 
+      // Which email this link came from. Matched against an allowlist, never
+      // passed through: see LINK_TYPES in lib/auth/destinations.
+      const linkType = parseLinkType(params.get('type'))
+
       if (tokenHash) {
-        // The type is the constant this application sends, never the `type` in
-        // the URL. Reading it from the query would let a crafted link choose
-        // which kind of token to redeem; there is only one kind here, because
-        // every link is a magic link and sign-ups are closed.
+        if (!linkType) return setError('This link is not one this site issues.')
         const { data, error: failure } = await supabase.auth.verifyOtp({
-          type: 'magiclink',
+          type: linkType,
           token_hash: tokenHash,
         })
         if (cancelled) return
         if (failure) return setError(failure.message)
         // A verified link that yields no session would mean the token was
         // accepted but redeemed into something other than a session. Naming it
-        // separately keeps that from looking like a silent success.
-        if (!data.session) {
+        // separately keeps that from looking like a silent success. The one
+        // exception is the first of the two links an address change sends,
+        // which is confirmed without a new session being issued.
+        if (!data.session && linkType !== 'email_change') {
           return setError('That link was accepted but no session was returned.')
         }
       } else if (code) {
@@ -101,9 +109,14 @@ export function CompleteSignIn() {
         return setError('This link carried no sign-in token. It may already have been used.')
       }
 
-      // Where to land. Attacker-controlled, so it is allowlisted — see
-      // resolveDestination, which is unit-tested against hostile values.
-      const destination = resolveDestination(params.get('next'))
+      // Where to land. `next` is attacker-controlled, so it is allowlisted —
+      // see resolveDestination and afterVerify, both covered by tests/auth.
+      // A password reset goes to the page that sets the new password first.
+      const destination = afterVerify(
+        tokenHash ? (linkType ?? 'magiclink') : 'code',
+        params.get('next'),
+        params.get('recovery') === '1',
+      )
 
       // A full navigation, not a router push, so the request carries the
       // freshly written cookies and the middleware sees the session.
@@ -134,7 +147,7 @@ export function CompleteSignIn() {
           <p className="mt-3 text-sm leading-relaxed text-deep-400">
             Sign-in links work once and expire. Request a fresh one, and open it a single time.
           </p>
-          <ButtonLink href="/admin/login" size="lg" className="mt-6 w-full">
+          <ButtonLink href={retry} size="lg" className="mt-6 w-full">
             Request a new link
           </ButtonLink>
         </>
