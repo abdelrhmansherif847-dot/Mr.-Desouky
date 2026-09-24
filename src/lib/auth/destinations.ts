@@ -76,13 +76,15 @@ export const UPDATE_PASSWORD_PATH = '/account/update-password'
  * else goes straight to the allowlisted destination, where middleware then
  * decides what this account may see.
  *
- * `recovery` is also set by the reset form's own redirect address, so the
- * reset still lands correctly while the recovery email template is the
- * default one (which returns a PKCE code with no type on it).
+ * The reset form's own redirect address also carries `recovery=1`. That
+ * marker is honoured only for a PKCE code, which has no type of its own (a
+ * reset link sent before the token_hash template, or while it is not in
+ * place). A typed link is routed by its type alone, so the marker cannot
+ * send a confirmation or sign-in link anywhere it would not otherwise go.
  */
 export function afterVerify(type: LinkType | 'code', next: string | null, recovery: boolean): string {
   const destination = resolveDestination(next)
-  if (type === 'recovery' || recovery) {
+  if (type === 'recovery' || (type === 'code' && recovery)) {
     return `${UPDATE_PASSWORD_PATH}?next=${encodeURIComponent(destination)}`
   }
   return destination
