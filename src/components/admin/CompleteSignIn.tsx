@@ -64,6 +64,17 @@ export function CompleteSignIn() {
       const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
       setRetry(loginFor(resolveDestination(params.get('next'))))
 
+      // The one-time token has been read; take it out of the address bar
+      // before anything else happens, so it is not left in history, in a
+      // screenshot of an error, or in a bookmark. Only the routing hints stay.
+      const kept = new URLSearchParams()
+      for (const key of ['next', 'recovery']) {
+        const value = params.get(key)
+        if (value !== null) kept.set(key, value)
+      }
+      const clean = `${window.location.pathname}${kept.size ? `?${kept}` : ''}`
+      window.history.replaceState(window.history.state, '', clean)
+
       // Supabase reports its own failures this way — an expired or reused link.
       const denied = params.get('error_description') ?? hash.get('error_description')
       if (denied) return setError(denied)

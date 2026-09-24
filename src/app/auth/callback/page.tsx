@@ -4,6 +4,9 @@ import { CompleteSignIn } from '@/components/admin/CompleteSignIn'
 export const metadata: Metadata = {
   title: 'Signing in',
   robots: { index: false, follow: false, nocache: true },
+  // The address carries a one-time token until the page removes it; never
+  // send it on in a Referer header.
+  referrer: 'no-referrer',
 }
 
 /**
