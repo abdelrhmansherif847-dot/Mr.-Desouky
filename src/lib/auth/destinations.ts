@@ -40,3 +40,60 @@ export function resolveDestination(next: string | null | undefined): Destination
 export function callbackUrl(origin: string, destination: Destination): string {
   return `${origin}/auth/callback?next=${encodeURIComponent(destination)}`
 }
+
+/**
+ * The kinds of emailed link the callback will redeem.
+ *
+ * The type now comes from the link, because one callback serves four emails:
+ * sign-in, confirming a new account, resetting a password and confirming a
+ * changed address. It is still matched against this list exactly, so a crafted
+ * link cannot name anything else (invite, for instance, is not here: accounts
+ * are never invited). Choosing a type grants nothing by itself: Supabase binds
+ * every token to the type it was issued as, so a hash only redeems as what it
+ * already is.
+ *
+ * A link with no type is a sign-in link, which is what every link was before
+ * the others existed.
+ */
+export const LINK_TYPES = ['magiclink', 'signup', 'recovery', 'email_change'] as const
+
+export type LinkType = (typeof LINK_TYPES)[number]
+
+/** The link's type if it is one we redeem, 'magiclink' if absent, else null. */
+export function parseLinkType(type: string | null | undefined): LinkType | null {
+  if (type === null || type === undefined || type === '') return 'magiclink'
+  return LINK_TYPES.includes(type as LinkType) ? (type as LinkType) : null
+}
+
+/** Where a password reset lands once its link has been redeemed. */
+export const UPDATE_PASSWORD_PATH = '/account/update-password'
+
+/**
+ * Where to go once a link has produced a session.
+ *
+ * A password-reset link always goes to the page that sets the new password,
+ * carrying the allowlisted destination to continue to afterwards. Everything
+ * else goes straight to the allowlisted destination, where middleware then
+ * decides what this account may see.
+ *
+ * `recovery` is also set by the reset form's own redirect address, so the
+ * reset still lands correctly while the recovery email template is the
+ * default one (which returns a PKCE code with no type on it).
+ */
+export function afterVerify(type: LinkType | 'code', next: string | null, recovery: boolean): string {
+  const destination = resolveDestination(next)
+  if (type === 'recovery' || recovery) {
+    return `${UPDATE_PASSWORD_PATH}?next=${encodeURIComponent(destination)}`
+  }
+  return destination
+}
+
+/** The address a password-reset email comes back to. */
+export function recoveryUrl(origin: string, destination: Destination): string {
+  return `${callbackUrl(origin, destination)}&recovery=1`
+}
+
+/** The sign-in screen that goes with a destination, for "try again" links. */
+export function loginFor(destination: Destination): string {
+  return destination === '/admin' ? '/admin/login' : `/login${destination}`
+}

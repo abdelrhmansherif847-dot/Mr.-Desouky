@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { portalDecision, type Portal } from '@/lib/auth/access'
 
 /**
  * The guard. This runs on the server before any protected page renders, so it
@@ -29,8 +30,6 @@ import { createServerClient } from '@supabase/ssr'
  * runs, which is why the GitHub Pages workflow refuses to publish the admin,
  * auth, portal and account routes at all. See docs/ADMIN.md.
  */
-
-type Portal = 'student' | 'parent'
 
 function portalOf(pathname: string): Portal | null {
   if (pathname === '/student' || pathname.startsWith('/student/')) return 'student'
@@ -101,14 +100,9 @@ export async function middleware(request: NextRequest) {
   if (!portal) return profile?.role === 'owner' ? response : notFound()
 
   // ---------- /student, /parent ----------
-  if (!profile) return redirect(`/login/${portal}`)
-  if (profile.status === 'suspended') return redirect('/account/suspended')
-  if (profile.status !== 'approved') return redirect('/account/pending')
-  if (profile.role === 'owner') return redirect('/admin')
-  if (profile.role !== 'student' && profile.role !== 'parent') return redirect(`/login/${portal}`)
-  if (profile.role !== portal) return redirect(`/${profile.role}`)
-
-  return response
+  // The rule itself lives in src/lib/auth/access.ts, where it is tested.
+  const decision = portalDecision(profile, portal)
+  return decision === 'allow' ? response : redirect(decision)
 }
 
 export const config = {

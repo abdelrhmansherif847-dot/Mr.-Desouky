@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight } from '@/components/ui/Button'
 import { callbackUrl } from '@/lib/auth/destinations'
+import { looksLikeEmail, signInOutcome } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import { CONTACT, whatsappLink } from '@/content/site'
 import { cn } from '@/lib/utils'
@@ -13,22 +14,31 @@ import { AUDIENCE, AUDIENCES } from './audience'
 import { AudienceSwap } from './AudienceSwap'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
+type Mode = 'password' | 'link'
 
 /**
  * The sign-in card.
  *
- * Uses exactly the authentication the site already has — Supabase magic link,
- * the same call the owner's screen makes — rather than inventing a second
- * mechanism. There is no password anywhere in this project, so none is shown.
+ * Email and password first. The emailed one-time link stays available one
+ * click away, for anyone without a password yet and as a fallback; the owner
+ * signs in with it from /admin/login, which is unchanged.
  *
- * Two behaviours are carried over deliberately and must not be "tidied":
+ * After a password sign-in the browser goes to this portal's address and
+ * middleware decides from there — approved accounts land in their portal,
+ * pending and suspended ones on their notice, the owner in /admin. The card
+ * never decides access itself.
  *
- *   shouldCreateUser: false — this form never creates an account. Sign-ups are
- *   closed in the database too; this simply avoids attempting one.
+ * Behaviours that must not be "tidied":
  *
- *   A 400 is reported as success — that is how an unknown address answers, and
- *   revealing it would turn this screen into a way to discover who has access.
- *   Anything else is shown verbatim, because a rate limit or an outage says
+ *   A wrong password and an unknown address produce the same message (see
+ *   lib/auth/errors), so this screen cannot be used to discover who has an
+ *   account.
+ *
+ *   shouldCreateUser: false — the link form never creates an account. Sign-up
+ *   has its own screen, and the database decides whether it is open.
+ *
+ *   For the link, a 400 is reported as success — that is how an unknown
+ *   address answers. A rate limit or an outage is shown, because it says
  *   nothing about any particular address.
  */
 export function PortalSignInCard({
@@ -40,12 +50,16 @@ export function PortalSignInCard({
 }) {
   const copy = AUDIENCE[audience]
   const fieldId = useId()
+  const passwordId = `${fieldId}-password`
   const errorId = `${fieldId}-error`
 
+  const [mode, setMode] = useState<Mode>('password')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [notice, setNotice] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   const invalid = status === 'error'
 
@@ -54,10 +68,16 @@ export function PortalSignInCard({
     if (!IS_SUPABASE_CONFIGURED || status === 'sending') return
 
     const address = email.trim()
-    if (!address || !address.includes('@')) {
+    if (!looksLikeEmail(address)) {
       setNotice('Enter the email address your account uses.')
       setStatus('error')
       inputRef.current?.focus()
+      return
+    }
+    if (mode === 'password' && !password) {
+      setNotice('Enter your password.')
+      setStatus('error')
+      passwordRef.current?.focus()
       return
     }
 
@@ -70,6 +90,22 @@ export function PortalSignInCard({
     // site. The wait is hidden by the sending state that is already showing.
     const { createBrowserClient } = await import('@supabase/ssr')
     const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    if (mode === 'password') {
+      const { error } = await supabase.auth.signInWithPassword({ email: address, password })
+      const outcome = signInOutcome(error)
+      if (outcome.ok) {
+        // A full navigation, so the request carries the new session cookies
+        // and middleware routes this account to where it belongs.
+        window.location.replace(copy.destination)
+        return
+      }
+      setPassword('')
+      setNotice(outcome.message)
+      setStatus('error')
+      return
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email: address,
       options: {
@@ -156,8 +192,8 @@ export function PortalSignInCard({
                       name="email"
                       type="email"
                       inputMode="email"
-                      autoComplete="email"
-                      enterKeyHint="go"
+                      autoComplete={mode === 'password' ? 'username' : 'email'}
+                      enterKeyHint={mode === 'password' ? 'next' : 'go'}
                       required
                       value={email}
                       aria-invalid={invalid || undefined}
@@ -188,6 +224,47 @@ export function PortalSignInCard({
                     />
                   </div>
 
+                  {mode === 'password' ? (
+                    <>
+                      <div className="mt-4 flex items-baseline justify-between gap-3">
+                        <label htmlFor={passwordId} className="block text-sm font-semibold text-deep-700">
+                          Password
+                        </label>
+                        <Link
+                          href={`/account/reset-password?for=${audience}`}
+                          className="link-underline text-xs font-semibold text-sky-600"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <input
+                        ref={passwordRef}
+                        id={passwordId}
+                        name="password"
+                        type="password"
+                        autoComplete="current-password"
+                        enterKeyHint="go"
+                        required
+                        value={password}
+                        aria-invalid={invalid || undefined}
+                        aria-describedby={invalid ? errorId : undefined}
+                        disabled={status === 'sending'}
+                        onChange={(event) => {
+                          setPassword(event.target.value)
+                          if (status === 'error') setStatus('idle')
+                        }}
+                        className={cn(
+                          'mt-2 w-full rounded-card border bg-white px-4 py-3.5 text-[0.95rem] text-deep-700',
+                          'outline-none transition-[border-color,box-shadow] duration-200 ease-smooth',
+                          'disabled:cursor-not-allowed disabled:bg-deep-50',
+                          invalid
+                            ? 'border-alert-300 focus:border-alert-500 focus:ring-4 focus:ring-alert-100'
+                            : 'border-deep-200 hover:border-deep-300 focus:border-sky-400 focus:ring-4 focus:ring-sky-100',
+                        )}
+                      />
+                    </>
+                  ) : null}
+
                   {invalid && notice ? (
                     <p
                       id={errorId}
@@ -211,18 +288,32 @@ export function PortalSignInCard({
                     {status === 'sending' ? (
                       <>
                         <Spinner />
-                        Sending your link…
+                        {mode === 'password' ? 'Signing you in…' : 'Sending your link…'}
                       </>
                     ) : (
                       <>
-                        Email me a sign-in link
+                        {mode === 'password' ? 'Sign in' : 'Email me a sign-in link'}
                         <ArrowRight />
                       </>
                     )}
                   </Button>
 
                   <p className="mt-4 text-xs leading-relaxed text-deep-400">
-                    No password — a one-time link is sent to your inbox. It works once and expires.
+                    {mode === 'password'
+                      ? 'No password yet, or prefer not to type it? '
+                      : 'A one-time link is sent to your inbox. It works once and expires. '}
+                    <button
+                      type="button"
+                      disabled={status === 'sending'}
+                      onClick={() => {
+                        setMode(mode === 'password' ? 'link' : 'password')
+                        setNotice(null)
+                        setStatus('idle')
+                      }}
+                      className="link-underline font-semibold text-sky-600"
+                    >
+                      {mode === 'password' ? 'Email me a sign-in link instead' : 'Use my password instead'}
+                    </button>
                   </p>
                 </form>
               )}
@@ -441,7 +532,11 @@ function Footnote({ audience }: { audience: Audience }) {
   return (
     <div className="mt-7 border-t border-deep-100 pt-5">
       <p className="text-xs leading-relaxed text-deep-400">
-        Accounts are issued by Eng. Abdelrhman Desouky. If you do not have one yet, message{' '}
+        New here?{' '}
+        <Link href={`/signup/${audience}`} className="link-underline font-semibold text-sky-600">
+          Create a {audience} account
+        </Link>
+        . Every account is approved by Eng. Abdelrhman Desouky before it opens. Questions? Message{' '}
         <a
           href={whatsappLink()}
           target="_blank"
