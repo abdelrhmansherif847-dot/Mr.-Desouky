@@ -30,6 +30,18 @@ type AudienceCopy = {
   destination: Destination
   previewHref: string
   points: string[]
+  /** The create-an-account screen: the same place, a different moment. */
+  signup: {
+    eyebrow: string
+    heading: string
+    lead: string
+    cardTitle: string
+    cardLead: string
+  }
+  /** The approval step, in this audience's terms. */
+  approval: string
+  /** What opens at the end of the path. */
+  opens: string
 }
 
 export const AUDIENCE: Record<Audience, AudienceCopy> = {
@@ -46,6 +58,15 @@ export const AUDIENCE: Record<Audience, AudienceCopy> = {
       'Homework, quizzes and mock results as they happen',
       'Your weak topics, and the next action on each',
     ],
+    signup: {
+      eyebrow: 'Student Portal · New account',
+      heading: 'Start with a clear path.',
+      lead: 'Create your account once. When Mr. Desouky approves it, your sessions, homework and results are waiting in one place.',
+      cardTitle: 'Create a student account',
+      cardLead: 'Takes a minute. Nothing opens until your account is approved.',
+    },
+    approval: 'Mr. Desouky reviews every new account personally.',
+    opens: 'Your journey, homework, quizzes and mock results.',
   },
   parent: {
     switchLabel: 'Parent',
@@ -60,5 +81,14 @@ export const AUDIENCE: Record<Audience, AudienceCopy> = {
       'Quiz and mock performance, with the trend over time',
       'Written feedback after every quiz and mock',
     ],
+    signup: {
+      eyebrow: 'Parent Portal · New account',
+      heading: 'Stay close to their progress.',
+      lead: 'Create your account once. Mr. Desouky approves it and links it to your student, so what you see is always theirs.',
+      cardTitle: 'Create a parent account',
+      cardLead: 'Takes a minute. Nothing opens until your account is approved and linked.',
+    },
+    approval: 'Mr. Desouky approves your account and links it to your student.',
+    opens: 'Attendance, results and written feedback, session by session.',
   },
 }
