@@ -3,9 +3,17 @@
 import { useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
-import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, captchaProblem } from '@/lib/auth/captcha'
+import { IS_CAPTCHA_CONFIGURED, answeredByToken, captchaError } from '@/lib/auth/captcha'
 import { callbackUrl } from '@/lib/auth/destinations'
-import { CAPTCHA_FAILED, isCaptchaFailure, looksLikeEmail, signInOutcome } from '@/lib/auth/errors'
+import {
+  CAPTCHA_FAILED,
+  captchaInvalid,
+  fieldInvalid,
+  isCaptchaFailure,
+  looksLikeEmail,
+  signInFailure,
+  type FormError,
+} from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import type { Audience } from './audience'
 import { AUDIENCE } from './audience'
@@ -67,13 +75,17 @@ export function PortalSignInCard({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<Status>('idle')
-  const [notice, setNotice] = useState<string | null>(null)
+  // The message and the one part of the form it is about (lib/auth/errors).
+  const [notice, setNotice] = useState<FormError | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const captcha = useRef<TurnstileHandle>(null)
 
   const invalid = status === 'error'
+  // Only the part the error is about is marked; a CAPTCHA or server error
+  // leaves both inputs as they are.
+  const shown = invalid ? notice : null
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -81,19 +93,19 @@ export function PortalSignInCard({
 
     const address = email.trim()
     if (!looksLikeEmail(address)) {
-      setNotice('Enter the email address your account uses.')
+      setNotice({ owner: 'email', message: 'Enter the email address your account uses.' })
       setStatus('error')
       inputRef.current?.focus()
       return
     }
     if (mode === 'password' && !password) {
-      setNotice('Enter your password.')
+      setNotice({ owner: 'password', message: 'Enter your password.' })
       setStatus('error')
       passwordRef.current?.focus()
       return
     }
     // Only when a site key is configured: then Supabase requires a token too.
-    const missing = captchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+    const missing = captchaError(IS_CAPTCHA_CONFIGURED, captchaToken)
     if (missing) {
       setNotice(missing)
       setStatus('error')
@@ -119,15 +131,15 @@ export function PortalSignInCard({
         password,
         options: { captchaToken: token },
       })
-      const outcome = signInOutcome(error)
-      if (outcome.ok) {
+      const refused = signInFailure(error)
+      if (!refused) {
         // A full navigation, so the request carries the new session cookies
         // and middleware routes this account to where it belongs.
         window.location.replace(copy.destination)
         return
       }
       setPassword('')
-      setNotice(outcome.message)
+      setNotice(refused)
       setStatus('error')
       return
     }
@@ -144,7 +156,7 @@ export function PortalSignInCard({
     // Before the 400 rule: a refused CAPTCHA means nothing was sent, and it is
     // decided before the address is looked at, so it reveals nothing.
     if (isCaptchaFailure(error)) {
-      setNotice(CAPTCHA_FAILED)
+      setNotice({ owner: 'captcha', message: CAPTCHA_FAILED })
       setStatus('error')
       return
     }
@@ -153,11 +165,14 @@ export function PortalSignInCard({
       return
     }
 
-    setNotice(
-      error.status === 429
-        ? `${error.message.replace(/[.\s]*$/, '')}. The sign-in sender allows only a few emails per hour.`
-        : error.message,
-    )
+    // A rate limit or an outage is about the request, not the address.
+    setNotice({
+      owner: 'form',
+      message:
+        error.status === 429
+          ? `${error.message.replace(/[.\s]*$/, '')}. The sign-in sender allows only a few emails per hour.`
+          : error.message,
+    })
     setStatus('error')
   }
 
@@ -205,7 +220,7 @@ export function PortalSignInCard({
                 enterKeyHint={mode === 'password' ? 'next' : 'go'}
                 required
                 value={email}
-                invalid={invalid}
+                invalid={fieldInvalid(shown, 'email')}
                 errorId={errorId}
                 disabled={status === 'sending'}
                 onChange={(event) => {
@@ -235,7 +250,7 @@ export function PortalSignInCard({
                       enterKeyHint="go"
                       required
                       value={password}
-                      invalid={invalid}
+                      invalid={fieldInvalid(shown, 'password')}
                       errorId={errorId}
                       disabled={status === 'sending'}
                       className="mt-4"
@@ -261,15 +276,17 @@ export function PortalSignInCard({
                   ref={captcha}
                   action="login"
                   className="mt-5"
+                  invalid={captchaInvalid(shown)}
+                  errorId={errorId}
                   onToken={(value) => {
                     setCaptchaToken(value)
                     // Only the prompt is answered by a new token; see SignUpForm.
-                    if (value && status === 'error' && notice === CAPTCHA_PROMPT) setStatus('idle')
+                    if (value && status === 'error' && answeredByToken(notice)) setStatus('idle')
                   }}
                 />
               ) : null}
 
-              <AuthAlert id={errorId} message={invalid ? notice : null} />
+              <AuthAlert id={errorId} message={shown?.message ?? null} />
 
               <AuthSubmit
                 busy={status === 'sending'}

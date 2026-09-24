@@ -3,14 +3,15 @@
 import { useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
-import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, signUpCaptchaProblem } from '@/lib/auth/captcha'
+import { IS_CAPTCHA_CONFIGURED, answeredByToken, signUpCaptchaError } from '@/lib/auth/captcha'
 import { callbackUrl } from '@/lib/auth/destinations'
 import {
   LIMITS,
-  looksLikeEmail,
-  passwordProblem,
-  phoneProblem,
-  signUpOutcome,
+  captchaInvalid,
+  fieldInvalid,
+  signUpFailure,
+  signUpFieldProblem,
+  type FormError,
 } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import { AccountPath } from './AccountPath'
@@ -67,7 +68,8 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // The message and the one part of the form it is about (lib/auth/errors).
+  const [error, setError] = useState<FormError | null>(null)
   const [done, setDone] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const captcha = useRef<TurnstileHandle>(null)
@@ -77,13 +79,10 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
     if (!IS_SUPABASE_CONFIGURED || sending) return
 
     const name = fullName.trim()
+    // Same checks, order and words as before; each now names what it is about.
     const problem =
-      (!name ? 'Enter your full name.' : null) ??
-      (name.length > LIMITS.name ? `Keep your name under ${LIMITS.name} characters.` : null) ??
-      phoneProblem(phone) ??
-      (!looksLikeEmail(email) ? 'Enter a valid email address.' : null) ??
-      passwordProblem(password, confirm) ??
-      signUpCaptchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+      signUpFieldProblem({ fullName, phone, email, password, confirm }) ??
+      signUpCaptchaError(IS_CAPTCHA_CONFIGURED, captchaToken)
     if (problem) return setError(problem)
 
     setError(null)
@@ -111,14 +110,13 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
     // A token works once, whatever the outcome.
     captcha.current?.reset()
     setSending(false)
-    const outcome = signUpOutcome(failure)
-    if (!outcome.ok) return setError(outcome.message)
+    const refused = signUpFailure(failure)
+    if (refused) return setError(refused)
     setPassword('')
     setConfirm('')
     setDone(true)
   }
 
-  const invalid = Boolean(error)
   const clear = () => {
     if (error) setError(null)
   }
@@ -193,7 +191,7 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     maxLength={LIMITS.name}
                     required
                     value={fullName}
-                    invalid={invalid}
+                    invalid={fieldInvalid(error, 'name')}
                     errorId={errorId}
                     onChange={(event) => {
                       setFullName(event.target.value)
@@ -210,7 +208,7 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     maxLength={LIMITS.phone}
                     required
                     value={phone}
-                    invalid={invalid}
+                    invalid={fieldInvalid(error, 'phone')}
                     errorId={errorId}
                     hint="So Mr. Desouky can reach you. It is never used to sign in."
                     onChange={(event) => {
@@ -231,7 +229,7 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     autoComplete="email"
                     required
                     value={email}
-                    invalid={invalid}
+                    invalid={fieldInvalid(error, 'email')}
                     errorId={errorId}
                     placeholder="you@example.com"
                     onChange={(event) => {
@@ -246,7 +244,7 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     autoComplete="new-password"
                     required
                     value={password}
-                    invalid={invalid}
+                    invalid={fieldInvalid(error, 'password')}
                     errorId={errorId}
                     onChange={(event) => {
                       setPassword(event.target.value)
@@ -260,7 +258,7 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     autoComplete="new-password"
                     required
                     value={confirm}
-                    invalid={invalid}
+                    invalid={fieldInvalid(error, 'confirmPassword')}
                     errorId={errorId}
                     hint={<PasswordRules password={password} confirm={confirm} min={LIMITS.passwordMin} />}
                     onChange={(event) => {
@@ -275,17 +273,19 @@ export function SignUpForm({ audience: initial }: { audience: Audience }) {
                     ref={captcha}
                     action="signup"
                     className="mt-6 border-t border-deep-100 pt-6"
+                    invalid={captchaInvalid(error)}
+                    errorId={errorId}
                     onToken={(token) => {
                       setCaptchaToken(token)
                       // A fresh token answers the prompt, and nothing else: it
                       // also arrives right after a refused request, whose
                       // message must stay on screen.
-                      if (token) setError((current) => (current === CAPTCHA_PROMPT ? null : current))
+                      if (token) setError((current) => (answeredByToken(current) ? null : current))
                     }}
                   />
                 ) : null}
 
-                <AuthAlert id={errorId} message={error} />
+                <AuthAlert id={errorId} message={error?.message ?? null} />
 
                 <AuthSubmit busy={sending} busyLabel="Creating your account…">
                   Create account
