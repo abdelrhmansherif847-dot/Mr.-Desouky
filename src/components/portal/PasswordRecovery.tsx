@@ -3,14 +3,17 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Turnstile, type TurnstileHandle } from '@/components/auth/Turnstile'
-import { CAPTCHA_PROMPT, IS_CAPTCHA_CONFIGURED, captchaProblem } from '@/lib/auth/captcha'
+import { IS_CAPTCHA_CONFIGURED, answeredByToken, captchaError } from '@/lib/auth/captcha'
 import { recoveryUrl, resolveDestination, loginFor } from '@/lib/auth/destinations'
 import {
   LIMITS,
+  captchaInvalid,
+  fieldInvalid,
   looksLikeEmail,
-  passwordProblem,
-  resetOutcome,
-  updatePasswordOutcome,
+  newPasswordProblem,
+  resetFailure,
+  updatePasswordFailure,
+  type FormError,
 } from '@/lib/auth/errors'
 import { IS_SUPABASE_CONFIGURED, SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import {
@@ -52,7 +55,8 @@ export function RequestPasswordReset() {
   const errorId = `${id}-error`
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // The message and the one part of the form it is about (lib/auth/errors).
+  const [error, setError] = useState<FormError | null>(null)
   const [done, setDone] = useState(false)
   const [back, setBack] = useState('/login/student')
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
@@ -66,8 +70,10 @@ export function RequestPasswordReset() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!IS_SUPABASE_CONFIGURED || sending) return
-    if (!looksLikeEmail(email)) return setError('Enter the email address your account uses.')
-    const missing = captchaProblem(IS_CAPTCHA_CONFIGURED, captchaToken)
+    if (!looksLikeEmail(email)) {
+      return setError({ owner: 'email', message: 'Enter the email address your account uses.' })
+    }
+    const missing = captchaError(IS_CAPTCHA_CONFIGURED, captchaToken)
     if (missing) return setError(missing)
 
     setError(null)
@@ -80,8 +86,8 @@ export function RequestPasswordReset() {
     })
     captcha.current?.reset()
     setSending(false)
-    const outcome = resetOutcome(failure)
-    if (!outcome.ok) return setError(outcome.message)
+    const refused = resetFailure(failure)
+    if (refused) return setError(refused)
     setDone(true)
   }
 
@@ -130,7 +136,7 @@ export function RequestPasswordReset() {
                 required
                 value={email}
                 disabled={sending}
-                invalid={Boolean(error)}
+                invalid={fieldInvalid(error, 'email')}
                 errorId={errorId}
                 placeholder="you@example.com"
                 onChange={(event) => {
@@ -143,14 +149,16 @@ export function RequestPasswordReset() {
                   ref={captcha}
                   action="recover"
                   className="mt-5"
+                  invalid={captchaInvalid(error)}
+                  errorId={errorId}
                   onToken={(value) => {
                     setCaptchaToken(value)
                     // Only the prompt is answered by a new token; see SignUpForm.
-                    if (value) setError((current) => (current === CAPTCHA_PROMPT ? null : current))
+                    if (value) setError((current) => (answeredByToken(current) ? null : current))
                   }}
                 />
               ) : null}
-              <AuthAlert id={errorId} message={error} />
+              <AuthAlert id={errorId} message={error?.message ?? null} />
               <AuthSubmit busy={sending} busyLabel="Sending…">
                 Send reset link
               </AuthSubmit>
@@ -185,7 +193,8 @@ export function UpdatePassword() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [sending, setSending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // The message and the one part of the form it is about (lib/auth/errors).
+  const [error, setError] = useState<FormError | null>(null)
   const [hasSession, setHasSession] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -206,7 +215,7 @@ export function UpdatePassword() {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!IS_SUPABASE_CONFIGURED || sending) return
-    const problem = passwordProblem(password, confirm)
+    const problem = newPasswordProblem(password, confirm)
     if (problem) return setError(problem)
 
     setError(null)
@@ -214,10 +223,10 @@ export function UpdatePassword() {
     const { createBrowserClient } = await import('@supabase/ssr')
     const supabase = createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     const { error: failure } = await supabase.auth.updateUser({ password })
-    const outcome = updatePasswordOutcome(failure)
-    if (!outcome.ok) {
+    const refused = updatePasswordFailure(failure)
+    if (refused) {
       setSending(false)
-      return setError(outcome.message)
+      return setError(refused)
     }
     window.location.replace(
       resolveDestination(new URLSearchParams(window.location.search).get('next')),
@@ -260,7 +269,7 @@ export function UpdatePassword() {
               required
               value={password}
               disabled={sending}
-              invalid={Boolean(error)}
+              invalid={fieldInvalid(error, 'password')}
               errorId={errorId}
               onChange={(event) => {
                 setPassword(event.target.value)
@@ -275,7 +284,7 @@ export function UpdatePassword() {
               required
               value={confirm}
               disabled={sending}
-              invalid={Boolean(error)}
+              invalid={fieldInvalid(error, 'confirmPassword')}
               errorId={errorId}
               hint={<PasswordRules password={password} confirm={confirm} min={LIMITS.passwordMin} />}
               onChange={(event) => {
@@ -283,7 +292,7 @@ export function UpdatePassword() {
                 if (error) setError(null)
               }}
             />
-            <AuthAlert id={errorId} message={error} />
+            <AuthAlert id={errorId} message={error?.message ?? null} />
             <AuthSubmit busy={sending} busyLabel="Saving…">
               Save new password
             </AuthSubmit>
