@@ -1,5 +1,5 @@
-import ParentOverview from '@/components/portal/pages/parent/Overview'
+import { ParentPreviewView } from '@/components/portal/pages/parent/ParentPreviewView'
 
-export default function ParentPreviewPage() {
-  return <ParentOverview base="/preview/parent" />
+export default function ParentOverviewPreviewPage() {
+  return <ParentPreviewView section="" />
 }

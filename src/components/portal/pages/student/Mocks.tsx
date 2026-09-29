@@ -1,12 +1,12 @@
 import { PreviewNotice } from '@/components/portal/PreviewNotice'
-import { Panel, StatTile } from '@/components/portal/widgets'
+import type { StudentPageProps } from '@/components/portal/pages/props'
+import { Panel, StatTile, EmptyPanel } from '@/components/portal/widgets'
 import { ProgressBar } from '@/components/ui/Progress'
-import { getStudentRecord, latestMock, mockTrend } from '@/lib/portal/data'
+import { latestMock, mockTrend } from '@/lib/portal/insights'
 import { formatLongDate, pct } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
-export default async function StudentMocksPage() {
-  const record = await getStudentRecord()
+export default async function StudentMocksPage({ record, preview }: StudentPageProps) {
   const latest = latestMock(record)
   const trend = mockTrend(record)
   const best = record.mocks.reduce((max, m) => (m.score > max ? m.score : max), 0)
@@ -19,9 +19,21 @@ export default async function StudentMocksPage() {
     mock: m,
   }))
 
+  if (record.mocks.length === 0) {
+    return (
+      <div className="space-y-5">
+        {preview ? <PreviewNotice audience="student" /> : null}
+        <EmptyPanel title="No mock exams yet">
+          Full mock exams are timed like the real thing. Each result appears here with a
+          section-by-section breakdown and the trend across mocks.
+        </EmptyPanel>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5">
-      <PreviewNotice audience="student" />
+      {preview ? <PreviewNotice audience="student" /> : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
@@ -133,8 +145,11 @@ export default async function StudentMocksPage() {
                 Timing
               </p>
               <ul className="mt-4 space-y-3">
-                {mock.modules.map((mod) => {
-                  const tight = mod.minutesUsed >= mod.minutesAllowed
+                {mock.modules.filter((mod) => mod.minutesUsed !== undefined && mod.minutesAllowed !== undefined).length === 0 ? (
+                  <li className="text-sm text-deep-500">No timing recorded.</li>
+                ) : null}
+                {mock.modules.filter((mod) => mod.minutesUsed !== undefined && mod.minutesAllowed !== undefined).map((mod) => {
+                  const tight = (mod.minutesUsed ?? 0) >= (mod.minutesAllowed ?? 0)
                   return (
                     <li
                       key={mod.name}
@@ -154,12 +169,14 @@ export default async function StudentMocksPage() {
                 })}
               </ul>
 
+              {mock.note ? (
               <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50/70 px-3.5 py-3">
                 <p className="font-mono text-[0.58rem] uppercase tracking-[0.12em] text-sky-700">
                   Review note
                 </p>
                 <p className="mt-1 text-sm leading-relaxed text-deep-700">{mock.note}</p>
               </div>
+              ) : null}
             </div>
           </div>
         </Panel>

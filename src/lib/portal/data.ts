@@ -1,38 +1,36 @@
 import type { ParentRecord, StudentRecord } from './types'
 
 /**
- * PORTAL DATA SEAM
- * ================
- * The portals are built against these two functions and nothing else.
+ * THE SAMPLE — for /preview/* only
+ * ================================
+ * An anonymised, invented student and family, used by the public preview so
+ * visitors can see what the portals do. Nothing here is a real person.
  *
- * Today they return SAMPLE data so the interface can be reviewed and
- * signed off. To make the portals live, replace the bodies with real
- * calls — a database query, an API request, whatever the backend becomes —
- * and keep the return types. No portal component needs to change.
- *
- *   export async function getStudentRecord(id: string) {
- *     const row = await db.student.findUnique({ where: { id }, include: {...} })
- *     return toStudentRecord(row)
- *   }
- *
- * Authentication is a separate concern and is NOT implemented here — see
- * src/lib/portal/auth.ts for where it plugs in.
+ * The real portals (/student, /parent) never read this file's records: they
+ * load rows from Supabase through lib/portal/records.ts. Keeping the two
+ * sources in separate modules is what stops a preview from ever showing a
+ * real record, and a real portal from ever showing an invented one.
  */
 
-export const IS_SAMPLE_DATA = true
+/**
+ * The sample is a snapshot of one week, so it is read as of that week: its
+ * "next session" stays next however long after that the preview is opened.
+ */
+const SAMPLE_AS_OF = '2026-02-05'
 
 const SAMPLE_STUDENT: StudentRecord = {
   profile: {
     id: 'sample-student',
     name: 'Youssef K.',
-    programSlug: 'sat-math-basic',
     programTitle: 'SAT Math — Basic',
     exam: 'SAT',
     level: 'Basic',
     startedOn: '2025-09-15',
     currentStageIndex: 3, // Analysis
     targetExamDate: '2026-03-14',
+    configured: true,
   },
+  asOf: SAMPLE_AS_OF,
 
   sessions: [
     { id: 's-12', date: '2026-01-20', time: '17:00', topic: 'Systems of linear equations', stage: 'Foundation', status: 'attended' },
@@ -184,14 +182,15 @@ const SAMPLE_SECOND_CHILD: StudentRecord = {
   profile: {
     id: 'sample-student-2',
     name: 'Hana K.',
-    programSlug: 'est-math-advanced',
     programTitle: 'EST Math — Advanced',
     exam: 'EST',
     level: 'Advanced',
     startedOn: '2025-10-05',
     currentStageIndex: 5, // Mock Exams
     targetExamDate: '2026-04-11',
+    configured: true,
   },
+  asOf: SAMPLE_AS_OF,
 
   sessions: [
     { id: 'hs-18', date: '2026-01-21', time: '19:00', topic: 'Function transformations', stage: 'Advanced Training', status: 'attended' },
@@ -339,54 +338,13 @@ const SAMPLE_SECOND_CHILD: StudentRecord = {
   ],
 }
 
-/** Replace with a real lookup once a backend exists. */
-export async function getStudentRecord(_id?: string): Promise<StudentRecord> {
+export async function getSampleStudentRecord(): Promise<StudentRecord> {
   return SAMPLE_STUDENT
 }
 
-/** Replace with a real lookup once a backend exists. */
-export async function getParentRecord(_id?: string): Promise<ParentRecord> {
+export async function getSampleParentRecord(): Promise<ParentRecord> {
   return {
     parentName: 'Mr. Kamal',
     children: [SAMPLE_STUDENT, SAMPLE_SECOND_CHILD],
   }
-}
-
-/* --------------------------- derived helpers ---------------------------- */
-
-export function attendanceRate(record: StudentRecord): { attended: number; held: number; rate: number } {
-  const held = record.sessions.filter((s) => s.status !== 'upcoming').length
-  const attended = record.sessions.filter((s) => s.status === 'attended').length
-  return { attended, held, rate: held ? Math.round((attended / held) * 100) : 0 }
-}
-
-export function homeworkRate(record: StudentRecord): { done: number; due: number; rate: number } {
-  const due = record.homework.filter((h) => h.status !== 'pending').length
-  const done = record.homework.filter((h) => h.status === 'completed' || h.status === 'late').length
-  return { done, due, rate: due ? Math.round((done / due) * 100) : 0 }
-}
-
-export function quizAverage(record: StudentRecord): number {
-  if (record.quizzes.length === 0) return 0
-  const total = record.quizzes.reduce((sum, q) => sum + q.score / q.total, 0)
-  return Math.round((total / record.quizzes.length) * 100)
-}
-
-export function latestMock(record: StudentRecord) {
-  return record.mocks[record.mocks.length - 1]
-}
-
-export function mockTrend(record: StudentRecord): number | null {
-  if (record.mocks.length < 2) return null
-  const last = record.mocks[record.mocks.length - 1]
-  const prev = record.mocks[record.mocks.length - 2]
-  return last.score - prev.score
-}
-
-export function upcomingSessions(record: StudentRecord) {
-  return record.sessions.filter((s) => s.status === 'upcoming')
-}
-
-export function topicsByStatus(record: StudentRecord, status: 'strong' | 'developing' | 'weak') {
-  return record.topics.filter((t) => t.status === status).sort((a, b) => b.score - a.score)
 }

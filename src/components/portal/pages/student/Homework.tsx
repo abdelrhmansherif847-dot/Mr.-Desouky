@@ -1,10 +1,11 @@
 import { PreviewNotice } from '@/components/portal/PreviewNotice'
-import { Panel, StatTile, StatusPill, DateChip } from '@/components/portal/widgets'
-import { getStudentRecord, homeworkRate } from '@/lib/portal/data'
+import type { StudentPageProps } from '@/components/portal/pages/props'
+import { Panel, StatTile, StatusPill, DateChip, EmptyPanel } from '@/components/portal/widgets'
+import { ProgressBar } from '@/components/ui/Progress'
+import { homeworkRate } from '@/lib/portal/insights'
 import { formatLongDate } from '@/lib/utils'
 
-export default async function StudentHomeworkPage() {
-  const record = await getStudentRecord()
+export default async function StudentHomeworkPage({ record, preview }: StudentPageProps) {
   const rate = homeworkRate(record)
   const pending = record.homework.filter((h) => h.status === 'pending')
   const done = record.homework.filter((h) => h.status !== 'pending').reverse()
@@ -13,9 +14,21 @@ export default async function StudentHomeworkPage() {
     ? Math.round(scored.reduce((s, h) => s + (h.score ?? 0), 0) / scored.length)
     : 0
 
+  if (record.homework.length === 0) {
+    return (
+      <div className="space-y-5">
+        {preview ? <PreviewNotice audience="student" /> : null}
+        <EmptyPanel title="No homework yet" icon="M6 4h9l4 4v12H6V4Zm9 0v4h4M9 13h7M9 17h5">
+          Homework sets appear here as Mr. Desouky assigns them — with the due date, and later
+          your score and written notes on what to fix.
+        </EmptyPanel>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5">
-      <PreviewNotice audience="student" />
+      {preview ? <PreviewNotice audience="student" /> : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
@@ -24,7 +37,11 @@ export default async function StudentHomeworkPage() {
           hint={`${rate.done} of ${rate.due} submitted`}
           tone={rate.rate >= 80 ? 'growth' : 'alert'}
         />
-        <StatTile label="Average score" value={`${average}%`} hint={`Across ${scored.length} sets`} />
+        <StatTile
+          label="Average score"
+          value={scored.length ? `${average}%` : '—'}
+          hint={scored.length ? `Across ${scored.length} sets` : 'No scores yet'}
+        />
         <StatTile label="Due now" value={pending.length} tone={pending.length ? 'sky' : 'neutral'} />
         <StatTile
           label="Not submitted"
@@ -44,9 +61,17 @@ export default async function StudentHomeworkPage() {
                     <p className="font-display text-sm font-bold text-deep-700">{hw.title}</p>
                     <StatusPill status={hw.status} />
                   </div>
-                  <p className="mt-1 text-xs text-deep-400">
+                  <p className="mt-1 text-xs text-deep-500">
                     {hw.topic} · due {formatLongDate(hw.dueOn)}
                   </p>
+                  {hw.description ? (
+                    <p className="mt-2 text-xs leading-relaxed text-deep-600">{hw.description}</p>
+                  ) : null}
+                  {typeof hw.progress === 'number' && hw.progress > 0 ? (
+                    <div className="mt-3 max-w-xs">
+                      <ProgressBar label="Progress" valueLabel={`${hw.progress}%`} value={hw.progress} tone="sky" size="sm" />
+                    </div>
+                  ) : null}
                 </div>
               </li>
             ))}
@@ -54,6 +79,7 @@ export default async function StudentHomeworkPage() {
         </Panel>
       ) : null}
 
+      {done.length > 0 ? (
       <Panel title="Homework history" description="Corrected with written notes — not just ticked">
         <ul className="divide-y divide-deep-100">
           {done.map((hw) => (
@@ -91,6 +117,7 @@ export default async function StudentHomeworkPage() {
           ))}
         </ul>
       </Panel>
+      ) : null}
     </div>
   )
 }
