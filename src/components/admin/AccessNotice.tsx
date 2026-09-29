@@ -1,10 +1,10 @@
-import { IS_ADMIN_AUTH_ENABLED, IS_ADMIN_DATA_PRIVATE } from '@/lib/admin/auth'
+import { IS_ADMIN_AUTH_ENABLED } from '@/lib/admin/auth'
 
 /**
  * States what is actually protecting this screen right now, so the answer is
  * never guessed from how private the page happens to look.
  */
-export function AccessNotice() {
+export function AccessNotice({ anonymisedSchedule }: { anonymisedSchedule?: boolean } = {}) {
   if (!IS_ADMIN_AUTH_ENABLED) {
     return (
       <Notice tone="alert" title="No authentication project configured for this build">
@@ -16,13 +16,13 @@ export function AccessNotice() {
     )
   }
 
-  if (!IS_ADMIN_DATA_PRIVATE) {
+  if (anonymisedSchedule) {
     return (
-      <Notice tone="olive" title="Access is enforced — the data is not private yet">
+      <Notice tone="olive" title="This schedule is the anonymised file in the repository">
         Reaching this page required a verified session and a profile with role{' '}
-        <code>owner</code>. The schedule below is still the anonymised file committed to the
-        repository, not live records. Real student data moves into Postgres behind row-level
-        security before anything identifying is entered.
+        <code>owner</code>. The groups below are anonymised and committed to the repository, so
+        nothing identifying belongs here. Student records live in the database behind row-level
+        security — see Students.
       </Notice>
     )
   }

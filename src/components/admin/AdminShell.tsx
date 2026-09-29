@@ -20,6 +20,9 @@ const ICONS = {
   overview: 'M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z',
   schedule: 'M7 3v3m10-3v3M4 9h16M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z',
   students: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 0c-3.5 0-6.5 2.2-6.5 5V20h13v-3c0-2.8-3-5-6.5-5Z',
+  users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 0c-3 0-5.5 1.9-5.5 4.3V19h11v-3.7C14.5 12.9 12 11 9 11Zm7-6.5a3 3 0 0 1 0 6m1.5 2.2c1.8.5 3 1.9 3 3.6V19h-3',
+  approvals: 'M9 12.5 11 14.5 15.5 10M12 3.5l7 3v5c0 4.2-2.9 7.9-7 9-4.1-1.1-7-4.8-7-9v-5l7-3Z',
+  parents: 'M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 2a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3 19v-2c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5v2m1-5.5c.6-.3 1.3-.5 2-.5 2.2 0 4 1.6 4 3.6V19',
 } as const
 
 function Icon({ name }: { name: AdminNavItem['icon'] }) {
@@ -32,8 +35,18 @@ function Icon({ name }: { name: AdminNavItem['icon'] }) {
 
 export const ADMIN_NAV: AdminNavItem[] = [
   { label: 'Overview', href: '/admin', icon: 'overview' },
+  { label: 'Approvals', href: '/admin/approvals', icon: 'approvals' },
+  { label: 'Users', href: '/admin/users', icon: 'users' },
+  { label: 'Students', href: '/admin/students', icon: 'students' },
+  { label: 'Parents', href: '/admin/parents', icon: 'parents' },
   { label: 'Schedule', href: '/admin/schedule', icon: 'schedule' },
 ]
+
+/** Overview is active only on itself; every other item also on its sub-pages. */
+function isActive(pathname: string, href: string): boolean {
+  const path = pathname.replace(/\/+$/, '') || '/'
+  return href === '/admin' ? path === href : path === href || path.startsWith(`${href}/`)
+}
 
 export function AdminShell({
   title,
@@ -72,7 +85,7 @@ export function AdminShell({
           <nav aria-label="Admin" className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
             <ul className="flex min-w-max gap-1 pb-px">
               {ADMIN_NAV.map((item) => {
-                const active = pathname === item.href
+                const active = isActive(pathname, item.href)
                 return (
                   <li key={item.href}>
                     <Link

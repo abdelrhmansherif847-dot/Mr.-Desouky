@@ -69,10 +69,3 @@ export async function getOwnerSession(): Promise<OwnerSession | null> {
     role: 'owner',
   }
 }
-
-/**
- * Whether the data the admin tools display is real, private data. Still false:
- * the schedule rendered today is the anonymised file in src/content. Real
- * records move into Postgres behind RLS before this becomes true.
- */
-export const IS_ADMIN_DATA_PRIVATE = false

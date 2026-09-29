@@ -1,5 +1,6 @@
 import { AdminShell } from '@/components/admin/AdminShell'
 import { AccessNotice } from '@/components/admin/AccessNotice'
+import { OwnerBar } from '@/components/admin/OwnerBar'
 import { WeeklySchedule } from '@/components/schedule/WeeklySchedule'
 import { ScheduleLegend, ScheduleNotes } from '@/components/schedule/ScheduleNotes'
 import { SCHEDULE_RANGE, SCHEDULE_DAYS, studentGroups, weeklyLessonCount } from '@/content/schedule'
@@ -18,11 +19,12 @@ export default function AdminSchedulePage() {
 
   return (
     <AdminShell
+      actions={<OwnerBar />}
       title="Weekly schedule"
       subtitle="Row heights follow real duration, so the shape of each day reads before the text does."
     >
       <div className="space-y-6">
-        <AccessNotice />
+        <AccessNotice anonymisedSchedule />
 
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-deep-100 bg-deep-100 lg:grid-cols-4">
           {facts.map((fact) => (
