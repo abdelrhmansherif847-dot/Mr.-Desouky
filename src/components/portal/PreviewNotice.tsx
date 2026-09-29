@@ -1,8 +1,8 @@
 import Link from 'next/link'
 
 /**
- * Shown on every portal screen while the portals run on sample data.
- * Remove this component once `IS_SAMPLE_DATA` is false and real records load.
+ * Shown on every /preview/* screen, which renders only the fictional sample.
+ * The real portals never show it: they only ever render real records.
  */
 export function PreviewNotice({ audience }: { audience: 'student' | 'parent' }) {
   return (

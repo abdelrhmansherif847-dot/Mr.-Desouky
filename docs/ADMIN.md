@@ -258,34 +258,72 @@ owner's own identity, inside a block that always aborts:
 
 ### Approving, suspending and correcting accounts
 
-Approval is manual for now and happens in the Supabase **SQL editor**, which
-runs as `postgres` and so is not bound by the limits above. There is
-deliberately no approval endpoint in the application yet: one would need a
-privileged database function, which is exactly the kind of RPC migration 0002
-removed.
+Once migration 0006 is applied, this happens in the console:
+
+* **`/admin/approvals`** — accounts waiting for a decision, oldest first, and
+  suspended accounts. Approve, suspend, reinstate, or correct a student/parent
+  role chosen at sign-up.
+* **`/admin/users`** — every account, searchable by name, email or phone and
+  filterable by role and status.
+
+Each button calls `public.admin_set_account`, a `SECURITY DEFINER` function
+that checks the caller is the owner, refuses the owner's own account and any
+owner account, and allows only these moves:
+
+| From | To |
+| --- | --- |
+| `pending` | `approved`, `suspended` |
+| `approved` | `suspended` |
+| `suspended` | `approved` |
+
+Nothing returns to `pending`. A role can only move between `student` and
+`parent`, and not while the account has parent links (remove them first).
+
+Before 0006 is applied — or as a fallback — the SQL editor still works, since
+it runs as `postgres`:
 
 ```sql
--- Who is waiting
 select email, full_name, phone, role, created_at
-  from public.profiles
- where status = 'pending'
- order by created_at;
-
--- Approve
+  from public.profiles where status = 'pending' order by created_at;
 update public.profiles set status = 'approved' where email = 'someone@example.com';
-
--- Suspend, and reinstate
-update public.profiles set status = 'suspended' where email = 'someone@example.com';
-update public.profiles set status = 'approved'  where email = 'someone@example.com';
-
--- Correct the role chosen at sign-up
-update public.profiles set role = 'parent' where email = 'someone@example.com';
-
--- Check the result: expect exactly one row
-select email, role, status from public.profiles where email = 'someone@example.com';
 ```
 
-Never set `role = 'owner'` from these commands. There is one owner.
+Never set `role = 'owner'`. There is one owner.
+
+## Parents, children and records (migrations 0006, 0007)
+
+**Links.** `public.guardianships` joins a parent account to a student account.
+Only the owner creates or removes links, through `admin_link_guardian` /
+`admin_unlink_guardian` (from `/admin/parents` or a student's file). No role
+holds INSERT, UPDATE or DELETE on the table. A parent may have several
+children; a student several parents.
+
+**What a parent sees.** `/parent` lists the parent's links through
+`linked_students()` (id and name only). With no link they see a "waiting for
+your student link" screen; with one child it opens directly; with several they
+choose. The chosen child travels as `?child=<id>`, which is only a selection:
+it is honoured when it is one of the parent's own children and otherwise
+ignored, and row-level security filters every record query regardless.
+
+**Records.** Sessions, homework, quizzes (with topic results), reviews, mock
+exams (with sections), feedback and achievements live in their own tables,
+written from `/admin/students/<id>`. Read rules, enforced by RLS:
+
+| Reader | Sees |
+| --- | --- |
+| Owner | everything |
+| Approved student | their own rows |
+| Approved parent | rows of linked students |
+| Pending / suspended / anyone else | nothing |
+
+Reviews reach students and parents only once **published**. Feedback carries a
+visibility: *student and parents*, *student only*, *parents only*, or
+*internal* (owner only). Writes on every table are owner-only by policy.
+
+**Testing locally.** `supabase/tests/run.sh` applies every migration to a
+fresh PostgreSQL 16 database with a small Supabase shim and runs the RLS and
+function checks, plus the sign-up gate over a real `supabase_auth_admin`
+connection.
 
 ## What is enforced today, precisely
 
@@ -347,8 +385,8 @@ Anything committed to this repository is public while the repository is
 public, regardless of any login. Real student records belong in Postgres
 behind RLS — never in `src/content`.
 
-`src/content/schedule.ts` is anonymised (`مجموعة أ` … `مجموعة هـ`). Keep it so
-until the tables exist.
+`src/content/schedule.ts` is anonymised (`مجموعة أ` … `مجموعة هـ`). Keep it
+so: student records are entered in the console, into the tables above.
 
 **Outstanding:** real student first names remain in the history of commit
 `e7d7114`. Either make the repository private, or purge with `git filter-repo`

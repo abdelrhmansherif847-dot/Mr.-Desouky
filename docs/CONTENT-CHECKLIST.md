@@ -137,15 +137,14 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for details.
 
 ## 8. Portals — when you are ready to go live
 
-- [ ] Implement authentication — `src/lib/portal/auth.ts` documents where
-- [ ] Point `getStudentRecord()` / `getParentRecord()` at real records —
-      `src/lib/portal/data.ts`
-- [ ] Enforce that a parent can only read their own children's records **in the
-      data layer**, not in the UI
-- [ ] Set `IS_SAMPLE_DATA = false`
-- [ ] Remove `<PreviewNotice />` from the portal pages
-- [ ] Replace the `LoginPanel` screens with the real sign-in form
-- [ ] Keep the portals `noindex` (already configured)
+- [x] Implement authentication — `src/lib/portal/auth.ts`
+- [x] Real records for `/student` and `/parent` — `src/lib/portal/records.ts`
+- [x] A parent reads only linked children's records — enforced by RLS
+- [x] The preview notice shows only on `/preview/*`
+- [x] Real sign-in forms
+- [x] Portals `noindex`
+- [ ] Apply migrations 0006 and 0007 to the live project (needs approval)
+- [ ] Set up each student's programme and link parents in `/admin`
 
 The sample records are two deliberately different students — one SAT Basic
 mid-journey with a missed session, one EST Advanced near mock stage with a
