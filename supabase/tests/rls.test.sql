@@ -123,8 +123,12 @@ select t.check('admin: owner suspends a pending account (pending -> suspended): 
   t.run(:owner, format('select public.admin_set_account(%L, ''suspended'')', :parPend)) like 'ok%');
 select t.check('admin: owner suspends a pending account (pending -> suspended): result',
   (select status = 'suspended' from public.profiles where id = :parPend));
+select t.check('admin: approved -> pending is refused',
+  t.run(:owner, format('select public.admin_set_account(%L, ''pending'')', :stuPend)) like 'error:22023%');
+select t.check('admin: suspended -> pending is refused',
+  t.run(:owner, format('select public.admin_set_account(%L, ''pending'')', :parPend)) like 'error:22023%');
 select t.check('admin: owner corrects a role (student -> parent) with no links: call',
-  t.run(:owner, format('select public.admin_set_account(%L, ''pending'', ''parent'')', :stuPend)) like 'ok%');
+  t.run(:owner, format('select public.admin_set_account(%L, null, ''parent'')', :stuPend)) like 'ok%');
 select t.check('admin: owner corrects a role (student -> parent) with no links: result',
   (select role = 'parent' from public.profiles where id = :stuPend));
 update public.profiles set role = 'student' where id = :stuPend;
@@ -219,9 +223,10 @@ select t.check('academic: student cannot read another student''s records',
 select t.check('academic: student sees own quiz topic results (child table)',
   t.visible(:stuA, 'select 1 from public.quiz_topic_results') = 1
   and t.visible(:stuB, 'select 1 from public.quiz_topic_results') = 0);
+-- Back to pending is not an admin action; set it directly to test the rule.
+update public.profiles set status = 'pending' where id = :stuA;
 select t.check('academic: pending student reads nothing',
-  t.run(:owner, format('select public.admin_set_account(%L, ''pending'')', :stuA)) like 'ok%'
-  and t.visible(:stuA, 'select 1 from public.sessions') = 0);
+  t.visible(:stuA, 'select 1 from public.sessions') = 0);
 select t.check('academic: suspended student reads nothing',
   t.run(:owner, format('select public.admin_set_account(%L, ''suspended'')', :stuA)) like 'ok%'
   and t.visible(:stuA, 'select 1 from public.sessions') = 0);
@@ -270,6 +275,14 @@ select t.check('reviews: parent sees published only',
   t.visible(:parA, 'select 1 from public.reviews') = 1);
 select t.check('reviews: owner sees drafts too',
   t.visible(:owner, 'select 1 from public.reviews') = 2);
+
+select t.check('reviews: can refer to the same student''s quiz',
+  t.run(:owner, format($q$insert into public.reviews (student_id, quiz_id, title, content)
+    select %L, id, 'Own quiz review', 'x' from public.quizzes where student_id = %L limit 1$q$, :stuA, :stuA)) = 'ok:1');
+select t.check('reviews: cannot refer to another student''s quiz',
+  t.run(:owner, format($q$insert into public.reviews (student_id, quiz_id, title, content)
+    select %L, id, 'Cross review', 'x' from public.quizzes where student_id = %L limit 1$q$, :stuA, :stuB)) like 'error:23514%');
+select t.run(:owner, 'delete from public.reviews where title = ''Own quiz review''');
 
 -- Feedback visibility.
 select t.run(:owner, format($q$insert into public.feedback (student_id, message, visibility) values

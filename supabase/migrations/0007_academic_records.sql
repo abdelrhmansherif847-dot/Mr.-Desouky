@@ -27,7 +27,7 @@
 --              public.quizzes, public.homework, public.sessions,
 --              public.student_profiles;
 --   drop function private.readable_student_ids(), private.touch_updated_at(),
---                 private.assert_student();
+--                 private.assert_student(), private.check_review_quiz();
 --   drop type public.feedback_visibility, public.review_status,
 --             public.homework_status, public.session_status, public.exam_kind;
 
@@ -294,6 +294,29 @@ create policy "reviews_select"
     (select private.is_owner())
     or (status = 'published' and student_id in (select private.readable_student_ids()))
   );
+
+-- A review may point at a quiz only if it is the same student's quiz, so a
+-- review can never pull another student's result into view.
+create or replace function private.check_review_quiz()
+  returns trigger
+  language plpgsql
+  set search_path = public, pg_temp
+as $$
+begin
+  if new.quiz_id is not null and not exists (
+    select 1 from public.quizzes where id = new.quiz_id and student_id = new.student_id
+  ) then
+    raise exception 'a review can only refer to the same student''s quiz' using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.check_review_quiz() from public;
+
+create trigger reviews_quiz_check
+  before insert or update on public.reviews
+  for each row execute function private.check_review_quiz();
 
 -- 'shared' reaches student and parents; 'student' and 'parent' reach only
 -- that audience; 'internal' reaches nobody but the owner.

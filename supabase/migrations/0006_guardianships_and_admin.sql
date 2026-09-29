@@ -117,6 +117,8 @@ create trigger guardianships_check
 -- ---------------------------------------------------------------------------
 
 -- Approve, suspend, reinstate, or correct a role between student and parent.
+-- Allowed status moves: pending -> approved | suspended, approved -> suspended,
+-- suspended -> approved.
 create or replace function public.admin_set_account(
   target     uuid,
   new_status public.account_status,
@@ -128,7 +130,8 @@ create or replace function public.admin_set_account(
   set search_path = public, pg_temp
 as $$
 declare
-  current_role_value public.user_role;
+  current_role_value   public.user_role;
+  current_status_value public.account_status;
 begin
   if not private.is_owner() then
     raise exception 'not authorized' using errcode = '42501';
@@ -137,12 +140,23 @@ begin
     raise exception 'this account cannot be changed here' using errcode = '22023';
   end if;
 
-  select role into current_role_value from public.profiles where id = target for update;
+  select role, status into current_role_value, current_status_value
+    from public.profiles where id = target for update;
   if not found then
     raise exception 'account not found' using errcode = 'P0002';
   end if;
   if current_role_value = 'owner' then
     raise exception 'owner accounts cannot be changed here' using errcode = '22023';
+  end if;
+  -- Only these moves exist: approve or refuse a new account, suspend an
+  -- approved one, reinstate a suspended one. Nothing returns to 'pending'.
+  -- A null status keeps the current one (a role correction on its own).
+  if new_status is not null and new_status <> current_status_value and not (
+       (current_status_value = 'pending'   and new_status in ('approved', 'suspended'))
+    or (current_status_value = 'approved'  and new_status = 'suspended')
+    or (current_status_value = 'suspended' and new_status = 'approved')
+  ) then
+    raise exception 'this status change is not allowed' using errcode = '22023';
   end if;
   if new_role is not null and new_role not in ('student', 'parent') then
     raise exception 'role must be student or parent' using errcode = '22023';
