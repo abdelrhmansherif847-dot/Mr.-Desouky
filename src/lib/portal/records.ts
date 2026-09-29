@@ -14,8 +14,8 @@ import type {
   SessionStatus,
   StudentProfile,
   StudentRecord,
-  TopicResult,
 } from './types'
+import { deriveTopics } from './insights'
 
 /**
  * REAL RECORDS — for /student and /parent
@@ -59,27 +59,6 @@ const HOMEWORK_STATUS: Record<string, HomeworkStatus> = {
   completed: 'completed',
   late: 'late',
   missed: 'missed',
-}
-
-function topicStatus(score: number): TopicResult['status'] {
-  if (score >= 80) return 'strong'
-  if (score >= 60) return 'developing'
-  return 'weak'
-}
-
-/** Aggregate per-topic quiz results into the portal's strengths and weaknesses. */
-export function deriveTopics(results: { topic: string; correct: number; total: number }[]): TopicResult[] {
-  const byTopic = new Map<string, { correct: number; total: number }>()
-  for (const row of results) {
-    const entry = byTopic.get(row.topic) ?? { correct: 0, total: 0 }
-    entry.correct += row.correct
-    entry.total += row.total
-    byTopic.set(row.topic, entry)
-  }
-  return [...byTopic.entries()].map(([name, { correct, total }]) => {
-    const score = total ? Math.round((correct / total) * 100) : 0
-    return { name, score, attempts: total, status: topicStatus(score) }
-  })
 }
 
 /**
