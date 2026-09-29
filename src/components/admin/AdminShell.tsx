@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogoMark } from '@/components/brand/Logo'
+import { PageTransition } from '@/components/motion/PageTransition'
+import { Announcer } from './Announcer'
 import { SITE } from '@/content/site'
 import { cn } from '@/lib/utils'
 
@@ -111,7 +113,7 @@ export function AdminShell({
         </div>
       </header>
 
-      <main id="main" className="flex-1">
+      <PageTransition id="main" className="flex-1">
         <div className="container-page py-8 sm:py-10">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -123,7 +125,9 @@ export function AdminShell({
 
           <div className="mt-8">{children}</div>
         </div>
-      </main>
+      </PageTransition>
+
+      <Announcer />
 
       <footer className="border-t border-deep-100 bg-white">
         <div className="container-page flex flex-wrap items-center justify-between gap-3 py-5">

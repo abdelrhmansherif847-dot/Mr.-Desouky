@@ -86,14 +86,18 @@ function RecordRow({
   refOptions?: { value: string; label: string }[]
 }) {
   const id = String(row.id)
+  const label = String(row.title ?? row.topic ?? row.category ?? row.name ?? noun)
   return (
     <li className="py-3 first:pt-0 last:pb-0">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">{summary}</div>
-        <DeleteRecord kind={kind} student={student} id={id} parent={parent} noun={noun} />
+        <DeleteRecord kind={kind} student={student} id={id} parent={parent} noun={noun} label={label} />
       </div>
       <details className="mt-1.5">
-        <summary className="inline-flex min-h-[2rem] cursor-pointer items-center text-xs font-semibold text-sky-700 hover:text-sky-800">
+        <summary
+          aria-label={`Edit ${noun}: ${label}`}
+          className="inline-flex min-h-[2rem] cursor-pointer items-center text-xs font-semibold text-sky-700 hover:text-sky-800"
+        >
           Edit
         </summary>
         <div className="mt-3 rounded-card bg-mist/60 p-4">

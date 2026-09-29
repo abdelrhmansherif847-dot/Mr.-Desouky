@@ -12,6 +12,7 @@ import {
 } from '@/lib/admin/actions'
 import { RECORDS, TRANSITIONS, type AccountStatus, type Field, type RecordKind } from '@/lib/admin/forms'
 import { cn } from '@/lib/utils'
+import { announce } from './Announcer'
 
 /**
  * The owner's forms. Each one posts to a server action that re-checks the
@@ -20,6 +21,21 @@ import { cn } from '@/lib/utils'
  */
 
 const INITIAL: ActionState = {}
+
+/**
+ * Wraps an action so its success is announced before the response re-renders
+ * the page — which may remove the very row that holds this form.
+ */
+function announcing(
+  run: (prev: ActionState, form: FormData) => Promise<ActionState>,
+  describe: (ok: string) => string,
+) {
+  return async (prev: ActionState, form: FormData) => {
+    const result = await run(prev, form)
+    if (result.ok) announce(describe(result.ok))
+    return result
+  }
+}
 
 const inputCls =
   'block w-full rounded-lg border bg-white px-3 py-2 text-sm text-deep-700 shadow-sm transition-colors duration-150 ' +
@@ -232,20 +248,24 @@ export function DeleteRecord({
   id,
   parent,
   noun,
+  label,
 }: {
   kind: RecordKind
   student: string
   id: string
   parent?: string
   noun: string
+  /** What the record is called, for screen readers ("session: Linear equations"). */
+  label: string
 }) {
-  const [state, action] = useActionState(deleteRecord, INITIAL)
+  const [state, action] = useActionState(announcing(deleteRecord, (ok) => `${ok.replace(/\.$/, '')}: ${label}`), INITIAL)
   const [confirming, setConfirming] = useState(false)
   if (!confirming) {
     return (
       <button
         type="button"
         onClick={() => setConfirming(true)}
+        aria-label={`Delete ${noun}: ${label}`}
         className="rounded-full px-3 py-1.5 text-xs font-semibold text-alert-700 hover:bg-alert-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500"
       >
         Delete
@@ -259,7 +279,7 @@ export function DeleteRecord({
       <input type="hidden" name="_id" value={id} />
       {parent ? <input type="hidden" name="_parent" value={parent} /> : null}
       <span className="text-xs text-deep-500">Delete this {noun}?</span>
-      <Submit tone="danger">Yes, delete</Submit>
+      <Submit tone="danger" label={`Yes, delete ${noun}: ${label}`}>Yes, delete</Submit>
       <button type="button" onClick={() => setConfirming(false)} className="px-2 py-1.5 text-xs font-semibold text-deep-500 hover:text-deep-700">
         Keep
       </button>
@@ -288,7 +308,7 @@ export function AccountActions({
   name: string
   compact?: boolean
 }) {
-  const [state, action] = useActionState(setAccount, INITIAL)
+  const [state, action] = useActionState(announcing(setAccount, (ok) => `${ok.replace(/\.$/, '')} — ${name}`), INITIAL)
   const uid = useId()
   const moves = TRANSITIONS[status]
   const canCorrect = role === 'student' || role === 'parent'
@@ -372,7 +392,7 @@ export function LinkForm({
 }
 
 export function UnlinkButton({ parent, student, label }: { parent: string; student: string; label: string }) {
-  const [state, action] = useActionState(unlinkGuardian, INITIAL)
+  const [state, action] = useActionState(announcing(unlinkGuardian, () => `Link removed — ${label.replace(/^Unlink /, '')}`), INITIAL)
   return (
     <form action={action} className="inline-flex items-center gap-2">
       <input type="hidden" name="parent" value={parent} />
