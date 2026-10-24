@@ -13,6 +13,8 @@ import {
   isRecordKind,
   isUuid,
   parseRecord,
+  statusActionLabel,
+  statusResultMessage,
 } from '../src/lib/admin/forms.ts'
 
 const session = {
@@ -133,6 +135,24 @@ test('account status moves: exactly the four allowed', () => {
   assert.equal(canMove('suspended', 'approved'), true)
   assert.equal(canMove('approved', 'pending'), false)
   assert.equal(canMove('suspended', 'pending'), false)
+})
+
+test('status moves are worded by where the account starts; the moves themselves do not change', () => {
+  const words = Object.entries(TRANSITIONS).flatMap(([from, tos]) =>
+    tos.map((to) => `${from}→${to}: ${statusActionLabel(from as 'pending', to)}`),
+  )
+  assert.deepEqual(words, [
+    'pending→approved: Approve',
+    'pending→suspended: Reject',
+    'approved→suspended: Suspend',
+    'suspended→approved: Reinstate',
+  ])
+  assert.equal(statusResultMessage('pending', 'suspended'), 'Account rejected.')
+  assert.equal(statusResultMessage('approved', 'suspended'), 'Suspended.')
+  assert.equal(statusResultMessage('pending', 'approved'), 'Approved.')
+  assert.equal(statusResultMessage('suspended', 'approved'), 'Approved.')
+  // Prior status unreadable: the plain word, never a claim of rejection.
+  assert.equal(statusResultMessage(null, 'suspended'), 'Suspended.')
 })
 
 test('database error codes become the owner’s words, never raw errors', () => {

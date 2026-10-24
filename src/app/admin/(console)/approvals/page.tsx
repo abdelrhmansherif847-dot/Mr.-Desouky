@@ -7,7 +7,8 @@ import { getAccounts } from '@/lib/admin/data'
 /**
  * New accounts wait here until the owner decides. Approving grants the portal
  * for the role shown; if someone signed up with the wrong role, correct it
- * first. Suspended accounts are listed below, ready to be reinstated.
+ * first. Rejected and suspended accounts are listed below, ready to be
+ * reinstated.
  */
 export default async function AdminApprovalsPage() {
   const accounts = await getAccounts()
@@ -42,7 +43,7 @@ export default async function AdminApprovalsPage() {
           )}
         </Section>
 
-        <Section id="suspended" title={`Suspended (${suspended.length})`} description="No portal access until reinstated.">
+        <Section id="suspended" title={`Rejected or suspended (${suspended.length})`} description="No portal access until reinstated.">
           {suspended.length ? (
             <ul className="divide-y divide-deep-100">
               {suspended.map((a) => (

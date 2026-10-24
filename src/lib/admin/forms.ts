@@ -295,6 +295,24 @@ export function canMove(from: AccountStatus, to: AccountStatus): boolean {
   return TRANSITIONS[from].includes(to)
 }
 
+/**
+ * The owner's words for a status move. Wording only: refusing a new account
+ * and suspending an approved one are the same move to 'suspended', and a
+ * rejected account is reinstated the same way as a suspended one.
+ */
+export function statusActionLabel(from: AccountStatus, to: AccountStatus): string {
+  if (to === 'approved') return from === 'suspended' ? 'Reinstate' : 'Approve'
+  if (to === 'suspended') return from === 'pending' ? 'Reject' : 'Suspend'
+  return 'Pending'
+}
+
+/** What the owner is told once a status move has saved. */
+export function statusResultMessage(from: AccountStatus | null, to: AccountStatus): string {
+  if (to === 'approved') return 'Approved.'
+  if (to === 'suspended') return from === 'pending' ? 'Account rejected.' : 'Suspended.'
+  return 'Saved.'
+}
+
 /** Postgres error codes from the admin functions, in the owner's words. */
 export function accountErrorMessage(code: string | undefined): string {
   switch (code) {

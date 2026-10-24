@@ -9,6 +9,7 @@ import {
   isRecordKind,
   isUuid,
   parseRecord,
+  statusResultMessage,
   type AccountStatus,
   type Errors,
 } from './forms'
@@ -203,6 +204,10 @@ export async function setAccount(_prev: ActionState, form: FormData): Promise<Ac
   if (role && role !== 'student' && role !== 'parent') return { error: 'Choose student or parent.', fields: { role: 'Choose student or parent.' } }
   if (!status && !role) return FAILED
 
+  // Read only to word the confirmation ("Account rejected." for a new
+  // account); admin_set_account decides what is allowed, from its own read.
+  const { data: before } = await supabase.from('profiles').select('status').eq('id', target).maybeSingle()
+
   const { error } = await supabase.rpc('admin_set_account', {
     target,
     new_status: status || null,
@@ -215,7 +220,7 @@ export async function setAccount(_prev: ActionState, form: FormData): Promise<Ac
 
   for (const path of ['/admin', '/admin/users', '/admin/approvals', '/admin/students', '/admin/parents']) revalidatePath(path)
   return {
-    ok: status === 'approved' ? 'Approved.' : status === 'suspended' ? 'Suspended.' : 'Role updated.',
+    ok: status ? statusResultMessage((before?.status as AccountStatus | undefined) ?? null, status as AccountStatus) : 'Role updated.',
     done: Date.now(),
   }
 }

@@ -10,7 +10,7 @@ import {
   unlinkGuardian,
   type ActionState,
 } from '@/lib/admin/actions'
-import { RECORDS, TRANSITIONS, type AccountStatus, type Field, type RecordKind } from '@/lib/admin/forms'
+import { RECORDS, TRANSITIONS, statusActionLabel, type AccountStatus, type Field, type RecordKind } from '@/lib/admin/forms'
 import { cn } from '@/lib/utils'
 import { announce } from './Announcer'
 
@@ -288,8 +288,6 @@ export function DeleteRecord({
   )
 }
 
-const ACTION_LABEL: Record<AccountStatus, string> = { approved: 'Approve', suspended: 'Suspend', pending: 'Pending' }
-
 /**
  * The allowed status moves for one account (the same list the database
  * enforces), plus a role correction between student and parent.
@@ -322,9 +320,9 @@ export function AccountActions({
             <input type="hidden" name="status" value={to} />
             <Submit
               tone={to === 'suspended' ? 'danger' : 'primary'}
-              label={`${status === 'suspended' && to === 'approved' ? 'Reinstate' : ACTION_LABEL[to]} ${name}`}
+              label={`${statusActionLabel(status, to)} ${name}`}
             >
-              {status === 'suspended' && to === 'approved' ? 'Reinstate' : ACTION_LABEL[to]}
+              {statusActionLabel(status, to)}
             </Submit>
           </form>
         ))}
