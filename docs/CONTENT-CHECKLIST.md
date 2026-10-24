@@ -27,10 +27,10 @@ Once replaced, set `isPlaceholder: false` on `LOGO` and `PORTRAIT` in
 - [ ] `SITE.url` — currently the GitHub Pages URL, set automatically by the
       deploy workflow. Only change this when a custom domain is ready (set
       `NEXT_PUBLIC_SITE_URL`); see [`DEPLOYMENT.md`](DEPLOYMENT.md).
-- [ ] `CONTACT.whatsapp` — currently `201000000000`. Digits only, full
-      international format, no `+`.
-- [ ] `CONTACT.whatsappDisplay` — the human-readable version shown on screen.
-- [ ] `CONTACT.email` — currently `info@desoukymath.com`.
+- [x] `CONTACT.whatsapp` — `201032365569` (01032365569, Egypt +20). Digits
+      only, full international format, no `+`.
+- [x] `CONTACT.whatsappDisplay` — `+20 10 3236 5569`, shown on screen.
+- [x] `CONTACT.email` — `mrdesouky8@gmail.com`.
 - [ ] `CONTACT.social[]` — the four entries are placeholder URLs pointing at
       each platform's homepage. Replace with the real profiles, or delete the
       rows you do not use.
@@ -116,22 +116,27 @@ Every entry has an `available` flag. Items with `available: false` render as
 
 ---
 
-## 7. Contact form delivery — optional
+## 7. Contact form delivery
 
-**File: `src/lib/contact/submit.ts`**
+**Files: `src/app/api/contact/route.ts`, `src/lib/contact/server.ts`**
 
-The site is served as a static export, so the form submits from the browser.
-Without configuration it validates, keeps what was typed, and hands the
-completed enquiry to WhatsApp with every field already filled in. It never
-silently drops an enquiry or falsely claims success.
+On Vercel the form posts to `/api/contact`, which sends the enquiry to
+`CONTACT.email` through Resend. The API key lives only in Vercel's server
+environment. Without it the form says plainly that nothing was sent and hands
+the completed enquiry to WhatsApp; it never claims a message was delivered
+when it was not.
 
-- [ ] Create a form endpoint (Formspree, Web3Forms, Getform, Basin — all free
-      for low volume) and point it at the address in `CONTACT.email`
-- [ ] Add it on GitHub as **Settings → Secrets and variables → Actions →
-      Variables** named `NEXT_PUBLIC_CONTACT_ENDPOINT`
-- [ ] Push, then send a test enquiry and confirm it arrives
+- [ ] In the Resend account for mrdesouky.com, create an API key with
+      *Sending access* only
+- [ ] Add it in Vercel → Settings → Environment Variables as
+      `RESEND_API_KEY` (type **Sensitive**, Production and Preview)
+- [ ] Add `CONTACT_FROM_EMAIL`, an address on a domain verified in that
+      Resend account, e.g. `Mr. Desouky Website <website@mrdesouky.com>`
+- [ ] Redeploy, send a test enquiry, and confirm it arrives
 
-See [`DEPLOYMENT.md`](DEPLOYMENT.md) for details.
+The static GitHub Pages build has no server, so it keeps the older path: an
+optional `NEXT_PUBLIC_CONTACT_ENDPOINT` form endpoint, or the WhatsApp
+hand-off. See [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ---
 

@@ -11,7 +11,8 @@ export type Enquiry = {
 }
 
 export type FormState = {
-  status: 'idle' | 'success' | 'error' | 'unconfigured'
+  /** 'unconfigured' and 'not_sent' both mean nothing was delivered. */
+  status: 'idle' | 'success' | 'error' | 'unconfigured' | 'not_sent'
   message: string
   /** Field-level errors, keyed by input name. */
   errors?: Record<string, string>

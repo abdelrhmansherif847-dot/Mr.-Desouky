@@ -58,9 +58,10 @@ export const PORTRAIT = {
  * `whatsapp` must be digits only, in full international format, no "+".
  */
 export const CONTACT = {
-  whatsapp: '201000000000',
-  whatsappDisplay: '+20 100 000 0000',
-  email: 'info@desoukymath.com',
+  /** Digits only, country code first: 01032365569 in Egypt is +20 10 3236 5569. */
+  whatsapp: '201032365569',
+  whatsappDisplay: '+20 10 3236 5569',
+  email: 'mrdesouky8@gmail.com',
   social: [
     { label: 'Facebook', href: 'https://facebook.com/', handle: '@desoukymath' },
     { label: 'Instagram', href: 'https://instagram.com/', handle: '@desoukymath' },

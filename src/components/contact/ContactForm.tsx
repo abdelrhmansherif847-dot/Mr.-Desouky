@@ -60,6 +60,16 @@ function Field({
   )
 }
 
+/** What the visitor is told when the message did not go. Each says so plainly. */
+const NOT_SENT = {
+  unconfigured:
+    'Email delivery is not connected yet, so this message was not sent. Please reach out on WhatsApp or by email and you will get a reply straight away.',
+  failed:
+    'Your message could not be sent, so nothing was delivered. Please try again in a moment, or send it on WhatsApp or by email — everything you typed is still here.',
+  rate_limited:
+    'Several messages were sent from this connection in a short time, so this one was not sent. Please try again in a few minutes, or send it on WhatsApp or by email.',
+} as const
+
 function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" size="lg" disabled={pending} className="w-full sm:w-auto">
@@ -70,9 +80,10 @@ function SubmitButton({ pending }: { pending: boolean }) {
 
 export function ContactForm() {
   /**
-   * Submission runs entirely in the browser. The site is deployed as a static
-   * export (GitHub Pages), which has no server to run a Server Action — so the
-   * same validation rules run here instead, via `@/lib/contact/validate`.
+   * Validation runs here first, with the rules in `@/lib/contact/validate`,
+   * and again on the server. Delivery is decided in `@/lib/contact/submit`:
+   * /api/contact on Vercel, or the static-host fallback on GitHub Pages.
+   * "Message sent" is shown only when delivery reports the message accepted.
    */
   const [state, setState] = useState<FormState>(INITIAL_FORM_STATE)
   const [pending, setPending] = useState(false)
@@ -116,23 +127,18 @@ export function ContactForm() {
       return
     }
 
-    if (result.reason === 'unconfigured') {
-      // Nothing is silently dropped: the completed enquiry is handed to
-      // WhatsApp with every field already filled in.
-      setWhatsappHref(whatsappLink(formatEnquiry(enquiry)))
-      setState({
-        status: 'unconfigured',
-        message:
-          'Email delivery is not connected yet, so this message was not sent. Please reach out on WhatsApp or by email and you will get a reply straight away.',
-        values,
-      })
+    if (result.reason === 'invalid') {
+      setState({ status: 'error', message: 'Please check the highlighted fields.', errors: result.fields, values })
       return
     }
 
+    // Not sent, whatever the reason. Nothing is silently dropped: everything
+    // typed stays in the form, and the completed enquiry is handed to
+    // WhatsApp with every field already filled in.
+    setWhatsappHref(whatsappLink(formatEnquiry(enquiry)))
     setState({
-      status: 'error',
-      message:
-        'Something went wrong sending your message. Please try again, or reach out on WhatsApp.',
+      status: result.reason === 'unconfigured' ? 'unconfigured' : 'not_sent',
+      message: NOT_SENT[result.reason],
       values,
     })
   }
@@ -171,7 +177,7 @@ export function ContactForm() {
         </div>
       ) : null}
 
-      {state.status === 'unconfigured' ? (
+      {state.status === 'unconfigured' || state.status === 'not_sent' ? (
         <div role="alert" className="rounded-card border border-alert-200 bg-alert-50 p-4">
           <p className="text-sm leading-relaxed text-alert-800">{state.message}</p>
           <div className="mt-3 flex flex-wrap gap-3">

@@ -34,6 +34,9 @@ const isStaticExport = process.env.STATIC_EXPORT === 'true'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   ...(isStaticExport ? { output: 'export' } : {}),
+  // Tells the contact form which delivery path exists: /api/contact on a
+  // server build, the optional form endpoint on a static export.
+  env: { NEXT_PUBLIC_STATIC_EXPORT: isStaticExport ? 'true' : 'false' },
   reactStrictMode: true,
   poweredByHeader: false,
 

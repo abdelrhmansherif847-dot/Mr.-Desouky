@@ -85,9 +85,35 @@ ships in the browser bundle by design.
 
 ---
 
-## Contact form on a static host
+## Contact form
 
-There is no server, so the form submits from the browser.
+### On Vercel (the live site)
+
+The form posts to `/api/contact/` (`src/app/api/contact/route.ts`), which
+validates the enquiry again and emails it to `CONTACT.email` through Resend's
+API (`src/lib/contact/server.ts`). The visitor's address is the Reply-To, so
+answering the email answers them.
+
+| Variable | Where | Value |
+|---|---|---|
+| `RESEND_API_KEY` | Vercel, type **Sensitive**, Production + Preview | A Resend key with *Sending access* only, from the account that owns mrdesouky.com |
+| `CONTACT_FROM_EMAIL` | Vercel, Production + Preview | An address on a domain verified in that Resend account, e.g. `Mr. Desouky Website <website@mrdesouky.com>` |
+| `CONTACT_TO_EMAIL` | optional | Defaults to `CONTACT.email` |
+
+None of these is `NEXT_PUBLIC_`: they stay on the server and never reach the
+browser. Changing them needs a redeploy. With the key or sender missing, the
+route answers "unconfigured" and the form says nothing was sent; "Message
+sent" appears only once Resend has accepted the message and returned its id.
+
+The route accepts only same-origin JSON under 16 KB that passes the form's
+validation, drops honeypot submissions, allows five enquiries per address per
+ten minutes per server instance, and never lets the request choose the
+recipient.
+
+### On a static host (GitHub Pages)
+
+There is no server, so the workflow removes `src/app/api` and the form
+submits from the browser.
 
 * **With `NEXT_PUBLIC_CONTACT_ENDPOINT` set** — the enquiry is POSTed as JSON to
   that endpoint. Formspree, Web3Forms, Getform and Basin all accept this shape
@@ -95,11 +121,6 @@ There is no server, so the form submits from the browser.
 * **With nothing set** — the form still validates, keeps everything typed, and
   hands the completed enquiry to WhatsApp with every field filled in. It never
   claims a message was delivered when it was not.
-
-Server-side delivery through Resend was removed: it requires a server, and
-keeping it would have been dead code that silently did nothing. On a server
-host it is the better option — the enquiry shape in `src/lib/contact/types.ts`
-is unchanged, so it can be reinstated behind an API route.
 
 ---
 
