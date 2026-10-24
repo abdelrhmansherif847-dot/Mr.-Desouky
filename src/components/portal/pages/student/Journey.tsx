@@ -1,20 +1,27 @@
 import { PreviewNotice } from '@/components/portal/PreviewNotice'
+import type { StudentPageProps } from '@/components/portal/pages/props'
 import { Panel } from '@/components/portal/widgets'
-import { getStudentRecord } from '@/lib/portal/data'
 import { JOURNEY_STAGES } from '@/content/journey'
 import { formatLongDate, cn } from '@/lib/utils'
 
-export default async function StudentJourneyPage() {
-  const record = await getStudentRecord()
-  const current = record.profile.currentStageIndex
+export default async function StudentJourneyPage({ record, preview }: StudentPageProps) {
+  // Before Mr. Desouky sets a student's stage, no stage is marked: "you are
+  // here" on stage one would be a claim nobody has made.
+  const current = record.profile.configured ? record.profile.currentStageIndex : -1
 
   return (
     <div className="space-y-5">
-      <PreviewNotice audience="student" />
+      {preview ? <PreviewNotice audience="student" /> : null}
 
       <Panel
         title="My journey"
-        description={`Target exam date: ${formatLongDate(record.profile.targetExamDate)}`}
+        description={
+          record.profile.targetExamDate
+            ? `Target exam date: ${formatLongDate(record.profile.targetExamDate)}`
+            : record.profile.configured
+              ? 'Your target exam date will appear once it is set.'
+              : 'Mr. Desouky will mark where you are once your programme is set up.'
+        }
       >
         <ol className="space-y-0">
           {JOURNEY_STAGES.map((stage, i) => {

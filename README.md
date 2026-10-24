@@ -80,21 +80,19 @@ only optional ones are for contact-form delivery (below).
 
 | Route | State |
 | --- | --- |
-| `/login/student`, `/login/parent` | Honest "not open yet" screens — see below |
-| `/student`, `/student/journey\|sessions\|homework\|quizzes\|mocks` | Full UI on sample data |
-| `/parent`, `/parent/reports` | Full UI on sample data |
+| `/login/student`, `/login/parent` | Sign-in for approved accounts |
+| `/student`, `/student/journey\|sessions\|homework\|quizzes\|mocks` | The student's own records |
+| `/parent`, `/parent/reports` | A linked child's records (chooser for several) |
+| `/preview/student`, `/preview/parent` | Public sample-data preview |
+| `/admin/*` | Owner console: approvals, users, links, student records |
 
-The portals are **complete interfaces running on sample data**, marked with a
-persistent preview banner on every screen. There is no authentication and no
-login form, because a login that authenticates nothing would be misleading.
-Both seams are documented and ready:
-
-* **Data** — [`src/lib/portal/data.ts`](src/lib/portal/data.ts). Every portal
-  screen reads through `getStudentRecord()` and `getParentRecord()`. Swap
-  their bodies for real queries, keep the return types, and no component
-  changes.
-* **Auth** — [`src/lib/portal/auth.ts`](src/lib/portal/auth.ts). Documents
-  exactly where a provider, route guards, and per-viewer scoping plug in.
+The portals read real records from Supabase with the signed-in user's own
+session, so row-level security decides what each person sees
+([`src/lib/portal/records.ts`](src/lib/portal/records.ts)). The public
+preview renders only the fictional sample in
+[`src/lib/portal/data.ts`](src/lib/portal/data.ts) and never imports the
+module that talks to Supabase. Access rules and the schema are described in
+[`docs/ADMIN.md`](docs/ADMIN.md).
 
 Portals are `noindex` and excluded from the sitemap.
 

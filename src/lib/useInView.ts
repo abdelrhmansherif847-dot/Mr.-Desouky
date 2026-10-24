@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { prefersReducedMotion } from '@/lib/motion'
 
 /**
  * Fires once when an element scrolls into view.
@@ -117,10 +118,12 @@ export function useInView<T extends HTMLElement>({
     const element = ref.current
     if (!element) return
 
-    // No observer support, or explicitly disabled: show it rather than leave
-    // content hidden. Deferred a frame so the state change happens in a
-    // callback, not synchronously inside the effect.
-    if (disabled || typeof IntersectionObserver === 'undefined') {
+    // No observer support, explicitly disabled, or reduced motion: show it
+    // rather than leave content hidden. Under reduced motion nothing waits to
+    // be scrolled to, so a figure or bar is never left reading 0 — it shows
+    // its real value from the start. Deferred a frame so the state change
+    // happens in a callback, not synchronously inside the effect.
+    if (disabled || prefersReducedMotion() || typeof IntersectionObserver === 'undefined') {
       const raf = requestAnimationFrame(() => setInView(true))
       return () => cancelAnimationFrame(raf)
     }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { StudentPortalLayout } from '@/components/portal/StudentPortalLayout'
+import { getSampleStudentRecord } from '@/lib/portal/data'
 
 export const metadata: Metadata = {
   title: 'Student Portal — Sample Preview',
@@ -12,6 +13,11 @@ export const metadata: Metadata = {
  * every screen carries the preview notice. It is static, so it also survives
  * on the GitHub Pages export, where the real portal is stripped.
  */
-export default function StudentPreviewLayout({ children }: { children: React.ReactNode }) {
-  return <StudentPortalLayout base="/preview/student">{children}</StudentPortalLayout>
+export default async function StudentPreviewLayout({ children }: { children: React.ReactNode }) {
+  const { profile } = await getSampleStudentRecord()
+  return (
+    <StudentPortalLayout base="/preview/student" name={profile.name} profile={profile}>
+      {children}
+    </StudentPortalLayout>
+  )
 }

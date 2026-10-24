@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 export type PortalNavItem = { label: string; href: string; icon: keyof typeof ICONS }
@@ -37,12 +38,18 @@ export function PortalShell({
   nav,
   children,
   meta,
+  keepQuery,
 }: {
   title: string
   subtitle: string
   nav: PortalNavItem[]
   children: React.ReactNode
   meta?: React.ReactNode
+  /**
+   * A query parameter to carry from page to page (the parent portal's
+   * `child`). Navigation state only — never an authorisation input.
+   */
+  keepQuery?: string
 }) {
   const pathname = usePathname()
 
@@ -62,40 +69,68 @@ export function PortalShell({
 
         {/* Portal navigation — scrolls horizontally on small screens */}
         <div className="container-page">
-          <nav aria-label="Portal" className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
-            <ul className="flex min-w-max gap-1 pb-px">
-              {nav.map((item) => {
-                const active = pathname === item.href
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'relative flex items-center gap-2 whitespace-nowrap rounded-t-lg px-3.5 py-3 text-sm font-medium transition-colors duration-200 sm:px-4',
-                        active
-                          ? 'text-sky-600'
-                          : 'text-deep-500 hover:bg-mist hover:text-deep-700',
-                      )}
-                    >
-                      <Icon name={item.icon} />
-                      {item.label}
-                      {active ? (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-sky-500"
-                        />
-                      ) : null}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
+          {keepQuery ? (
+            <Suspense fallback={<PortalNav nav={nav} pathname={pathname} />}>
+              <PortalNavKeepingQuery nav={nav} pathname={pathname} name={keepQuery} />
+            </Suspense>
+          ) : (
+            <PortalNav nav={nav} pathname={pathname} />
+          )}
         </div>
       </div>
 
       <div className="container-page py-8 sm:py-10 lg:py-12">{children}</div>
     </div>
+  )
+}
+
+function PortalNavKeepingQuery({
+  nav,
+  pathname,
+  name,
+}: {
+  nav: PortalNavItem[]
+  pathname: string
+  name: string
+}) {
+  const value = useSearchParams().get(name)
+  return <PortalNav nav={nav} pathname={pathname} query={value ? `?${name}=${encodeURIComponent(value)}` : ''} />
+}
+
+function PortalNav({
+  nav,
+  pathname,
+  query = '',
+}: {
+  nav: PortalNavItem[]
+  pathname: string
+  query?: string
+}) {
+  return (
+    <nav aria-label="Portal" className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+      <ul className="flex min-w-max gap-1 pb-px">
+        {nav.map((item) => {
+          const active = pathname === item.href
+          return (
+            <li key={item.href}>
+              <Link
+                href={`${item.href}${query}`}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex items-center gap-2 whitespace-nowrap rounded-t-lg px-3.5 py-3 text-sm font-medium transition-colors duration-200 sm:px-4',
+                  active ? 'text-sky-600' : 'text-deep-500 hover:bg-mist hover:text-deep-700',
+                )}
+              >
+                <Icon name={item.icon} />
+                {item.label}
+                {active ? (
+                  <span aria-hidden="true" className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-sky-500" />
+                ) : null}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }

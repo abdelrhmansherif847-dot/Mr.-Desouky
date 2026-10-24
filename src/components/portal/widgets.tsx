@@ -95,6 +95,7 @@ const STATUS_STYLES = {
   attended: { label: 'Attended', cls: 'bg-growth-50 text-growth-700 ring-growth-200/70' },
   upcoming: { label: 'Upcoming', cls: 'bg-sky-50 text-sky-700 ring-sky-200/70' },
   missed: { label: 'Missed', cls: 'bg-alert-50 text-alert-700 ring-alert-200/70' },
+  cancelled: { label: 'Cancelled', cls: 'bg-deep-50 text-deep-600 ring-deep-200/70' },
   completed: { label: 'Completed', cls: 'bg-growth-50 text-growth-700 ring-growth-200/70' },
   pending: { label: 'Due', cls: 'bg-sky-50 text-sky-700 ring-sky-200/70' },
   late: { label: 'Late', cls: 'bg-olive-50 text-olive-700 ring-olive-200/70' },
@@ -144,5 +145,34 @@ export function EmptyState({ children }: { children: React.ReactNode }) {
     <p className="rounded-card border border-dashed border-deep-200 px-4 py-6 text-center text-sm text-deep-400">
       {children}
     </p>
+  )
+}
+
+/**
+ * A whole section with nothing in it yet — said plainly, with what will
+ * appear and who puts it there. Never a zero dressed up as a result: a new
+ * student's 0% attendance would be a fabricated number, so there is no tile
+ * at all until there is something to count.
+ */
+export function EmptyPanel({
+  title,
+  children,
+  icon = 'M4 19V9m5 10V5m5 14v-7m5 7V7',
+}: {
+  title: string
+  children: React.ReactNode
+  /** A 24×24 stroke path in the portal's icon language. */
+  icon?: string
+}) {
+  return (
+    <section className="rounded-panel border border-deep-100 bg-white px-6 py-10 text-center sm:px-10 sm:py-12">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sky-50 ring-1 ring-inset ring-sky-100">
+        <svg viewBox="0 0 24 24" className="h-5 w-5 text-sky-500" aria-hidden="true">
+          <path d={icon} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <h2 className="mt-4 font-display text-lg font-bold text-deep-700">{title}</h2>
+      <div className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-deep-500">{children}</div>
+    </section>
   )
 }
