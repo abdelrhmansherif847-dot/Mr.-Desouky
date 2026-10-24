@@ -6,6 +6,7 @@
 
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { CONTACT, whatsappLink } from '../src/content/site.ts'
@@ -83,7 +84,7 @@ function post(body: unknown, headers: Record<string, string> = {}) {
 }
 
 function deps(p: ReturnType<typeof provider>, config: ContactConfig = CONFIG, limiter = createRateLimiter(100, 60_000)) {
-  return { config, validate: validateEnquiry, fetch: p.fetch, limiter, now: () => new Date('2026-10-24T09:30:00Z') }
+  return { config, validate: validateEnquiry, fetch: p.fetch, limiter, sleep: async () => {} }
 }
 
 async function read(response: Response) {
@@ -99,7 +100,7 @@ test('accepted by the provider: success, sent to the fixed address with the visi
   assert.equal(url, 'https://api.resend.com/emails')
   const headers = init.headers as Record<string, string>
   assert.equal(headers.Authorization, `Bearer ${KEY}`)
-  assert.match(headers['Idempotency-Key'], /^[0-9a-f]{64}$/)
+  assert.equal(headers['Idempotency-Key'], createHash('sha256').update(String(init.body)).digest('hex'))
   const sent = JSON.parse(String(init.body))
   assert.deepEqual(sent.to, ['mrdesouky8@gmail.com'])
   assert.equal(sent.from, CONFIG.from)
@@ -197,7 +198,7 @@ test('subjects are one line; Reply-To is only ever a single plain address', () =
   for (const bad of ['a@example.test, b@evil.test', 'Name <a@example.test>', 'a@example.test\nBcc: x', 'a;b@example.test']) {
     assert.equal(replyAddress(bad), undefined, bad)
   }
-  const email = buildEmail({ ...GOOD, email: 'a@x.test, b@evil.test' }, CONFIG as { from: string; to: string }, new Date())
+  const email = buildEmail({ ...GOOD, email: 'a@x.test, b@evil.test' }, CONFIG as { from: string; to: string })
   assert.equal('reply_to' in email, false)
   assert.deepEqual(email.to, ['mrdesouky8@gmail.com'])
 })
@@ -214,6 +215,111 @@ test('failures are logged without the key or the enquiry', async () => {
   assert.equal(lines.length, 1)
   assert.match(lines[0], /403 restricted_api_key/)
   for (const secret of [KEY, GOOD.email, GOOD.message, GOOD.name]) assert.ok(!lines[0].includes(secret), secret)
+})
+
+/* ------------------------------ idempotency ------------------------------ */
+
+/**
+ * Resend's documented rules for Idempotency-Key, enforced: a key is kept for
+ * 24 hours with one body; the same key and body return the original response
+ * and send nothing; the same key with a different body is a 409
+ * invalid_idempotent_request. `busy` keys answer 409
+ * concurrent_idempotent_requests once, as while another request is running.
+ */
+function resendLike(busy: Set<string> = new Set()) {
+  const kept = new Map<string, { body: string; id: string }>()
+  const calls: { key: string; body: string }[] = []
+  let sent = 0
+  const answer = (status: number, body: unknown) => new Response(JSON.stringify(body), { status })
+  const fetchStub = (async (_url: string | URL | Request, init?: RequestInit) => {
+    const key = (init?.headers as Record<string, string>)['Idempotency-Key']
+    const body = String(init?.body)
+    calls.push({ key, body })
+    if (busy.delete(key)) return answer(409, { name: 'concurrent_idempotent_requests' })
+    const earlier = kept.get(key)
+    if (earlier) return earlier.body === body ? answer(200, { id: earlier.id }) : answer(409, { name: 'invalid_idempotent_request' })
+    const id = `email_${++sent}`
+    kept.set(key, { body, id })
+    return answer(200, { id })
+  }) as typeof fetch
+  return { fetch: fetchStub, calls, sent: () => sent }
+}
+
+const sha256 = (text: string) => createHash('sha256').update(text).digest('hex')
+
+test('the stand-in enforces Resend\'s rule: one key, one body', async () => {
+  const r = resendLike()
+  const send = (key: string, body: string) => r.fetch('x', { method: 'POST', headers: { 'Idempotency-Key': key }, body })
+  assert.equal((await send('k', 'a')).status, 200)
+  assert.equal((await send('k', 'a')).status, 200)
+  assert.equal((await send('k', 'b')).status, 409)
+  assert.equal(r.sent(), 1)
+})
+
+test('a retried enquiry is one email, and every attempt is told it was sent', async () => {
+  const r = resendLike()
+  const d = { ...deps(provider(accepted)), fetch: r.fetch }
+  const answers = []
+  for (let attempt = 0; attempt < 3; attempt++) answers.push(await read(await handleContact(post(GOOD), d)))
+  assert.deepEqual(answers.map((a) => a.status), [200, 200, 200])
+  assert.equal(r.sent(), 1)
+  assert.equal(new Set(r.calls.map((c) => c.key)).size, 1)
+  assert.equal(new Set(r.calls.map((c) => c.body)).size, 1)
+})
+
+test('the same enquiry later builds the same body, so a retry can never be refused as a mismatch', async () => {
+  // The defect this replaces: the key was fixed for a day while the body
+  // carried the minute, so a retry a minute later reused the key with a
+  // different body and Resend answered 409. The body now holds nothing that
+  // depends on when it is built.
+  const first = JSON.stringify(buildEmail(GOOD, CONFIG as { from: string; to: string }))
+  await new Promise((resolve) => setTimeout(resolve, 1100))
+  const later = JSON.stringify(buildEmail(GOOD, CONFIG as { from: string; to: string }))
+  assert.equal(later, first)
+  assert.doesNotMatch(JSON.parse(first).text, /\d{2}:\d{2}|Sent:/)
+})
+
+test('different enquiries never share a key, so none is refused and each is sent', async () => {
+  const r = resendLike()
+  const d = { ...deps(provider(accepted)), fetch: r.fetch }
+  const variants = [
+    GOOD,
+    { ...GOOD, message: `${GOOD.message} Also, evenings only.` },
+    { ...GOOD, name: 'Sara A. Ali' },
+    { ...GOOD, email: 'other.parent@example.test' },
+    { ...GOOD, interest: 'EST Math — Advanced' },
+    { ...GOOD, phone: '' },
+    { ...GOOD, role: 'student' },
+  ]
+  for (const v of variants) assert.equal((await handleContact(post(v), d)).status, 200)
+  assert.equal(r.sent(), variants.length)
+  assert.equal(new Set(r.calls.map((c) => c.key)).size, variants.length)
+  // The key is the hash of the exact body sent: two bodies cannot share one.
+  for (const c of r.calls) assert.equal(c.key, sha256(c.body))
+})
+
+test('while the same enquiry is still being sent: wait, ask once more with the same key and body', async () => {
+  const body = JSON.stringify(buildEmail(GOOD, CONFIG as { from: string; to: string }))
+  const r = resendLike(new Set([sha256(body)]))
+  const waits: number[] = []
+  const d = { ...deps(provider(accepted)), fetch: r.fetch, sleep: async (ms: number) => void waits.push(ms) }
+  const answer = await read(await handleContact(post(GOOD), d))
+  assert.deepEqual(answer, { status: 200, body: { ok: true } })
+  assert.equal(r.calls.length, 2)
+  assert.equal(r.calls[0].key, r.calls[1].key)
+  assert.equal(r.calls[0].body, r.calls[1].body)
+  assert.equal(waits.length, 1)
+  assert.equal(r.sent(), 1)
+})
+
+test('still in progress after the one retry, or any other refusal: reported as not sent', async () => {
+  const busy = () => new Response(JSON.stringify({ name: 'concurrent_idempotent_requests' }), { status: 409 })
+  const p = provider(busy)
+  assert.deepEqual(await read(await handleContact(post(GOOD), deps(p))), { status: 502, body: { ok: false, reason: 'failed' } })
+  assert.equal(p.calls.length, 2)
+  const mismatch = provider(() => new Response(JSON.stringify({ name: 'invalid_idempotent_request' }), { status: 409 }))
+  assert.equal((await handleContact(post(GOOD), deps(mismatch))).status, 502)
+  assert.equal(mismatch.calls.length, 1, 'a mismatch is not retried')
 })
 
 /* ------------------------------ the form's side ------------------------------ */

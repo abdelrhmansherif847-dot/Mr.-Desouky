@@ -48,7 +48,8 @@ export type ContactDeps = {
   validate: (values: EnquiryInput) => Record<string, string>
   fetch: typeof fetch
   limiter: { allow: (key: string) => boolean }
-  now?: () => Date
+  /** Waiting before the one retry; tests pass a no-op. */
+  sleep?: (ms: number) => Promise<void>
 }
 
 /** Far above the form's own limits (2000-character message), far below abuse. */
@@ -128,7 +129,13 @@ export function createRateLimiter(limit: number, windowMs: number, now: () => nu
   }
 }
 
-export function buildEmail(values: EnquiryInput, config: { from: string; to: string }, sentAt: Date) {
+/**
+ * The email for an enquiry. Built only from what the visitor sent, so the same
+ * enquiry always produces the same body, byte for byte. No timestamp: the
+ * email's own Date header says when it was sent, and a time in the body would
+ * make a retry a different email (see idempotencyKey).
+ */
+export function buildEmail(values: EnquiryInput, config: { from: string; to: string }) {
   const role = ROLE_LABEL[values.role as EnquiryRole] ?? values.role
   const text = [
     'New enquiry from the website contact form.',
@@ -138,7 +145,6 @@ export function buildEmail(values: EnquiryInput, config: { from: string; to: str
     `Phone / WhatsApp: ${values.phone || 'not given'}`,
     `I am a: ${role}`,
     `Interested in: ${values.interest}`,
-    `Sent: ${sentAt.toISOString().replace('T', ' ').slice(0, 16)} UTC`,
     '',
     'Message:',
     values.message,
@@ -156,13 +162,22 @@ export function buildEmail(values: EnquiryInput, config: { from: string; to: str
   }
 }
 
-/** Same sender, same words, same day: one email, even if the request is retried. */
-export function idempotencyKey(values: EnquiryInput, sentAt: Date): string {
-  const day = sentAt.toISOString().slice(0, 10)
-  return createHash('sha256')
-    .update([day, values.email, values.name, values.interest, values.message].join('\u0000'))
-    .digest('hex')
+/**
+ * Resend keeps an idempotency key for 24 hours and allows it one body: the
+ * same key with the same body returns the original result without sending
+ * again; the same key with a different body is refused (409
+ * invalid_idempotent_request). So the key is the hash of the exact body sent.
+ * A retried enquiry is one email, and two different emails can never share
+ * a key.
+ */
+export function idempotencyKey(body: string): string {
+  return createHash('sha256').update(body).digest('hex')
 }
+
+/** Resend's answer while another request with the same key is still running. */
+const IN_PROGRESS = 'concurrent_idempotent_requests'
+const RETRY_AFTER_MS = 1500
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 export async function handleContact(request: Request, deps: ContactDeps): Promise<Response> {
   if (!sameOrigin(request)) return json(403, { ok: false, reason: 'forbidden' })
@@ -195,19 +210,28 @@ export async function handleContact(request: Request, deps: ContactDeps): Promis
   const { apiKey, from, to } = deps.config
   if (!apiKey || !from || !to) return json(503, { ok: false, reason: 'unconfigured' })
 
-  const sentAt = (deps.now ?? (() => new Date()))()
-  try {
+  const body = JSON.stringify(buildEmail(values, { from, to }))
+  const key = idempotencyKey(body)
+  const send = async () => {
     const response = await deps.fetch(deps.config.apiUrl || RESEND_URL, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Idempotency-Key': idempotencyKey(values, sentAt),
-      },
-      body: JSON.stringify(buildEmail(values, { from, to }, sentAt)),
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': key },
+      body,
       signal: AbortSignal.timeout(10_000),
     })
     const result = (await response.json().catch(() => null)) as { id?: unknown; name?: unknown } | null
+    return { response, result }
+  }
+
+  try {
+    let { response, result } = await send()
+    // The same enquiry is already being sent (a second tab, a double submit).
+    // Resend says a later retry is safe and returns that request's result, so
+    // ask once more with the same key and body rather than report a failure.
+    if (response.status === 409 && result?.name === IN_PROGRESS) {
+      await (deps.sleep ?? wait)(RETRY_AFTER_MS)
+      ;({ response, result } = await send())
+    }
     if (response.ok && typeof result?.id === 'string') return json(200, { ok: true })
 
     // Status and Resend's error name only: never the key, never the enquiry.

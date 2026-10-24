@@ -18,6 +18,8 @@ import { validateEnquiry } from '@/lib/contact/validate'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+// Two provider calls of up to 10 s each, if Resend asks for one retry.
+export const maxDuration = 30
 
 // Five enquiries per address per ten minutes, per server instance.
 const limiter = createRateLimiter(5, 10 * 60 * 1000)
