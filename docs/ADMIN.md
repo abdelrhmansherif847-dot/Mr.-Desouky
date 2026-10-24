@@ -61,10 +61,18 @@ Run `supabase/migrations/0001_profiles_and_roles.sql` in the SQL editor.
 ### 3. Auth settings
 
 - **Authentication → Providers → Email**: enable, and turn *Confirm email* on.
-- **Authentication → URL Configuration**: set Site URL to your deployment and
-  add `https://<your-domain>/auth/callback` to the redirect allow-list. A
-  redirect not on that list is refused, which is what stops a link being
-  redirected to an attacker's site.
+- **Authentication → URL Configuration**: set Site URL to your production
+  address (`https://www.mrdesouky.com`). Links requested from that host are
+  honoured without a list entry. Any other host that sends email — a Vercel
+  Preview — needs its own Redirect URLs entry, ending in `/**` because every
+  redirect carries `?next=`. For the portal Preview that is
+  `https://mr-desouky-git-claude-portal-product-abdelrhman-s-800.vercel.app/**`,
+  and sign-in must be done on that branch address, not a deployment's unique
+  `…-<hash>-…` address. A redirect not on the list is replaced by the bare
+  Site URL, so the emailed link reads `https://www.mrdesouky.com&token_hash=…`
+  and goes nowhere. Prefer exact hosts to Vercel's suggested
+  `https://*-<team>.vercel.app/**`: that also admits any `…-<team>.vercel.app`
+  name someone else could register (tests/redirect-allowlist.test.mts).
 - Consider disabling public sign-ups once your own account exists. Not
   security-critical — a signed-up stranger gets `student` and sees nothing —
   but it keeps the user table clean.

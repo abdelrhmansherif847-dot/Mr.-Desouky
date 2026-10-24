@@ -12,7 +12,6 @@ import {
   callbackUrl,
   parseLinkType,
   recoveryUrl,
-  resolveDestination,
   type Destination,
 } from '../src/lib/auth/destinations.ts'
 
@@ -49,10 +48,13 @@ test('each template has exactly one link, with its own fixed type', () => {
   for (const body of Object.values(TEMPLATES)) assert.equal(hrefs(body).length, 1)
 })
 
-for (const origin of [
+const ORIGINS = [
   'https://www.mrdesouky.com',
   'https://mr-desouky-git-claude-auth-accounts-abdelrhman-s-800.vercel.app',
-]) {
+  'https://mr-desouky-git-claude-portal-product-abdelrhman-s-800.vercel.app',
+]
+
+for (const origin of ORIGINS) {
   for (const destination of ['/student', '/parent'] as Destination[]) {
     test(`confirm-signup from ${new URL(origin).host} for ${destination}`, () => {
       const [href] = hrefs(render(TEMPLATES.signup, { RedirectTo: callbackUrl(origin, destination), TokenHash: HASH }))
@@ -82,14 +84,44 @@ for (const origin of [
   }
 }
 
-test('the live Magic Link template shape still produces a valid owner link', () => {
-  // The Magic Link template is not in this repo and is not changed; this is
-  // its link as it is live, checked against the same rules.
-  const magic = '<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=magiclink">Sign in</a>'
-  const [href] = hrefs(render(magic, { RedirectTo: callbackUrl('https://www.mrdesouky.com', '/admin'), TokenHash: HASH }))
-  const url = new URL(href)
-  assert.equal(parseLinkType(url.searchParams.get('type')), 'magiclink')
-  assert.equal(resolveDestination(url.searchParams.get('next')), '/admin')
+// The Magic Link template is not in this repo and is not changed; this is its
+// link as it is live, checked against the same rules.
+const MAGIC = '<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=magiclink">Sign in</a>'
+
+for (const origin of ORIGINS) {
+  test(`the owner's Magic Link from ${new URL(origin).host} comes back to that host's callback`, () => {
+    const [href] = hrefs(render(MAGIC, { RedirectTo: callbackUrl(origin, '/admin'), TokenHash: HASH }))
+    const url = new URL(href)
+    assert.equal(url.origin, origin)
+    assert.equal(url.pathname, '/auth/callback')
+    // One query string: the template's `&` joins onto callbackUrl's `?next=`.
+    assert.equal(href.split('?').length, 2)
+    assert.equal(url.search, `?next=%2Fadmin&token_hash=${HASH}&type=magiclink`)
+    assert.equal(url.searchParams.get('next'), '/admin')
+    assert.equal(url.searchParams.get('token_hash'), HASH)
+    assert.equal(parseLinkType(url.searchParams.get('type')), 'magiclink')
+    assert.equal(afterVerify('magiclink', url.searchParams.get('next'), url.searchParams.get('recovery') === '1'), '/admin')
+  })
+}
+
+test('an encoded or hostile next in an owner link still lands on /admin', () => {
+  for (const next of ['%2F%2Fevil.test', 'https%3A%2F%2Fevil.test%2Fadmin', '%2Fadmin%2F..%2Fstudent', '%252Fadmin', '%2FADMIN']) {
+    const [href] = hrefs(render(MAGIC, {
+      RedirectTo: `https://mr-desouky-git-claude-portal-product-abdelrhman-s-800.vercel.app/auth/callback?next=${next}`,
+      TokenHash: HASH,
+    }))
+    assert.equal(afterVerify('magiclink', new URL(href).searchParams.get('next'), false), '/admin', next)
+  }
+})
+
+test('a Preview Magic Link Supabase did not allowlist: the exact link Gmail refused', () => {
+  // Reported from Preview QA: the email held https://www.mrdesouky.com&token_hash=…
+  // That is this template with RedirectTo replaced by the bare Site URL, which
+  // Supabase does when the requested address is neither on the Site URL's host
+  // nor on the Redirect URLs list. Nothing in the app produces it.
+  const [href] = hrefs(render(MAGIC, { RedirectTo: 'https://www.mrdesouky.com', TokenHash: HASH }))
+  assert.equal(href, `https://www.mrdesouky.com&token_hash=${HASH}&type=magiclink`)
+  for (const origin of ORIGINS) assert.ok(callbackUrl(origin, '/admin').startsWith(`${origin}/auth/callback?next=`))
 })
 
 test('a hostile next inside a real template link still resolves to an allowlisted place', () => {
