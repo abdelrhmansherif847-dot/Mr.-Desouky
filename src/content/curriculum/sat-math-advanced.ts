@@ -5,6 +5,7 @@ export const SAT_MATH_ADVANCED: CourseCurriculum = {
   slug: 'sat-math-advanced',
   exam: 'SAT',
   level: 'Advanced',
+  target: 'SAT',
   title: 'SAT Math – Advanced',
   grade: 'Grade 11–12',
   strapline: '24 LESSONS • DEEPER CONCEPTS • SMART STRATEGIES • HIGHER SCORES',

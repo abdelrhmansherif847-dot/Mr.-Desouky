@@ -11,6 +11,7 @@ import type { CurriculumInput } from '../src/content/curriculum/model.ts'
 import {
   LESSON_SECTIONS,
   OBJECTIVE_REVIEW_LABEL,
+  VERIFICATION_LABEL,
   buildCourses,
   displayTopic,
   shownScope,
@@ -102,6 +103,33 @@ test('each course carries its own exam format, kept separate', () => {
     assert.equal(f.exam, exam)
     for (const fact of f.facts) assert.ok(fact.sources.length > 0, `${exam} ${fact.label}`)
   }
+})
+
+test('course targets: both EST courses prepare for EST I; SAT and ACT courses for their own test', () => {
+  assert.deepEqual(Object.fromEntries(COURSES.map((c) => [c.slug, c.target])), {
+    'sat-math-basic': 'SAT',
+    'sat-math-advanced': 'SAT',
+    'est-math-basic': 'EST I',
+    'est-math-advanced': 'EST I',
+    'act-math-basic': 'ACT',
+    'act-math-advanced': 'ACT',
+  })
+  for (const c of COURSES) assert.ok(c.format.covers.includes(c.target), `${c.slug}: format does not describe ${c.target}`)
+})
+
+test('the EST format describes EST I only, and every fact is Pending Official Verification', () => {
+  const est = EXAM_FORMATS.EST
+  assert.deepEqual(est.covers, ['EST I'])
+  assert.equal(est.mathTest, 'EST I Math section')
+  for (const label of ['Sections', 'Math questions', 'Math time', 'Calculator', 'Scoring']) {
+    assert.ok(est.facts.some((f) => f.label === label), `EST format has no "${label}" fact`)
+  }
+  for (const fact of est.facts) {
+    assert.notEqual(fact.verification, 'confirmed', fact.label)
+    assert.equal(VERIFICATION_LABEL[fact.verification], 'Pending Official Verification', fact.label)
+    assert.ok(!/EST II/.test(`${fact.label} ${fact.value}`), `"${fact.label}" describes EST II`)
+  }
+  assert.deepEqual(visibleFacts(est), [])
 })
 
 test('no exam fact is shown until it is confirmed in the original', () => {
@@ -224,6 +252,21 @@ test('rejects an exam fact without a source, and a scope label for a missing top
   bad.scope = [...bad.scope, { ...bad.scope[0], topic: 9 }]
   assert.ok(hasProblem(bad, /EST: "What it is" has no source/))
   assert.ok(hasProblem(bad, /scope: sat-advanced-L06 topic 10 does not exist/))
+})
+
+test('rejects a course aimed at another exam’s test, or at a test its format does not describe', () => {
+  const wrongExam = copy()
+  wrongExam.curricula[2].target = 'ACT'
+  assert.ok(hasProblem(wrongExam, /est-math-basic: target "ACT" is not a EST test/))
+
+  const undescribed = copy()
+  undescribed.formats.EST.covers = []
+  assert.ok(hasProblem(undescribed, /est-math-basic: the EST format does not describe its target, EST I/))
+  assert.ok(hasProblem(undescribed, /est-math-advanced: the EST format does not describe its target, EST I/))
+
+  const crossed = copy()
+  crossed.formats.EST.covers = ['EST I', 'SAT']
+  assert.ok(hasProblem(crossed, /EST format covers SAT, another exam's test/))
 })
 
 test('buildCourses refuses inconsistent data instead of building it', () => {

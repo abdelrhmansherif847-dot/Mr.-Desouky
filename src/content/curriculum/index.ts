@@ -49,5 +49,5 @@ export function getLessonById(id: string): Lesson | undefined {
   return undefined
 }
 
-export { OBJECTIVE_REVIEW_LABEL, LESSON_SECTIONS, displayTopic, visibleFacts, shownScope } from './model'
+export { OBJECTIVE_REVIEW_LABEL, VERIFICATION_LABEL, LESSON_SECTIONS, displayTopic, visibleFacts, shownScope } from './model'
 export type { Course, Lesson, LessonTopic, AssessmentPlan, SectionState } from './model'

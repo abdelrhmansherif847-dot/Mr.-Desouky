@@ -17,7 +17,7 @@ transcription can be checked against its source.
 
 | File | Holds |
 | --- | --- |
-| `src/content/curriculum/<course>.ts` | The transcription: identity, grade, delivery and assessment counts, 24 lessons with topics, corrections and teacher-check notes |
+| `src/content/curriculum/<course>.ts` | The transcription: identity, grade, target test, delivery and assessment counts, 24 lessons with topics, corrections and teacher-check notes |
 | `src/content/curriculum/objectives/<course>.ts` | Learning objectives by lesson ID, each naming the topics it is drawn from. All are drafts until the teacher approves them |
 | `src/content/curriculum/exams.ts` | The SAT, EST and ACT math test formats, kept separate, every fact with its source; and the proposed SAT core/extension labels |
 | `src/content/curriculum/model.ts` | Validation, and the course view built from the files above (hours, assessment plan, lesson sections) |
@@ -27,10 +27,31 @@ Each fact is written once. Hours, homework sets and in-lesson mocks are
 calculated from the lessons, not stored. If the files disagree, the build
 stops and lists every problem.
 
+## Exam targets
+
+Each course prepares students for one test, set by `target` in its file:
+
+| Course | Target test |
+| --- | --- |
+| SAT Math – Basic, SAT Math – Advanced | SAT (digital), Math section |
+| EST Math – Basic, EST Math – Advanced | EST I (owner's decision, Phase 1 review) |
+| ACT Math – Basic, ACT Math – Advanced | ACT (enhanced), Mathematics test |
+
+Each exam's format lists the tests it describes (`covers`), and every
+course's target must be one of them, so the EST format describes EST I
+only. The build stops if a course targets another exam's test or a test
+its format does not describe; `npm test` also checks the assignments above.
+
+## Exam facts: Pending Official Verification
+
 Exam facts and SAT scope labels are shown to visitors only once they are
 `confirmed` against the publisher's own document (and, for scope labels,
 approved). On 2026-10-31 none could be read in the original, so all are
-`to-confirm`.
+`to-confirm`, labelled "Pending Official Verification". That includes every
+EST I detail: sections, question count, timing, calculator policy and
+scoring. Nothing is inferred beyond what the cited documents state, and
+where the EST sources disagree the disagreement is recorded in the EST
+format's open questions rather than resolved by guesswork.
 
 The transcription rules are at the top of `src/content/curriculum/types.ts`.
 In short: wording and order are kept exactly as printed. A misprint is

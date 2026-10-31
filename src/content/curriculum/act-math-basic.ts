@@ -5,6 +5,7 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
   slug: 'act-math-basic',
   exam: 'ACT',
   level: 'Basic',
+  target: 'ACT',
   title: 'ACT Math – Basic',
   grade: 'Grade 10',
   strapline: '24 LESSONS • BUILD CONFIDENCE • ACT READY',

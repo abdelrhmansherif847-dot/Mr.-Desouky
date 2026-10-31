@@ -10,6 +10,7 @@ import type {
   Level,
   ObjectiveReview,
   TopicScope,
+  Verification,
 } from './types'
 
 /**
@@ -25,6 +26,13 @@ export const LESSONS_PER_COURSE = 24
 export const OBJECTIVE_REVIEW_LABEL: Record<ObjectiveReview, string> = {
   draft: 'Draft — Pending Teacher Review',
   approved: 'Approved by the teacher',
+}
+
+/** How an exam fact is labelled wherever it is listed for review. */
+export const VERIFICATION_LABEL: Record<Verification, string> = {
+  confirmed: 'Officially verified',
+  'to-confirm': 'Pending Official Verification',
+  secondary: 'Pending Official Verification',
 }
 
 /** The eleven parts of every lesson, in page order. */
@@ -155,6 +163,8 @@ export function validateCurriculum(input: CurriculumInput): string[] {
     }
 
     if (c.slug !== `${c.exam}-math-${c.level}`.toLowerCase()) say(c.slug, 'slug does not match exam and level')
+    if (c.target !== c.exam && !c.target.startsWith(`${c.exam} `)) say(c.slug, `target "${c.target}" is not a ${c.exam} test`)
+    else if (!input.formats[c.exam]?.covers.includes(c.target)) say(c.slug, `the ${c.exam} format does not describe its target, ${c.target}`)
     if (c.title !== `${c.exam} Math – ${c.level}`) say(c.slug, `title "${c.title}" does not match exam and level`)
     if (c.grade !== (c.level === 'Basic' ? 'Grade 10' : 'Grade 11–12')) say(c.slug, `grade "${c.grade}" does not match level`)
     for (const t of [c.title, c.grade, c.strapline, ...c.slogans]) checkText(c.slug, t)
@@ -242,6 +252,7 @@ export function validateCurriculum(input: CurriculumInput): string[] {
       continue
     }
     if (f.exam !== exam) say('formats', `${exam} entry describes ${f.exam}`)
+    for (const t of f.covers) if (t !== exam && !t.startsWith(`${exam} `)) say('formats', `${exam} format covers ${t}, another exam's test`)
     if (f.facts.length === 0) say(exam, 'format has no facts')
     for (const fact of f.facts) {
       if (fact.sources.length === 0) say(exam, `"${fact.label}" has no source`)

@@ -5,6 +5,7 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
   slug: 'sat-math-basic',
   exam: 'SAT',
   level: 'Basic',
+  target: 'SAT',
   title: 'SAT Math – Basic',
   grade: 'Grade 10',
   strapline: '24 LESSONS • STRONGER BASICS • HIGHER SCORES',

@@ -21,6 +21,12 @@
 export type Exam = 'SAT' | 'EST' | 'ACT'
 export type Level = 'Basic' | 'Advanced'
 
+/**
+ * The specific test a course prepares students for. Both EST courses
+ * prepare for EST I, by the owner's decision.
+ */
+export type ExamTest = 'SAT' | 'EST I' | 'ACT'
+
 /** `published` only once the lesson's real teaching content exists. */
 export type LessonStatus = 'planned' | 'published'
 
@@ -83,6 +89,8 @@ export type CourseCurriculum = {
   slug: string
   exam: Exam
   level: Level
+  /** The test this course prepares students for. */
+  target: ExamTest
   /** The image heading, e.g. "SAT Math – Basic". */
   title: string
   grade: string
@@ -133,7 +141,8 @@ export type SourceRef = {
  * to-confirm - the publisher's document is identified, but its text has not
  *              been read in full yet (only search excerpts of it)
  * secondary  - only third-party sources
- * Only `confirmed` facts are ever shown to visitors.
+ * Only `confirmed` facts are ever shown to visitors. The other two read
+ * "Pending Official Verification" wherever they are listed for review.
  */
 export type Verification = 'confirmed' | 'to-confirm' | 'secondary'
 
@@ -148,6 +157,8 @@ export type ExamFact = {
 /** One exam's math test. SAT, EST and ACT are each described separately. */
 export type ExamFormat = {
   exam: Exam
+  /** The tests these facts describe; every course's target must be one. */
+  covers: ExamTest[]
   fullName: string
   mathTest: string
   facts: ExamFact[]

@@ -5,6 +5,7 @@ export const ACT_MATH_ADVANCED: CourseCurriculum = {
   slug: 'act-math-advanced',
   exam: 'ACT',
   level: 'Advanced',
+  target: 'ACT',
   title: 'ACT Math – Advanced',
   grade: 'Grade 11–12',
   strapline: '24 LESSONS • HIGHER-LEVEL PROBLEMS • TOP ACT SCORES',

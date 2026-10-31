@@ -5,6 +5,8 @@ export const EST_MATH_BASIC: CourseCurriculum = {
   slug: 'est-math-basic',
   exam: 'EST',
   level: 'Basic',
+  // Owner's decision (Phase 1 review): prepares students for EST I.
+  target: 'EST I',
   title: 'EST Math – Basic',
   grade: 'Grade 10',
   strapline: '24 LESSONS • STRONG FUNDAMENTALS • EST READY',

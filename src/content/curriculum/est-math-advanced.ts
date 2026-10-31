@@ -5,6 +5,8 @@ export const EST_MATH_ADVANCED: CourseCurriculum = {
   slug: 'est-math-advanced',
   exam: 'EST',
   level: 'Advanced',
+  // Owner's decision (Phase 1 review): prepares students for EST I.
+  target: 'EST I',
   title: 'EST Math – Advanced',
   grade: 'Grade 11–12',
   strapline: '24 LESSONS • CHALLENGING PROBLEMS • TOP EST SCORES',

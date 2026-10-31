@@ -9,7 +9,8 @@ import type { Exam, ExamFormat, SourceRef, TopicScope } from './types'
  * www.act.org, est.moe.gov.eg, estests.com) could not be opened from the
  * environment that drafted this file, so each fact below comes from search
  * excerpts of the named official document and is marked `to-confirm` until
- * someone reads it in the original.
+ * someone reads it in the original: it reads "Pending Official Verification"
+ * and is never published or used to infer anything further.
  */
 
 const COLLEGE_BOARD = 'College Board'
@@ -82,7 +83,7 @@ const EST_SOURCES = {
     title: 'EST Egypt: FAQs',
     publisher: 'Academic Assessment Ltd (estests.com)',
     url: 'https://egypt.estests.com/faqs',
-    where: 'EST I and EST II sections',
+    where: 'EST I section',
   },
   description: {
     title: 'EST Description Document (2023)',
@@ -97,6 +98,7 @@ const CHECKED_ON = '2026-10-31'
 export const EXAM_FORMATS: Record<Exam, ExamFormat> = {
   SAT: {
     exam: 'SAT',
+    covers: ['SAT'],
     fullName: 'SAT (digital)',
     mathTest: 'Math section',
     facts: [
@@ -129,10 +131,13 @@ export const EXAM_FORMATS: Record<Exam, ExamFormat> = {
     checkedOn: CHECKED_ON,
   },
 
+  // Both EST courses prepare students for EST I (owner's decision), so only
+  // EST I is described. Every fact is Pending Official Verification.
   EST: {
     exam: 'EST',
+    covers: ['EST I'],
     fullName: 'EST (Egyptian Scholastic Test)',
-    mathTest: 'EST I Math and EST II Math (Level 1, Level 2)',
+    mathTest: 'EST I Math section',
     facts: [
       {
         label: 'What it is',
@@ -140,23 +145,26 @@ export const EXAM_FORMATS: Record<Exam, ExamFormat> = {
         verification: 'to-confirm',
         sources: [EST_SOURCES.ministry],
       },
+      { label: 'Sections', value: 'Literacy and Math', verification: 'to-confirm', sources: [EST_SOURCES.description] },
+      { label: 'Math questions', value: '50, multiple choice', verification: 'to-confirm', sources: [EST_SOURCES.faq] },
+      { label: 'Math time', value: '75 minutes', verification: 'to-confirm', sources: [EST_SOURCES.faq] },
+      { label: 'Calculator', value: 'Graphing or scientific calculator allowed', verification: 'to-confirm', sources: [EST_SOURCES.faq] },
       {
-        label: 'EST I Math',
-        value: '50 multiple-choice questions in 75 minutes; graphing or scientific calculator allowed',
+        label: 'Scoring',
+        value: 'Math 200–800; total of Literacy and Math 400–1600',
         verification: 'to-confirm',
-        sources: [EST_SOURCES.faq],
+        sources: [EST_SOURCES.description],
       },
       {
-        label: 'EST II Math',
-        value: 'Level 1 and Level 2: 40 multiple-choice questions in 60 minutes each',
+        label: 'Math content areas (2023)',
+        value: 'Basic Algebra; Information Analysis and Data Interpretation; Higher Math; Supplementary Content in Math',
         verification: 'to-confirm',
-        sources: [EST_SOURCES.faq],
+        sources: [EST_SOURCES.description],
       },
-      { label: 'Score range', value: '200–800 for each math test', verification: 'to-confirm', sources: [EST_SOURCES.description] },
     ],
     openQuestions: [
-      'Which EST math test each course prepares for: EST I Math, EST II Math Level 1, or Level 2.',
-      'The 2023 Description Document gives EST I Math as two parts (20 questions in 30 minutes without a calculator, 38 in 55 minutes with one) and EST II Math as 50 questions; the current FAQ gives 50 questions in 75 minutes and 40 questions. Revised 2026 specifications are announced but were not read.',
+      'The 2023 Description Document gives the Math section as two parts (20 questions in 30 minutes without a calculator, then 38 in 55 minutes with one); the current FAQ gives 50 questions in 75 minutes with a calculator throughout.',
+      'Revised 2026 EST I specifications are announced but were not read; question counts, timing, content areas and scoring may have changed.',
       'Who administers the test: the Ministry site names Pearson; the content and registration sit with Academic Assessment Ltd (estests.com).',
     ],
     checkedOn: CHECKED_ON,
@@ -164,6 +172,7 @@ export const EXAM_FORMATS: Record<Exam, ExamFormat> = {
 
   ACT: {
     exam: 'ACT',
+    covers: ['ACT'],
     fullName: 'ACT (enhanced)',
     mathTest: 'Mathematics test',
     facts: [
