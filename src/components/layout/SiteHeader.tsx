@@ -323,11 +323,16 @@ export function SiteHeader({ courses = [] }: { courses?: CourseLink[] }) {
                       )}
                     >
                       <span className="font-display text-lg font-semibold">{item.label}</span>
-                      {active ? (
-                        <span className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-sky-500">
-                          here
-                        </span>
-                      ) : null}
+                      {/* Always rendered, hidden when inactive: the static 404
+                          page is built with no section active but served under
+                          any address, so an element that only exists when
+                          active would make hydration fail there. */}
+                      <span
+                        hidden={!active}
+                        className="font-mono text-[0.6rem] uppercase tracking-[0.14em] text-sky-500"
+                      >
+                        here
+                      </span>
                     </Link>
 
                     {item.children?.length ? (
