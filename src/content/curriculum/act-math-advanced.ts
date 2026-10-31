@@ -9,6 +9,7 @@ export const ACT_MATH_ADVANCED: CourseCurriculum = {
   grade: 'Grade 11–12',
   strapline: '24 LESSONS • HIGHER-LEVEL PROBLEMS • TOP ACT SCORES',
   details: {
+    from: 'image',
     lessons: { count: 24, length: '1.5–2 hours each' },
     quizzes: { count: '4–6', when: 'After key lessons' },
     mocks: { count: 3, format: 'ACT style, timed' },
@@ -106,8 +107,8 @@ export const ACT_MATH_ADVANCED: CourseCurriculum = {
           at: 0,
           kind: 'garbled',
           printed: 'identities ideations',
+          decision: 'teacher-check',
           proposed: 'Identities and equations',
-          confidence: 'low',
         },
       ],
     },
@@ -136,18 +137,18 @@ export const ACT_MATH_ADVANCED: CourseCurriculum = {
       id: 'act-advanced-L16',
       number: 16,
       title: 'Statistics (Advanced)',
-      topics: ['normal distribution', 'regressionuu', 'data analysis'],
+      topics: ['normal distribution', 'regression', 'data analysis'],
       status: 'planned',
-      notes: [{ at: 1, kind: 'misprint', printed: 'regressionuu', proposed: 'regression', confidence: 'high' }],
+      notes: [{ at: 1, kind: 'misprint', printed: 'regressionuu', decision: 'applied', proposed: 'regression' }],
     },
     {
       id: 'act-advanced-L17',
       number: 17,
       title: 'Advanced Word Problems',
-      topics: ['Modeling, mudti-step'],
+      topics: ['Modeling, multi-step'],
       status: 'planned',
       notes: [
-        { at: 0, kind: 'misprint', printed: 'Modeling, mudti-step', proposed: 'Modeling, multi-step', confidence: 'high' },
+        { at: 0, kind: 'misprint', printed: 'Modeling, mudti-step', decision: 'applied', proposed: 'Modeling, multi-step' },
       ],
     },
     {
@@ -175,10 +176,10 @@ export const ACT_MATH_ADVANCED: CourseCurriculum = {
       id: 'act-advanced-L21',
       number: 21,
       title: 'Previous ACT Questions',
-      topics: ['Feal past questions', 'pattern recognition'],
+      topics: ['Real past questions', 'pattern recognition'],
       status: 'planned',
       notes: [
-        { at: 0, kind: 'misprint', printed: 'Feal past questions', proposed: 'Real past questions', confidence: 'high' },
+        { at: 0, kind: 'misprint', printed: 'Feal past questions', decision: 'applied', proposed: 'Real past questions' },
       ],
     },
     {

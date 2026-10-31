@@ -9,6 +9,7 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
   grade: 'Grade 10',
   strapline: '24 LESSONS • BUILD CONFIDENCE • ACT READY',
   details: {
+    from: 'image',
     lessons: { count: 24, length: '1.5–2 hours each' },
     quizzes: { count: '4–6', when: 'After key lessons' },
     mocks: { count: 3, format: 'ACT style, timed' },
@@ -32,7 +33,7 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
       topics: ['Simplifying expressions', 'Distributive property', 'like terms'],
       status: 'planned',
       notes: [
-        { at: 2, kind: 'unclear', printed: 'like terms', proposed: 'Combining like terms', confidence: 'low' },
+        { at: 2, kind: 'unclear', printed: 'like terms', decision: 'teacher-check', proposed: 'Combining like terms' },
       ],
     },
     {
@@ -62,7 +63,7 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
       title: 'Polynomials',
       topics: ['Operations and factoring (basic)'],
       status: 'planned',
-      notes: [{ at: 0, kind: 'joined', printed: 'Operations and | factoring (basic)' }],
+      notes: [{ at: 0, kind: 'joined', printed: 'Operations and | factoring (basic)', decision: 'applied' }],
     },
     {
       id: 'act-basic-L07',
@@ -105,7 +106,7 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
       title: 'Sequences',
       topics: ['Arithmetic and geometric (intro)'],
       status: 'planned',
-      notes: [{ at: 0, kind: 'joined', printed: 'Arithmetic and | geometric (intro)' }],
+      notes: [{ at: 0, kind: 'joined', printed: 'Arithmetic and | geometric (intro)', decision: 'applied' }],
     },
     {
       id: 'act-basic-L13',

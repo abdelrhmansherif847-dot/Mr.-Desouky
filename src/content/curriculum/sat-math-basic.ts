@@ -8,8 +8,17 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
   title: 'SAT Math – Basic',
   grade: 'Grade 10',
   strapline: '24 LESSONS • STRONGER BASICS • HIGHER SCORES',
-  // This image has no "Course Details" strip.
-  details: null,
+  // This image has no "Course Details" strip. By the owner's decision the
+  // course is delivered like the other five; the mock format and tracking
+  // wording follow SAT Math – Advanced.
+  details: {
+    from: 'owner',
+    lessons: { count: 24, length: '1.5–2 hours each' },
+    quizzes: { count: '4–6', when: 'After key lessons' },
+    mocks: { count: 3, format: 'Timed, full SAT style' },
+    homework: 'After every lesson',
+    tracking: 'Detailed feedback',
+  },
   slogans: [
     'TRY • LEARN • SOLVE • IMPROVE • EXCEL',
     'YOUR JOURNEY TO HIGHER SCORES STARTS HERE',
@@ -35,16 +44,9 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
       id: 'sat-basic-L03',
       number: 3,
       title: 'Polynomials and Complex',
+      clarification: 'Complex here means complex numbers.',
       topics: ['Polynomial operations', 'Factoring polynomials', 'Complex numbers (basic)'],
       status: 'planned',
-      notes: [
-        {
-          at: 'title',
-          kind: 'clarify',
-          printed: 'Polynomials and Complex',
-          proposed: '“Complex” here means complex numbers.',
-        },
-      ],
     },
     {
       id: 'sat-basic-L04',
@@ -78,15 +80,15 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
       id: 'sat-basic-L08',
       number: 8,
       title: 'Quadratic Equation and Parabola',
-      topics: ['Solving equdratic equations', 'Factoring, completing the square', 'Parabola graphs and properties'],
+      topics: ['Solving quadratic equations', 'Factoring, completing the square', 'Parabola graphs and properties'],
       status: 'planned',
       notes: [
         {
           at: 0,
           kind: 'misprint',
           printed: 'Solving equdratic equations',
+          decision: 'applied',
           proposed: 'Solving quadratic equations',
-          confidence: 'high',
         },
       ],
     },
@@ -185,16 +187,9 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
       id: 'sat-basic-L22',
       number: 22,
       title: 'Ratio and Proportional',
+      clarification: 'Ratios, proportions and proportional relationships.',
       topics: ['Ratios and proportions', 'Direct and inverse variation', 'Scale drawings and similar figures'],
       status: 'planned',
-      notes: [
-        {
-          at: 'title',
-          kind: 'clarify',
-          printed: 'Ratio and Proportional',
-          proposed: 'Ratios, proportions and proportional relationships.',
-        },
-      ],
     },
     {
       id: 'sat-basic-L23',

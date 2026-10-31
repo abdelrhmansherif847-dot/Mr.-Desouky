@@ -9,6 +9,7 @@ export const EST_MATH_BASIC: CourseCurriculum = {
   grade: 'Grade 10',
   strapline: '24 LESSONS • STRONG FUNDAMENTALS • EST READY',
   details: {
+    from: 'image',
     lessons: { count: 24, length: '1.5–2 hours each' },
     quizzes: { count: '4–6', when: 'After key lessons' },
     mocks: { count: 3, format: 'EST style, timed' },
