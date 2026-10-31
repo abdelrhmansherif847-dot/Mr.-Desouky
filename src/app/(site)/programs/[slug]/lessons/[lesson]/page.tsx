@@ -7,6 +7,7 @@ import { CtaBand } from '@/components/sections/CtaBand'
 import { LessonRail } from '@/components/courses/LessonRail'
 import { LessonPager } from '@/components/courses/LessonPager'
 import { LessonSectionBlock } from '@/components/courses/LessonSectionBlock'
+import { RailScroller } from '@/components/courses/RailScroller'
 import { COURSES, getCourse } from '@/content/curriculum'
 import type { Course, Lesson } from '@/content/curriculum'
 import {
@@ -248,9 +249,9 @@ export default async function LessonPage({ params }: { params: Params }) {
                   Course page
                 </Link>
               </div>
-              <div className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-1">
+              <RailScroller current={lesson.id} className="max-h-[calc(100vh-12rem)] overflow-y-auto pr-1">
                 <LessonRail course={course} current={lesson} />
-              </div>
+              </RailScroller>
             </div>
           </aside>
         </div>
