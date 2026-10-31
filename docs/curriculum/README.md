@@ -22,6 +22,12 @@ transcription can be checked against its source.
 | `src/content/curriculum/exams.ts` | The SAT, EST and ACT math test formats, kept separate, every fact with its source; and the proposed SAT core/extension labels |
 | `src/content/curriculum/model.ts` | Validation, and the course view built from the files above (hours, assessment plan, lesson sections) |
 | `src/content/curriculum/index.ts` | `COURSES`, `getCourse`, `getLesson`, `getLessonById`: the only entry point the site uses |
+| `src/content/curriculum/outcomes.ts` | Course-level learning outcomes, each citing the lessons it is drawn from; together they cite all 24. All drafts until the teacher approves them |
+| `src/lib/courses/present.ts` | How the pages word the model: summary, facts, public topics (unconfirmed readings left out), prerequisites, resources, related courses |
+
+The pages that read the model: `/programs` (the six courses compared), `/programs/<slug>` (one course: overview,
+24-lesson curriculum, assessment plan, resources, progress, enrol), the home page grid, the header and footer
+navigation, the sitemap and the contact form's course list.
 
 Each fact is written once. Hours, homework sets and in-lesson mocks are
 calculated from the lessons, not stored. If the files disagree, the build

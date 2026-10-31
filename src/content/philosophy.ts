@@ -11,12 +11,12 @@ export const LEARNING_LOOP = ['Understand', 'Practice', 'Improve', 'Perform'] as
 
 export const VISION = {
   title: 'Vision',
-  body: 'A generation of students who walk into an SAT or EST Math section calm, prepared, and certain of what to do — because they were taught a system, not a set of tricks.',
+  body: 'A generation of students who walk into an SAT, EST or ACT Math section calm, prepared, and certain of what to do — because they were taught a system, not a set of tricks.',
 } as const
 
 export const MISSION = {
   title: 'Mission',
-  body: 'To teach SAT and EST Math through a structured system that makes every concept clear, measures understanding honestly, exposes weaknesses early, and turns them into strengths through deliberate practice and real feedback.',
+  body: 'To teach SAT, EST and ACT Math through a structured system that makes every concept clear, measures understanding honestly, exposes weaknesses early, and turns them into strengths through deliberate practice and real feedback.',
 } as const
 
 export type ValueItem = { title: string; body: string }

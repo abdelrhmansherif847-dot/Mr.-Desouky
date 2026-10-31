@@ -19,6 +19,7 @@ import {
   visibleFacts,
 } from '../src/content/curriculum/model.ts'
 import { EXAM_FORMATS, SAT_TOPIC_SCOPE } from '../src/content/curriculum/exams.ts'
+import { COURSE_OUTCOMES } from '../src/content/curriculum/outcomes.ts'
 import { SAT_MATH_BASIC } from '../src/content/curriculum/sat-math-basic.ts'
 import { SAT_MATH_ADVANCED } from '../src/content/curriculum/sat-math-advanced.ts'
 import { EST_MATH_BASIC } from '../src/content/curriculum/est-math-basic.ts'
@@ -43,6 +44,7 @@ const INPUT: CurriculumInput = {
     'act-math-basic': ACT_MATH_BASIC_OBJECTIVES,
     'act-math-advanced': ACT_MATH_ADVANCED_OBJECTIVES,
   },
+  outcomes: COURSE_OUTCOMES,
   formats: EXAM_FORMATS,
   scope: SAT_TOPIC_SCOPE,
 }
@@ -267,6 +269,31 @@ test('rejects a course aimed at another exam’s test, or at a test its format d
   const crossed = copy()
   crossed.formats.EST.covers = ['EST I', 'SAT']
   assert.ok(hasProblem(crossed, /EST format covers SAT, another exam's test/))
+})
+
+test('course outcomes are drafts, and together cite every lesson of their course', () => {
+  for (const c of COURSES) {
+    assert.ok(c.outcomes.length >= 3, c.slug)
+    const cited = new Set(c.outcomes.flatMap((o) => o.lessons))
+    assert.deepEqual([...cited].sort((a, b) => a - b), c.lessons.map((l) => l.number), c.slug)
+    for (const o of c.outcomes) assert.equal(o.review, 'draft', `${c.slug}: ${o.text}`)
+  }
+})
+
+test('rejects an outcome citing a missing lesson, a lesson no outcome cites, or another exam', () => {
+  const bad = copy()
+  bad.outcomes['sat-math-basic'][0].lessons = [1, 2, 25]
+  bad.outcomes['est-math-basic'][0].text = 'Compute confidently for the SAT'
+  assert.ok(hasProblem(bad, /sat-math-basic outcome .*: cites lesson 25, which does not exist/))
+  assert.ok(hasProblem(bad, /sat-math-basic: no outcome cites lesson 3/))
+  assert.ok(hasProblem(bad, /est-math-basic outcome .*: names SAT in a EST course/))
+})
+
+test('the final review sits in the last lesson where its topics include a mock, else in the assessment plan', () => {
+  assert.deepEqual(bySlug('sat-math-basic').assessment.finalReview, { in: 'assessment-plan' })
+  for (const slug of ['sat-math-advanced', 'est-math-basic', 'est-math-advanced', 'act-math-basic', 'act-math-advanced']) {
+    assert.deepEqual(bySlug(slug).assessment.finalReview, { in: 'lesson', lesson: 24 }, slug)
+  }
 })
 
 test('buildCourses refuses inconsistent data instead of building it', () => {

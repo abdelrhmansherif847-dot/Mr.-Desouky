@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { INITIAL_FORM_STATE, type FormState } from '@/lib/contact/types'
 import { deliverEnquiry } from '@/lib/contact/submit'
 import { formatEnquiry, readForm, toEnquiry, validateEnquiry } from '@/lib/contact/validate'
 import { Button } from '@/components/ui/Button'
-import { PROGRAMS } from '@/content/programs'
 import { CONTACT, whatsappLink } from '@/content/site'
 import { cn } from '@/lib/utils'
 
@@ -78,7 +77,21 @@ function SubmitButton({ pending }: { pending: boolean }) {
   )
 }
 
-export function ContactForm() {
+/** A course the visitor can choose. Passed in by the page, from the curriculum. */
+export type CourseOption = { slug: string; title: string }
+
+const noSubscription = () => () => {}
+
+/** The course slug in ?course=, read on the client only (null while rendering on the server). */
+function useCourseParam(): string | null {
+  return useSyncExternalStore(
+    noSubscription,
+    () => new URLSearchParams(window.location.search).get('course'),
+    () => null,
+  )
+}
+
+export function ContactForm({ courses = [] }: { courses?: CourseOption[] }) {
   /**
    * Validation runs here first, with the rules in `@/lib/contact/validate`,
    * and again on the server. Delivery is decided in `@/lib/contact/submit`:
@@ -146,6 +159,11 @@ export function ContactForm() {
   // Both dropdowns stay controlled so their value is always readable from
   // React state as well as from the DOM.
   const [choices, setChoices] = useState({ role: '', interest: '' })
+
+  // Arriving from a course page (/contact?course=<slug>) chooses that course,
+  // until the visitor picks something else.
+  const courseParam = useCourseParam()
+  const interest = choices.interest || (courses.find((c) => c.slug === courseParam)?.title ?? '')
 
   if (state.status === 'success') {
     return (
@@ -278,7 +296,7 @@ export function ContactForm() {
         <select
           id="interest"
           name="interest"
-          value={choices.interest}
+          value={interest}
           onChange={(event) => setChoices((c) => ({ ...c, interest: event.target.value }))}
           aria-invalid={Boolean(e.interest)}
           aria-describedby={e.interest ? 'interest-error' : undefined}
@@ -287,9 +305,9 @@ export function ContactForm() {
           <option value="" disabled>
             Choose a program…
           </option>
-          {PROGRAMS.map((p) => (
-            <option key={p.slug} value={p.title}>
-              {p.title}
+          {courses.map((c) => (
+            <option key={c.slug} value={c.title}>
+              {c.title}
             </option>
           ))}
           <option value="Not sure — please advise">Not sure — please advise</option>

@@ -66,8 +66,8 @@ only optional ones are for contact-form delivery (below).
 | Route | Purpose |
 | --- | --- |
 | `/` | Who, what, how the system works, why to trust it |
-| `/programs` | All four programs, compared side by side |
-| `/programs/[slug]` | SAT Basic · SAT Advanced · EST Basic · EST Advanced |
+| `/programs` | All six courses (SAT, EST, ACT × Basic, Advanced), compared side by side |
+| `/programs/[slug]` | One course: overview, 24-lesson curriculum, assessment plan, resources, progress, enrol |
 | `/method` | The Desouky Method — READ · ANALYZE · PLAN · SOLVE · CHECK |
 | `/journey` | The seven-stage student journey |
 | `/how-it-works` | The educational system, stage by stage |
@@ -137,7 +137,7 @@ src/
 │   ├── system.ts             the seven-stage educational system
 │   ├── method.ts             the five method steps
 │   ├── journey.ts            the seven journey stages, mentoring, advising
-│   ├── programs.ts           the four programs
+│   ├── curriculum/           the six courses: lessons, objectives, outcomes, exam formats (see docs/curriculum)
 │   ├── schedule.ts           the weekly timetable — days, slots, notes
 │   ├── resources.ts  faq.ts  about.ts
 └── lib/

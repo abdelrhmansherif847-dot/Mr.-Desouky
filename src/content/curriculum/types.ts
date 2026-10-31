@@ -124,6 +124,17 @@ export type LearningObjective = {
 /** One course's objectives, keyed by lesson ID. */
 export type CourseObjectives = Record<string, LearningObjective[]>
 
+/**
+ * A course-level learning outcome, drafted only from the titles of the
+ * lessons it names. Together a course's outcomes cite every lesson.
+ */
+export type CourseOutcome = {
+  text: string
+  /** Lesson numbers (1–24) the outcome is drawn from. */
+  lessons: number[]
+  review: ObjectiveReview
+}
+
 /* ------------------------------------------------------------------ */
 /* Exam formats and scope: facts about the exams themselves              */
 /* ------------------------------------------------------------------ */

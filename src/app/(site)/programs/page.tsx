@@ -4,14 +4,15 @@ import { ProgramsGrid } from '@/components/sections/ProgramsGrid'
 import { CtaBand } from '@/components/sections/CtaBand'
 import { Badge } from '@/components/ui/Card'
 import { ArrowRight } from '@/components/ui/Button'
-import { PROGRAMS } from '@/content/programs'
+import { COURSES } from '@/content/curriculum'
+import { EXAM_TONE, TARGET_LABEL, lessonLength, quizCount, teachingTime } from '@/lib/courses/present'
 import { FAQS } from '@/content/faq'
 import { JsonLd, breadcrumbJsonLd, faqJsonLd, pageMeta } from '@/lib/seo'
 
 export const metadata = pageMeta({
-  title: 'Programs — SAT Math & EST Math',
+  title: 'Programs — SAT, EST and ACT Math',
   description:
-    'Four structured programs: SAT Math Basic and Advanced, EST Math Basic and Advanced. Each with its own syllabus, sessions, homework, quizzes, reviews and mock exams.',
+    'Six courses: SAT, EST and ACT Math, each at Basic (Grade 10) and Advanced (Grade 11–12) level. 24 lessons each, with homework after every lesson, quizzes and timed mock exams.',
   path: '/programs',
   keywords: [
     'SAT Math course',
@@ -20,16 +21,40 @@ export const metadata = pageMeta({
     'EST Math Egypt',
     'SAT Math basics',
     'SAT Math advanced',
+    'ACT Math course',
+    'ACT Math Egypt',
+    'EST I Math',
   ],
 })
 
-const COMPARE_ROWS = [
-  { label: 'Who it is for', key: 'audience' },
-  { label: 'Entry', key: 'entry' },
-  { label: 'Duration', key: 'duration' },
-  { label: 'Sessions', key: 'sessions' },
-  { label: 'Mock exams', key: 'mocks' },
-] as const
+/** Every row is read from the curriculum model; nothing is typed in twice. */
+const COMPARE_ROWS: { label: string; value: (c: (typeof COURSES)[number]) => string }[] = [
+  { label: 'Grade', value: (c) => c.grade },
+  { label: 'Prepares for', value: (c) => TARGET_LABEL[c.target] },
+  { label: 'Lessons', value: (c) => `${c.lessons.length}, of ${lessonLength(c)}` },
+  { label: 'Teaching time', value: (c) => teachingTime(c) },
+  { label: 'Homework', value: (c) => c.delivery.homework },
+  { label: 'Quizzes', value: (c) => `${quizCount(c)}, ${c.delivery.quizzes.when.toLowerCase()}` },
+  { label: 'Mock exams', value: (c) => `${c.delivery.mocks.count} (${c.delivery.mocks.format})` },
+  { label: 'Tracking', value: (c) => c.delivery.tracking },
+  { label: 'Fees', value: () => 'On request' },
+]
+
+/** What every course of one level has in common, read from those courses. */
+function levelFacts(level: 'Basic' | 'Advanced'): string[] {
+  const courses = COURSES.filter((c) => c.level === level)
+  const c = courses[0]
+  const facts = [
+    c.grade,
+    `${c.lessons.length} lessons of ${lessonLength(c)}, taught in order`,
+    `Homework ${c.delivery.homework.toLowerCase()}, ${quizCount(c)} quizzes and ${c.delivery.mocks.count} timed mock exams`,
+  ]
+  if (level === 'Basic') facts.push('Leads on to the Advanced course for the same exam')
+  if (level === 'Advanced' && courses.every((x) => x.assessment.mockLessons.includes(x.lessons.length))) {
+    facts.push(`Lesson ${c.lessons.length} is a timed mock exam`)
+  }
+  return facts
+}
 
 export default function ProgramsPage() {
   return (
@@ -40,17 +65,17 @@ export default function ProgramsPage() {
         <SectionHeading
           as="h1"
           className="mt-5"
-          title="Two exams. Two levels. Never mixed."
-          lead="The SAT and the EST are different exams. They have different syllabi, different question styles and different timing — so they are taught as two entirely separate programs, with their own materials and their own mock exams. Within each exam, the level is decided by a diagnostic assessment rather than by preference."
+          title="Three exams. Two levels. Never mixed."
+          lead="The SAT, the EST and the ACT are different exams, so each is taught as its own course, with its own curriculum, homework, quizzes and mock exams. Every exam has a Basic course for Grade 10 and an Advanced course for Grade 11–12, 24 lessons each. Within each exam, the diagnostic assessment decides the level rather than preference."
         />
       </Section>
 
-      {/* ---------- The two tracks ---------- */}
+      {/* ---------- The three exams ---------- */}
       <Section tone="mist">
         <SectionHeading
           eyebrow="Step one"
           title="Choose the exam, then the level"
-          lead="Each track below carries its own syllabus, materials and mock exams. Open a level to see exactly what it covers and what is included."
+          lead="Each exam below has its own two courses. Open one to see its 24 lessons in order, its assessment plan and how to enrol."
         />
         <div className="mt-12">
           <ProgramsGrid />
@@ -77,12 +102,7 @@ export default function ProgramsPage() {
               until it is automatic.
             </p>
             <ul className="mt-5 space-y-2.5 border-t border-deep-100 pt-5">
-              {[
-                'Full syllabus coverage from the ground up',
-                'Concept-first teaching, then practice',
-                'Two full-length mock exams',
-                'Prepares for the Advanced level',
-              ].map((item) => (
+              {levelFacts('Basic').map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-deep-600">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-400" />
                   {item}
@@ -101,12 +121,7 @@ export default function ProgramsPage() {
               hardest questions. Difficulty, timing and strategy all rise deliberately.
             </p>
             <ul className="mt-5 space-y-2.5 border-t border-deep-100 pt-5">
-              {[
-                'Multi-step and unfamiliar question types',
-                'Pacing and section strategy trained',
-                'Four full-length mock exams',
-                'Score stability rather than one good result',
-              ].map((item) => (
+              {levelFacts('Advanced').map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-deep-600">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-deep-400" />
                   {item}
@@ -130,32 +145,28 @@ export default function ProgramsPage() {
       <Section tone="mist">
         <SectionHeading
           eyebrow="Side by side"
-          title="All four programs, compared"
-          lead="Structural details are shown per program. Exact schedules and start dates are confirmed when a student registers."
+          title="All six courses, compared"
+          lead="Every figure comes from the official curricula. Exact schedules and start dates are confirmed when a student registers."
         />
 
-        <div className="mt-10 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
-          <table className="w-full min-w-[46rem] border-separate border-spacing-0 text-left">
-            <caption className="sr-only">Comparison of all four SAT and EST Math programs</caption>
+        <div className="mt-10 -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0" data-testid="compare-table">
+          <table className="w-full min-w-[60rem] border-separate border-spacing-0 text-left">
+            <caption className="sr-only">Comparison of the six SAT, EST and ACT Math courses</caption>
             <thead>
               <tr>
-                <th scope="col" className="w-40 rounded-tl-card border-b border-deep-100 bg-white p-4 text-xs font-semibold uppercase tracking-wider text-deep-400">
-                  Program
+                <th scope="col" className="w-36 rounded-tl-card border-b border-deep-100 bg-white p-4 text-xs font-semibold uppercase tracking-wider text-deep-400">
+                  Course
                 </th>
-                {PROGRAMS.map((p, i) => (
+                {COURSES.map((c, i) => (
                   <th
-                    key={p.slug}
+                    key={c.slug}
                     scope="col"
-                    className={`border-b border-l border-deep-100 bg-white p-4 align-top ${
-                      i === PROGRAMS.length - 1 ? 'rounded-tr-card' : ''
-                    }`}
+                    className={`border-b border-l border-deep-100 bg-white p-4 align-top ${i === COURSES.length - 1 ? 'rounded-tr-card' : ''}`}
                   >
-                    <Link href={`/programs/${p.slug}`} className="group block">
-                      <span className="block font-display text-base font-bold text-deep-700 group-hover:text-sky-600">
-                        {p.title}
-                      </span>
-                      <span className="mt-1 block text-xs font-normal text-deep-400">
-                        {p.tagline}
+                    <Link href={`/programs/${c.slug}`} className="group block">
+                      <Badge tone={EXAM_TONE[c.exam]}>{c.exam}</Badge>
+                      <span className="mt-2 block font-display text-base font-bold text-deep-700 group-hover:text-sky-600">
+                        {c.level}
                       </span>
                     </Link>
                   </th>
@@ -164,37 +175,23 @@ export default function ProgramsPage() {
             </thead>
             <tbody>
               {COMPARE_ROWS.map((row, ri) => (
-                <tr key={row.key}>
+                <tr key={row.label}>
                   <th
                     scope="row"
-                    className={`border-b border-deep-100 bg-white p-4 align-top text-sm font-semibold text-deep-600 ${
-                      ri === COMPARE_ROWS.length - 1 ? 'rounded-bl-card' : ''
-                    }`}
+                    className={`border-b border-deep-100 bg-white p-4 align-top text-sm font-semibold text-deep-600 ${ri === COMPARE_ROWS.length - 1 ? 'rounded-bl-card' : ''}`}
                   >
                     {row.label}
                   </th>
-                  {PROGRAMS.map((p, i) => {
-                    let value = ''
-                    if (row.key === 'audience') value = p.forWho[0]
-                    if (row.key === 'entry') value = p.entryRequirement
-                    if (row.key === 'duration') value = p.duration
-                    if (row.key === 'sessions') value = `${p.sessions} · ${p.sessionLength}`
-                    if (row.key === 'mocks')
-                      value = p.included.find((x) => x.label === 'Mock exams')?.detail ?? '—'
-
-                    return (
-                      <td
-                        key={p.slug}
-                        className={`border-b border-l border-deep-100 bg-white p-4 align-top text-sm leading-relaxed text-deep-500 ${
-                          ri === COMPARE_ROWS.length - 1 && i === PROGRAMS.length - 1
-                            ? 'rounded-br-card'
-                            : ''
-                        }`}
-                      >
-                        {value}
-                      </td>
-                    )
-                  })}
+                  {COURSES.map((c, i) => (
+                    <td
+                      key={c.slug}
+                      className={`border-b border-l border-deep-100 bg-white p-4 align-top text-sm leading-relaxed text-deep-500 ${
+                        ri === COMPARE_ROWS.length - 1 && i === COURSES.length - 1 ? 'rounded-br-card' : ''
+                      }`}
+                    >
+                      {row.value(c)}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

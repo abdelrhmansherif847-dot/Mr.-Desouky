@@ -72,7 +72,7 @@ export function Logo({ variant = 'color', markOnly = false, size = 'md', classNa
               dark ? 'text-sky-300' : 'text-sky-600',
             )}
           >
-            {SITE.role}
+            {SITE.logoLine}
           </span>
         </span>
       ) : null}

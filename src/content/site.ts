@@ -11,10 +11,12 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 export const SITE = {
   name: 'Eng. Abdelrhman Desouky',
   shortName: 'Mr. Desouky',
-  role: 'SAT & EST Math Instructor',
+  role: 'SAT, EST & ACT Math Instructor',
+  /** The short line under the logo, sized to keep the header on one line. */
+  logoLine: 'SAT · EST · ACT Math',
   slogan: 'Try. Learn. Rise.',
   description:
-    'A structured SAT and EST Math learning system built on clear teaching, consistent practice, honest measurement and real feedback — so every student knows where they stand and what comes next.',
+    'A structured SAT, EST and ACT Math learning system built on clear teaching, consistent practice, honest measurement and real feedback — so every student knows where they stand and what comes next.',
   /**
    * Absolute public URL, no trailing slash. Canonicals, the sitemap, Open
    * Graph images and JSON-LD all derive from it.
@@ -49,7 +51,7 @@ export const LOGO = {
 
 export const PORTRAIT = {
   src: `${BASE_PATH}/brand/portrait.svg`,
-  alt: 'Eng. Abdelrhman Desouky, SAT & EST Math instructor',
+  alt: 'Eng. Abdelrhman Desouky, SAT, EST & ACT Math instructor',
   isPlaceholder: true,
 } as const
 
@@ -75,7 +77,7 @@ export function whatsappLink(message?: string): string {
   const base = `https://wa.me/${CONTACT.whatsapp}`
   const text =
     message ??
-    'Hello Mr. Desouky, I would like to ask about the SAT / EST Math programs.'
+    'Hello Mr. Desouky, I would like to ask about the SAT / EST / ACT Math programs.'
   return `${base}?text=${encodeURIComponent(text)}`
 }
 
@@ -91,14 +93,10 @@ export const PRIMARY_NAV: NavItem[] = [
   {
     label: 'Programs',
     href: '/programs',
-    description: 'SAT and EST Math, at Basic and Advanced level.',
-    children: [
-      { label: 'All programs', href: '/programs', description: 'Compare every track side by side' },
-      { label: 'SAT Math — Basic', href: '/programs/sat-math-basic', description: 'Build the foundation' },
-      { label: 'SAT Math — Advanced', href: '/programs/sat-math-advanced', description: 'Raise the ceiling' },
-      { label: 'EST Math — Basic', href: '/programs/est-math-basic', description: 'Build the foundation' },
-      { label: 'EST Math — Advanced', href: '/programs/est-math-advanced', description: 'Raise the ceiling' },
-    ],
+    description: 'SAT, EST and ACT Math, at Basic and Advanced level.',
+    // The six course links are added from the curriculum by the site layout,
+    // so the course list is written in one place only.
+    children: [{ label: 'All programs', href: '/programs', description: 'Compare all six courses side by side' }],
   },
   { label: 'The Desouky Method', href: '/method', description: 'READ · ANALYZE · PLAN · SOLVE · CHECK' },
   { label: 'Student Journey', href: '/journey', description: 'Seven stages from assessment to exam day' },

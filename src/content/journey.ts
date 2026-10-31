@@ -104,7 +104,7 @@ export const ADVISING = {
   lead: 'Helping students and parents make the right decisions.',
   body: 'Most families arrive with the same questions: which exam, which level, how long, and what happens after. Advising answers those honestly — including when the honest answer is that a student is not ready to move up yet, or does not need the more expensive track.',
   points: [
-    { title: 'Choosing the right program', body: 'SAT or EST — matched to the student’s target universities and timeline.' },
+    { title: 'Choosing the right program', body: 'SAT, EST or ACT — matched to the student’s target universities and timeline.' },
     { title: 'Choosing the right level', body: 'Basic or Advanced, decided by the diagnostic rather than by preference.' },
     { title: 'Moving from Basic to Advanced', body: 'A move happens when the results support it, based on quiz and mock evidence.' },
     { title: 'Preparing for the exam', body: 'Test-date planning, realistic targets, and how many attempts make sense.' },

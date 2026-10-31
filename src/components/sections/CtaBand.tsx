@@ -10,6 +10,10 @@ type CtaBandProps = {
   secondary?: { label: string; href: string }
   /** Shows the WhatsApp option as the secondary action. */
   whatsapp?: boolean
+  /** Pre-filled WhatsApp text; defaults to a general enquiry. */
+  whatsappMessage?: string
+  /** A short line under the buttons, e.g. 'Fees on request'. */
+  note?: string
 }
 
 export function CtaBand({
@@ -19,6 +23,8 @@ export function CtaBand({
   primary = { label: 'Explore Programs', href: '/programs' },
   secondary = { label: 'Contact Mr. Desouky', href: '/contact' },
   whatsapp = false,
+  whatsappMessage,
+  note,
 }: CtaBandProps) {
   return (
     <section className="relative overflow-hidden bg-deep-700">
@@ -43,7 +49,7 @@ export function CtaBand({
 
             {whatsapp ? (
               <ButtonLink
-                href={whatsappLink()}
+                href={whatsappLink(whatsappMessage)}
                 external
                 variant="onDark"
                 size="lg"
@@ -57,6 +63,8 @@ export function CtaBand({
               </ButtonLink>
             )}
           </div>
+
+          {note ? <p className="mt-6 text-sm text-deep-100/70">{note}</p> : null}
 
           <p className="mt-8 font-mono text-[0.68rem] uppercase tracking-[0.3em] text-sky-300/70">
             {SITE.slogan}

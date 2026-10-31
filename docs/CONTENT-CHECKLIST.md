@@ -38,28 +38,26 @@ Once replaced, set `isPlaceholder: false` on `LOGO` and `PORTRAIT` in
 
 ---
 
-## 3. Program details — required
+## 3. Course details — required
 
-**File: `src/content/programs.ts`**
+**Files: `src/content/curriculum/`** (see `docs/curriculum/README.md`)
 
-For each of the four programs, confirm:
+The six courses (SAT, EST and ACT Math, Basic and Advanced) are transcribed
+from the teacher's reference images and are the single source for every course
+page, the listing, the navigation, the sitemap and the contact form. Before
+launch, the teacher should:
 
-- [ ] `duration` — currently 12 weeks (Basic) / 10 weeks (Advanced)
-- [ ] `sessions` — currently 24 (Basic) / 20 (Advanced)
-- [ ] `sessionLength` — currently 2 hours
-- [ ] `groupSize` — currently "Small groups, plus a one-to-one option"
-- [ ] `learn[]` — the syllabus breakdown per program
-- [ ] `included[]` — particularly the **mock exam counts** (2 for Basic, 4 for
-      Advanced)
-- [ ] `entryRequirement`
+- [ ] Give the wording for the four readings awaiting the teacher (listed in
+      `docs/curriculum/README.md`). Until then they are not shown publicly.
+- [ ] Review the drafted lesson objectives (`objectives/<course>.ts`) and
+      course outcomes (`outcomes.ts`). Each is labelled
+      "Draft — Pending Teacher Review" on the site until approved.
+- [ ] Confirm the exam facts in `exams.ts` against the publishers' own
+      documents. None is shown until marked `confirmed`.
 
-**EST specifically:** the syllabus is written to be structurally accurate for
-the EST Math section, but the exact topic coverage and section timing should be
-checked against the current official EST specification before publishing.
-
-**Pricing is deliberately absent.** There is no price field anywhere. If you
-want prices on the site, add them to `Program` in `programs.ts` and they will
-need a small render addition on the program page.
+**Pricing is deliberately absent.** Course pages say "Fees on request". If
+you want prices on the site, they need a verified source and a small render
+addition on the course page.
 
 ---
 

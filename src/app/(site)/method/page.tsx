@@ -9,9 +9,9 @@ import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 export const metadata = pageMeta({
   title: 'The Desouky Method',
   description:
-    'READ · ANALYZE · PLAN · SOLVE · CHECK — the five-step routine used on every SAT and EST Math question, built to hold up under exam pressure.',
+    'READ · ANALYZE · PLAN · SOLVE · CHECK — the five-step routine used on every SAT, EST and ACT Math question, built to hold up under exam pressure.',
   path: '/method',
-  keywords: ['SAT Math method', 'how to solve SAT Math questions', 'EST Math strategy'],
+  keywords: ['SAT Math method', 'how to solve SAT Math questions', 'EST Math strategy', 'ACT Math strategy'],
 })
 
 export default function MethodPage() {

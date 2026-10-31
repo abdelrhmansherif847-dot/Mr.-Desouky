@@ -2,15 +2,16 @@ import { Section, SectionHeading } from '@/components/ui/Section'
 import { Badge } from '@/components/ui/Card'
 import { ContactForm } from '@/components/contact/ContactForm'
 import { CONTACT, whatsappLink } from '@/content/site'
+import { COURSES } from '@/content/curriculum'
 import { FAQS } from '@/content/faq'
 import { JsonLd, breadcrumbJsonLd, faqJsonLd, pageMeta } from '@/lib/seo'
 
 export const metadata = pageMeta({
   title: 'Contact',
   description:
-    'Ask about SAT or EST Math programs, arrange a diagnostic assessment, or get advice on which level is right — by WhatsApp, email or the contact form.',
+    'Ask about SAT, EST or ACT Math programs, arrange a diagnostic assessment, or get advice on which level is right — by WhatsApp, email or the contact form.',
   path: '/contact',
-  keywords: ['SAT Math teacher contact', 'EST Math course registration'],
+  keywords: ['SAT Math teacher contact', 'EST Math course registration', 'ACT Math course registration'],
 })
 
 const STEPS = [
@@ -133,7 +134,7 @@ export default function ContactPage() {
                 Fields marked <span className="text-sky-500">*</span> are required.
               </p>
               <div className="mt-7">
-                <ContactForm />
+                <ContactForm courses={COURSES.map((c) => ({ slug: c.slug, title: c.title }))} />
               </div>
             </div>
           </div>

@@ -8,8 +8,8 @@ export const FAQS: Faq[] = [
     a: 'The diagnostic assessment decides it, not preference. It shows topic by topic what is already secure and what is missing, and the recommended level follows from that. If the assessment shows a solid foundation, the student starts at Advanced. If not, starting at Basic saves time rather than costing it.',
   },
   {
-    q: 'What is the difference between the SAT and the EST program?',
-    a: 'They are two separate exams with different syllabi, question styles and timing, so they are taught as two completely separate programs. EST material is never adapted from SAT material — the practice sets, mocks and wording are specific to each exam.',
+    q: 'What is the difference between the SAT, EST and ACT programs?',
+    a: 'They are three separate exams with different syllabi, question styles and timing, so each is taught as its own course. Material is never adapted from one exam to another — the practice sets, mocks and wording are specific to each exam.',
   },
   {
     q: 'How is progress measured?',

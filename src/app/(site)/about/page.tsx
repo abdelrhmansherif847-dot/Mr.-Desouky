@@ -24,9 +24,9 @@ import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 export const metadata = pageMeta({
   title: 'About Eng. Abdelrhman Desouky',
   description:
-    'The person, the philosophy and the principles behind the system — vision, mission, values and what success actually means in SAT and EST Math preparation.',
+    'The person, the philosophy and the principles behind the system — vision, mission, values and what success actually means in SAT, EST and ACT Math preparation.',
   path: '/about',
-  keywords: ['SAT Math teacher Egypt', 'EST Math teacher', 'Math instructor'],
+  keywords: ['SAT Math teacher Egypt', 'EST Math teacher', 'ACT Math teacher', 'Math instructor'],
 })
 
 export default function AboutPage() {

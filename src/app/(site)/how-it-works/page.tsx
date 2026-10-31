@@ -10,9 +10,9 @@ import { JsonLd, breadcrumbJsonLd, pageMeta } from '@/lib/seo'
 export const metadata = pageMeta({
   title: 'How It Works — The Educational System',
   description:
-    'Teaching, session, homework, quiz, review, mock and feedback. The seven-stage educational system behind every SAT and EST Math program, and the purpose of each stage.',
+    'Teaching, session, homework, quiz, review, mock and feedback. The seven-stage educational system behind every SAT, EST and ACT Math course, and the purpose of each stage.',
   path: '/how-it-works',
-  keywords: ['SAT Math course structure', 'EST Math course', 'Math teaching system'],
+  keywords: ['SAT Math course structure', 'EST Math course', 'ACT Math course', 'Math teaching system'],
 })
 
 export default function HowItWorksPage() {
@@ -104,7 +104,7 @@ export default function HowItWorksPage() {
       <CtaBand
         eyebrow="See it applied"
         title="The system, applied to a specific exam"
-        body="SAT and EST run on the same seven stages — but with their own syllabus, question style, materials and mocks. Compare the four programs to see how it works in practice."
+        body="SAT, EST and ACT run on the same seven stages — but with their own syllabus, question style, materials and mocks. Compare the six courses to see how it works in practice."
         primary={{ label: 'Explore Programs', href: '/programs' }}
         secondary={{ label: 'The student journey', href: '/journey' }}
       />

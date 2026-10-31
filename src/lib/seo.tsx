@@ -68,29 +68,38 @@ export function personJsonLd() {
     name: SITE.name,
     alternateName: SITE.shortName,
     jobTitle: SITE.role,
-    description: `${SITE.role} teaching a structured SAT and EST Math preparation system.`,
+    description: `${SITE.role} teaching a structured SAT, EST and ACT Math preparation system.`,
     url: SITE.url,
-    knowsAbout: ['SAT Math', 'EST Math', 'Mathematics education', 'Exam preparation'],
+    knowsAbout: ['SAT Math', 'EST Math', 'ACT Math', 'Mathematics education', 'Exam preparation'],
     sameAs: CONTACT.social.map((s) => s.href),
   }
 }
 
-export function courseJsonLd(program: {
+/**
+ * One course. Built from the curriculum model: its official lesson titles
+ * become the syllabus sections. No price and no exam facts are included.
+ */
+export function courseJsonLd(course: {
   title: string
-  summary: string
+  description: string
   slug: string
-  exam: string
-  level: string
+  grade: string
+  /** The test the course prepares for, e.g. "EST I". */
+  target: string
+  lessons: string[]
+  prerequisite?: string
 }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Course',
-    name: program.title,
-    description: program.summary,
-    url: `${SITE.url}/programs/${program.slug}`,
-    educationalLevel: program.level,
-    teaches: `${program.exam} Math`,
+    name: course.title,
+    description: course.description,
+    url: `${SITE.url}/programs/${course.slug}`,
+    educationalLevel: course.grade,
+    teaches: `${course.target} Math preparation`,
     inLanguage: 'en',
+    ...(course.prerequisite ? { coursePrerequisites: course.prerequisite } : {}),
+    syllabusSections: course.lessons.map((name) => ({ '@type': 'Syllabus', name })),
     provider: {
       '@type': 'EducationalOrganization',
       name: SITE.name,

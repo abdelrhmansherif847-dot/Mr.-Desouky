@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { PROGRAMS } from '@/content/programs'
+import { COURSES } from '@/content/curriculum'
 import { SITE } from '@/content/site'
 
 /**
@@ -8,6 +8,11 @@ import { SITE } from '@/content/site'
  */
 // Static export: this metadata route must be generated at build time.
 export const dynamic = 'force-static'
+
+/** The same form as each page's canonical URL: trailingSlash is on, so a path ends in "/". */
+function canonical(path: string): string {
+  return `${SITE.url}${path === '/' ? '/' : `${path}/`}`
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
@@ -26,13 +31,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...pages.map((page) => ({
-      url: `${SITE.url}${page.path}`,
+      url: canonical(page.path),
       lastModified: now,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
     })),
-    ...PROGRAMS.map((program) => ({
-      url: `${SITE.url}/programs/${program.slug}`,
+    ...COURSES.map((course) => ({
+      url: canonical(`/programs/${course.slug}`),
       lastModified: now,
       changeFrequency: 'monthly' as const,
       priority: 0.85,

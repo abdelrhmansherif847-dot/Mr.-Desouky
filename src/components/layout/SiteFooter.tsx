@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Logo } from '@/components/brand/Logo'
 import { CONTACT, PORTAL_NAV, PRIMARY_NAV, SECONDARY_NAV, SITE, whatsappLink } from '@/content/site'
-import { PROGRAMS } from '@/content/programs'
+import { COURSES } from '@/content/curriculum'
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
@@ -61,7 +61,7 @@ export function SiteFooter() {
                 Programs
               </h2>
               <ul className="mt-4 space-y-2.5">
-                {PROGRAMS.map((program) => (
+                {COURSES.map((program) => (
                   <li key={program.slug}>
                     <Link
                       href={`/programs/${program.slug}`}

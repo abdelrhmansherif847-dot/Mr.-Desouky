@@ -22,7 +22,8 @@ export type Resource = {
   kind: ResourceKind
   title: string
   description: string
-  track: 'SAT' | 'EST' | 'Both'
+  /** One exam, or 'All' for material that applies to every exam. */
+  track: 'SAT' | 'EST' | 'ACT' | 'All'
   level: 'Basic' | 'Advanced' | 'All'
   href?: string
   available: boolean
@@ -72,7 +73,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Study Guide',
     title: 'Formula & Rules Reference',
     description: 'Every formula worth memorising, grouped by topic, with the trap that usually accompanies it.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     available: false,
   },
@@ -81,7 +82,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Student Guide',
     title: 'Applying the Desouky Method',
     description: 'A one-page walkthrough of READ · ANALYZE · PLAN · SOLVE · CHECK on real questions.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     href: '/method',
     available: true,
@@ -91,7 +92,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Student Guide',
     title: 'How to Review a Mistake Properly',
     description: 'The difference between looking at a correct answer and actually learning from a wrong one.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     available: false,
   },
@@ -100,7 +101,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Exam Prep',
     title: 'Section Timing Plan',
     description: 'Where your minutes should go, and what to do when you fall behind.',
-    track: 'Both',
+    track: 'All',
     level: 'Advanced',
     available: false,
   },
@@ -109,7 +110,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Exam Prep',
     title: 'Exam Week Checklist',
     description: 'What to revise, what to stop revising, and what to prepare the night before.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     available: false,
   },
@@ -127,7 +128,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Math Tip',
     title: 'Back-Solving From the Answer Choices',
     description: 'The technique that turns a two-minute algebra question into a twenty-second check.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     available: false,
   },
@@ -136,7 +137,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Video',
     title: 'Concept Explanations',
     description: 'Short recorded explanations of the topics students ask about most often.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     available: false,
   },
@@ -145,7 +146,7 @@ export const RESOURCES: Resource[] = [
     kind: 'Article',
     title: 'Basic or Advanced — How the Level Is Decided',
     description: 'Why the diagnostic makes the decision, and what happens if the level turns out to be wrong.',
-    track: 'Both',
+    track: 'All',
     level: 'All',
     href: '/mentoring',
     available: true,

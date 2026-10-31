@@ -52,8 +52,8 @@ export default function HomePage() {
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading
             eyebrow="Programs"
-            title="Two exams. Two levels. Never mixed."
-            lead="SAT and EST are different exams with different syllabi, wording and timing — so they are taught as completely separate programs. Within each, the level is decided by a diagnostic, not by preference."
+            title="Three exams. Two levels. Never mixed."
+            lead="SAT, EST and ACT are different exams with different syllabi, wording and timing — so each is taught as its own course. Within each, the level is decided by a diagnostic, not by preference."
           />
           <ButtonLink href="/programs" variant="secondary" className="group shrink-0 self-start lg:self-auto">
             Compare all programs

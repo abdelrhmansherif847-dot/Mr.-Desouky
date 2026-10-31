@@ -14,7 +14,17 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function SiteHeader() {
+export type CourseLink = { label: string; href: string; description?: string }
+
+/** Adds the course links (from the curriculum) under Programs. */
+function withCourses(courses: CourseLink[]) {
+  return PRIMARY_NAV.map((item) =>
+    item.href === '/programs' ? { ...item, children: [...(item.children ?? []), ...courses] } : item,
+  )
+}
+
+export function SiteHeader({ courses = [] }: { courses?: CourseLink[] }) {
+  const nav = withCourses(courses)
   const pathname = usePathname()
   const scrolled = useScrolledPast(8)
   const [open, setOpen] = useState(false)
@@ -104,7 +114,7 @@ export function SiteHeader() {
             {/* ---------- Desktop navigation ---------- */}
             <nav aria-label="Main" className="hidden lg:block">
               <ul className="flex items-center gap-1">
-                {PRIMARY_NAV.map((item) => {
+                {nav.map((item) => {
                   const active = isActive(pathname, item.href)
                   const hasChildren = Boolean(item.children?.length)
 
@@ -300,7 +310,7 @@ export function SiteHeader() {
             {/* Balanced columns rather than one long list, so the panel stays
                 wide and shallow like a mega menu instead of a tall stack. */}
             <ul className="gap-x-10 sm:columns-2 lg:columns-3">
-              {PRIMARY_NAV.map((item) => {
+              {nav.map((item) => {
                 const active = isActive(pathname, item.href)
                 return (
                   <li key={item.href} className="mb-1 break-inside-avoid">

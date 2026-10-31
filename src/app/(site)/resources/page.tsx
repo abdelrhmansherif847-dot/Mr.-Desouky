@@ -75,7 +75,7 @@ export default function ResourcesPage() {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone="sky">{r.kind}</Badge>
-                  <Badge tone="neutral">{r.track === 'Both' ? 'SAT & EST' : r.track}</Badge>
+                  <Badge tone="neutral">{r.track === 'All' ? 'All exams' : r.track}</Badge>
                 </div>
                 <h3 className="mt-4 font-display text-lg font-bold text-deep-700 group-hover:text-sky-600">
                   {r.title}
@@ -110,7 +110,7 @@ export default function ResourcesPage() {
             >
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="neutral">{r.kind}</Badge>
-                <Badge tone="neutral">{r.track === 'Both' ? 'SAT & EST' : r.track}</Badge>
+                <Badge tone="neutral">{r.track === 'All' ? 'All exams' : r.track}</Badge>
               </div>
               <h3 className="mt-3.5 font-display text-base font-bold text-deep-600">{r.title}</h3>
               <p className="mt-2 flex-1 text-sm leading-relaxed text-deep-400">{r.description}</p>

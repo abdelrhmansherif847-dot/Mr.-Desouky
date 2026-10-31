@@ -17,7 +17,7 @@ export const METHOD_STEPS: MethodStep[] = [
     index: '01',
     title: 'Read',
     tagline: 'Understand the question.',
-    body: 'Read the whole question before touching the pen. Most lost marks in SAT and EST Math are not caused by weak Math — they are caused by answering a question that was never asked.',
+    body: 'Read the whole question before touching the pen. Most lost marks in SAT, EST and ACT Math are not caused by weak Math — they are caused by answering a question that was never asked.',
     inPractice: [
       'Read once for meaning, once for detail',
       'Underline exactly what is being asked for',
@@ -98,7 +98,7 @@ export const METHOD_SUMMARY = {
     },
     {
       title: 'It transfers',
-      body: 'The same five steps work in SAT, in EST, in school Math, and in university. It is a way of thinking, not a syllabus.',
+      body: 'The same five steps work in SAT, in EST, in ACT, in school Math, and in university. It is a way of thinking, not a syllabus.',
     },
   ],
 } as const

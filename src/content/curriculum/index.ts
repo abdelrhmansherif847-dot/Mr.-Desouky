@@ -11,6 +11,7 @@ import { EST_MATH_ADVANCED_OBJECTIVES } from './objectives/est-math-advanced'
 import { ACT_MATH_BASIC_OBJECTIVES } from './objectives/act-math-basic'
 import { ACT_MATH_ADVANCED_OBJECTIVES } from './objectives/act-math-advanced'
 import { EXAM_FORMATS, SAT_TOPIC_SCOPE } from './exams'
+import { COURSE_OUTCOMES } from './outcomes'
 import { buildCourses, type Course, type Lesson } from './model'
 
 /**
@@ -29,6 +30,7 @@ export const COURSES: readonly Course[] = buildCourses({
     'act-math-basic': ACT_MATH_BASIC_OBJECTIVES,
     'act-math-advanced': ACT_MATH_ADVANCED_OBJECTIVES,
   },
+  outcomes: COURSE_OUTCOMES,
   formats: EXAM_FORMATS,
   scope: SAT_TOPIC_SCOPE,
 })

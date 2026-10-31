@@ -2,6 +2,7 @@ import type {
   CourseCurriculum,
   CourseDelivery,
   CourseObjectives,
+  CourseOutcome,
   Exam,
   ExamFact,
   ExamFormat,
@@ -90,6 +91,12 @@ export type AssessmentPlan = {
   mocks: CourseDelivery['mocks']
   /** Lessons whose approved title or topics are a mock exam. */
   mockLessons: number[]
+  /**
+   * Where the final review and mock sit: inside the last lesson, when its
+   * approved topics include one, or otherwise in the assessment plan itself
+   * (SAT Math – Basic, by the owner's decision; no lesson is invented).
+   */
+  finalReview: { in: 'lesson'; lesson: number } | { in: 'assessment-plan' }
 }
 
 export type Course = Omit<CourseCurriculum, 'lessons'> & {
@@ -97,6 +104,8 @@ export type Course = Omit<CourseCurriculum, 'lessons'> & {
   /** Total teaching hours across all lessons. */
   hours: { min: number; max: number }
   assessment: AssessmentPlan
+  /** Course-level outcomes, each citing the lessons it is drawn from. */
+  outcomes: CourseOutcome[]
   format: ExamFormat
   /** Proposed core/extension labels for this course's topics, if any. */
   scope: TopicScope[]
@@ -106,6 +115,8 @@ export type CurriculumInput = {
   curricula: readonly CourseCurriculum[]
   /** Objectives by course slug, then by lesson ID. */
   objectives: Readonly<Record<string, CourseObjectives>>
+  /** Course-level outcomes by course slug. */
+  outcomes: Readonly<Record<string, CourseOutcome[]>>
   formats: Readonly<Record<Exam, ExamFormat>>
   scope: readonly TopicScope[]
 }
@@ -244,6 +255,36 @@ export function validateCurriculum(input: CurriculumInput): string[] {
     }
   }
 
+  // Course outcomes: drafted from lesson titles, citing real lessons, together citing all 24.
+  for (const c of input.curricula) {
+    const outcomes = input.outcomes[c.slug]
+    if (!outcomes || outcomes.length === 0) {
+      say(c.slug, 'has no course outcomes')
+      continue
+    }
+    const others = EXAMS.filter((e) => e !== c.exam)
+    const cited = new Set<number>()
+    for (const o of outcomes) {
+      const where = `${c.slug} outcome "${o.text}"`
+      const issue = untidy(o.text)
+      if (issue) say(where, issue)
+      if (!/^[A-Z]/.test(o.text)) say(where, 'should start with a capital')
+      if (/[.]$/.test(o.text)) say(where, 'ends in a full stop')
+      for (const other of others) if (new RegExp(`\\b${other}\\b`).test(o.text)) say(where, `names ${other} in a ${c.exam} course`)
+      if (o.review !== 'draft' && o.review !== 'approved') say(where, 'has no review state')
+      if (o.lessons.length === 0) say(where, 'cites no lesson')
+      if (new Set(o.lessons).size !== o.lessons.length) say(where, 'cites a lesson twice')
+      for (const n of o.lessons) {
+        if (!c.lessons.some((l) => l.number === n)) say(where, `cites lesson ${n}, which does not exist`)
+        cited.add(n)
+      }
+    }
+    for (const l of c.lessons) if (!cited.has(l.number)) say(c.slug, `no outcome cites lesson ${l.number}`)
+  }
+  for (const slug of Object.keys(input.outcomes)) {
+    if (!input.curricula.some((c) => c.slug === slug)) say('outcomes', `outcomes for unknown course ${slug}`)
+  }
+
   // Exam formats: one per exam, every fact sourced.
   for (const exam of EXAMS) {
     const f = input.formats[exam]
@@ -315,7 +356,11 @@ export function buildCourses(input: CurriculumInput): Course[] {
         quizzes,
         mocks,
         mockLessons: lessons.filter((l) => l.hasMock).map((l) => l.number),
+        finalReview: lessons.at(-1)?.hasMock
+          ? { in: 'lesson', lesson: lessons.length }
+          : { in: 'assessment-plan' },
       },
+      outcomes: input.outcomes[c.slug],
       format: input.formats[c.exam],
       scope: input.scope.filter((s) => lessons.some((l) => l.id === s.lessonId)),
     }
