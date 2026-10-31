@@ -150,3 +150,40 @@ export function examBlurb(exam: Exam, all: readonly Course[]): string {
   const levels = courses.map((c) => `${c.level} for ${c.grade}`).join(' and ')
   return `For students preparing for ${target}: ${levels}, ${courses[0]?.lessons.length ?? 0} lessons each.`
 }
+
+/* ------------------------------------------------------------------ */
+/* Lesson pages                                                         */
+/* ------------------------------------------------------------------ */
+
+/** A lesson's URL segment: two digits, like the end of its stable ID (L05 → "05"). */
+export function lessonParam(number: number): string {
+  return String(number).padStart(2, '0')
+}
+
+/**
+ * The lesson number a URL segment names, or null. Only the exact two-digit
+ * form within the course resolves, so each lesson has one address.
+ */
+export function parseLessonParam(param: string, lessonCount: number): number | null {
+  if (!/^\d{2}$/.test(param)) return null
+  const n = Number(param)
+  return n >= 1 && n <= lessonCount ? n : null
+}
+
+export function lessonPath(course: { slug: string }, lesson: { number: number }): string {
+  return `/programs/${course.slug}/lessons/${lessonParam(lesson.number)}`
+}
+
+/** The lessons before and after, within the same course only. */
+export function lessonNeighbours(course: Course, lesson: Lesson): { prev?: Lesson; next?: Lesson } {
+  const i = course.lessons.findIndex((l) => l.id === lesson.id)
+  return { prev: i > 0 ? course.lessons[i - 1] : undefined, next: i >= 0 ? course.lessons[i + 1] : undefined }
+}
+
+/** The page description: the lesson's place in its course and its public topics. */
+export function lessonDescription(course: Course, lesson: Lesson): string {
+  return (
+    `Lesson ${lesson.number} of ${course.lessons.length} in ${course.title} (${course.grade}): ${lesson.title}. ` +
+    `Topics: ${publicTopics(lesson).join(', ')}.`
+  )
+}

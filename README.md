@@ -68,6 +68,7 @@ only optional ones are for contact-form delivery (below).
 | `/` | Who, what, how the system works, why to trust it |
 | `/programs` | All six courses (SAT, EST, ACT × Basic, Advanced), compared side by side |
 | `/programs/[slug]` | One course: overview, 24-lesson curriculum, assessment plan, resources, progress, enrol |
+| `/programs/[slug]/lessons/[nn]` | One lesson (01–24): topics, draft objectives, planned teaching sections, previous/next, the course curriculum |
 | `/method` | The Desouky Method — READ · ANALYZE · PLAN · SOLVE · CHECK |
 | `/journey` | The seven-stage student journey |
 | `/how-it-works` | The educational system, stage by stage |

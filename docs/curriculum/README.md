@@ -29,6 +29,22 @@ The pages that read the model: `/programs` (the six courses compared), `/program
 24-lesson curriculum, assessment plan, resources, progress, enrol), the home page grid, the header and footer
 navigation, the sitemap and the contact form's course list.
 
+## Lesson pages
+
+Every lesson has its own page at `/programs/<course>/lessons/<nn>/`, where
+`<nn>` is the two-digit lesson number, the same as the end of its stable ID
+(`sat-basic-L05` is `/programs/sat-math-basic/lessons/05/`). One template
+(`src/app/(site)/programs/[slug]/lessons/[lesson]/page.tsx`) builds all 144
+from the model; no lesson has a file of its own.
+
+A lesson page follows `LESSON_SECTIONS` in `model.ts`: the topics in the hero,
+then learning objectives (labelled "Draft — Pending Teacher Review"), lesson
+explanation, worked examples, guided practice, independent practice, homework
+and lesson summary. Until the teacher's content exists, each of those six says
+it is planned and not yet published; nothing is filled in. Topics awaiting the
+teacher are left out, with a note. Previous and next stay inside the course;
+the first and last lessons lead back to the course page.
+
 Each fact is written once. Hours, homework sets and in-lesson mocks are
 calculated from the lessons, not stored. If the files disagree, the build
 stops and lists every problem.

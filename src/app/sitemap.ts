@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { COURSES } from '@/content/curriculum'
+import { lessonPath } from '@/lib/courses/present'
 import { SITE } from '@/content/site'
 
 /**
@@ -42,5 +43,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly' as const,
       priority: 0.85,
     })),
+    ...COURSES.flatMap((course) =>
+      course.lessons.map((lesson) => ({
+        url: canonical(lessonPath(course, lesson)),
+        lastModified: now,
+        changeFrequency: 'monthly' as const,
+        priority: 0.5,
+      })),
+    ),
   ]
 }

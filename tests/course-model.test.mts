@@ -141,7 +141,17 @@ test('no exam fact is shown until it is confirmed in the original', () => {
   assert.equal(visibleFacts(confirmed).length, 1)
 })
 
-test('every lesson has the eleven sections; only topics and draft objectives have content', () => {
+test('every lesson follows the lesson template; only topics and draft objectives have content', () => {
+  assert.deepEqual(LESSON_SECTIONS.map((s) => s.key), [
+    'topics',
+    'objectives',
+    'explanation',
+    'examples',
+    'guided',
+    'independent',
+    'homework',
+    'summary',
+  ])
   for (const l of LESSONS) {
     assert.deepEqual(l.sections.map((s) => s.key), LESSON_SECTIONS.map((s) => s.key), l.id)
     for (const s of l.sections) {

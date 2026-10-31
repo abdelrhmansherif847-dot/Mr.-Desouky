@@ -1,6 +1,7 @@
+import Link from 'next/link'
 import type { Course } from '@/content/curriculum'
 import { OBJECTIVE_REVIEW_LABEL } from '@/content/curriculum'
-import { hiddenTopicCount, publicTopics } from '@/lib/courses/present'
+import { hiddenTopicCount, lessonPath, publicTopics } from '@/lib/courses/present'
 import { Badge } from '@/components/ui/Card'
 import { LessonToggle } from './LessonToggle'
 
@@ -119,11 +120,23 @@ export function CourseCurriculum({ course }: { course: Course }) {
                     </ul>
                   </div>
 
-                  <p className="flex items-center gap-2 border-t border-dashed border-deep-100 pt-4 text-xs text-deep-400 sm:col-span-2">
-                    <span className="h-2 w-2 shrink-0 rounded-full border border-deep-300" aria-hidden="true" />
-                    Lesson notes, worked examples and practice are planned for this lesson and not yet published.
-                    {lesson.hasMock ? ' This lesson includes a mock exam.' : ''}
-                  </p>
+                  <div className="flex flex-col gap-3 border-t border-dashed border-deep-100 pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="flex items-center gap-2 text-xs text-deep-400">
+                      <span className="h-2 w-2 shrink-0 rounded-full border border-deep-300" aria-hidden="true" />
+                      Lesson notes, worked examples and practice are planned for this lesson and not yet published.
+                      {lesson.hasMock ? ' This lesson includes a mock exam.' : ''}
+                    </p>
+                    <Link
+                      href={lessonPath(course, lesson)}
+                      className="group inline-flex shrink-0 items-center gap-1.5 font-display text-sm font-semibold text-sky-600 hover:text-sky-700"
+                      data-testid="lesson-page-link"
+                    >
+                      Open lesson {lesson.number}
+                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4 transition-transform duration-300 ease-calm group-hover:translate-x-1 motion-reduce:transition-none">
+                        <path d="M4 10h12m0 0-4.5-4.5M16 10l-4.5 4.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </details>
             </li>

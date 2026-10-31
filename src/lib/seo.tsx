@@ -108,6 +108,33 @@ export function courseJsonLd(course: {
   }
 }
 
+/**
+ * One lesson, as part of its course. Only approved data: the official title,
+ * its place in the course and its confirmed topics. No content is claimed.
+ */
+export function lessonJsonLd(lesson: {
+  name: string
+  description: string
+  path: string
+  position: number
+  grade: string
+  topics: string[]
+  course: { title: string; path: string }
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LearningResource',
+    name: lesson.name,
+    description: lesson.description,
+    url: `${SITE.url}${lesson.path}/`,
+    position: lesson.position,
+    educationalLevel: lesson.grade,
+    teaches: lesson.topics,
+    inLanguage: 'en',
+    isPartOf: { '@type': 'Course', name: lesson.course.title, url: `${SITE.url}${lesson.course.path}/` },
+  }
+}
+
 export function faqJsonLd(faqs: { q: string; a: string }[]) {
   return {
     '@context': 'https://schema.org',

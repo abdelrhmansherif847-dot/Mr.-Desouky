@@ -36,19 +36,19 @@ export const VERIFICATION_LABEL: Record<Verification, string> = {
   secondary: 'Pending Official Verification',
 }
 
-/** The eleven parts of every lesson, in page order. */
+/**
+ * The parts of every lesson page, in page order (the approved Phase 3
+ * template). Topics open the page in its hero; the rest follow in turn.
+ */
 export const LESSON_SECTIONS = [
-  { key: 'overview', label: 'Lesson overview' },
-  { key: 'objectives', label: 'Learning objectives' },
   { key: 'topics', label: 'Topics' },
-  { key: 'concepts', label: 'Key concepts and formulas' },
+  { key: 'objectives', label: 'Learning objectives' },
+  { key: 'explanation', label: 'Lesson explanation' },
   { key: 'examples', label: 'Worked examples' },
-  { key: 'methods', label: 'Step-by-step methods' },
-  { key: 'mistakes', label: 'Common mistakes' },
   { key: 'guided', label: 'Guided practice' },
   { key: 'independent', label: 'Independent practice' },
-  { key: 'summary', label: 'Summary' },
-  { key: 'homework', label: 'Homework and next steps' },
+  { key: 'homework', label: 'Homework' },
+  { key: 'summary', label: 'Lesson summary' },
 ] as const
 
 export type LessonSectionKey = (typeof LESSON_SECTIONS)[number]['key']

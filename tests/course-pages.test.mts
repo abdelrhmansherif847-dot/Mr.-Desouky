@@ -36,6 +36,11 @@ import {
   relatedCourses,
   resourcesFor,
   straplineParts,
+  lessonDescription,
+  lessonNeighbours,
+  lessonParam,
+  lessonPath,
+  parseLessonParam,
 } from '../src/lib/courses/present.ts'
 
 const COURSES = buildCourses({
@@ -148,4 +153,47 @@ test('small helpers', () => {
   assert.deepEqual(EXAM_TONE, { SAT: 'sky', EST: 'olive', ACT: 'growth' })
   assert.equal(contactHref(bySlug('act-math-basic')), '/contact?course=act-math-basic')
   assert.equal(enquiryMessage(bySlug('sat-math-advanced')), 'Hello Mr. Desouky, I would like to ask about SAT Math – Advanced (Grade 11–12).')
+})
+
+/* ---------- Lesson pages ---------- */
+
+test('lesson URLs: one two-digit address per lesson, matching its stable ID', () => {
+  for (const c of COURSES) {
+    for (const l of c.lessons) {
+      const path = lessonPath(c, l)
+      assert.equal(path, `/programs/${c.slug}/lessons/${l.id.slice(-2)}`, l.id)
+      assert.equal(parseLessonParam(lessonParam(l.number), c.lessons.length), l.number)
+    }
+  }
+  for (const bad of ['1', '001', '00', '25', '5a', 'L05', '']) assert.equal(parseLessonParam(bad, 24), null, bad)
+})
+
+test('previous and next stay inside the course, in the official order', () => {
+  const c = bySlug('act-math-advanced')
+  assert.equal(lessonNeighbours(c, c.lessons[0]).prev, undefined)
+  assert.equal(lessonNeighbours(c, c.lessons[0]).next?.id, 'act-advanced-L02')
+  assert.equal(lessonNeighbours(c, c.lessons[23]).prev?.id, 'act-advanced-L23')
+  assert.equal(lessonNeighbours(c, c.lessons[23]).next, undefined)
+  for (const course of COURSES) {
+    course.lessons.forEach((l, i) => {
+      const { prev, next } = lessonNeighbours(course, l)
+      assert.equal(prev?.number, i === 0 ? undefined : i, l.id)
+      assert.equal(next?.number, i === 23 ? undefined : i + 2, l.id)
+      for (const n of [prev, next]) if (n) assert.equal(n.courseSlug, course.slug, l.id)
+    })
+  }
+})
+
+test('lesson descriptions use public topics only and name only their own exam', () => {
+  assert.equal(
+    lessonDescription(bySlug('act-math-basic'), bySlug('act-math-basic').lessons[1]),
+    'Lesson 2 of 24 in ACT Math – Basic (Grade 10): Algebraic Expressions. Topics: Simplifying expressions, Distributive property.',
+  )
+  for (const c of COURSES) {
+    for (const l of c.lessons) {
+      const d = lessonDescription(c, l)
+      assert.ok(!UNCONFIRMED.some((u) => d.includes(u)) && !/like terms\./.test(d.replace('Combining like terms', '')), l.id)
+      for (const other of OTHER[c.exam]) assert.ok(!new RegExp(`\\b${other}\\b`).test(d), `${l.id}: ${d}`)
+    }
+  }
 })
