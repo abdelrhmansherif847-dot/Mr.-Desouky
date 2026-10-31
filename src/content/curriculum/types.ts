@@ -1,7 +1,8 @@
 /**
- * The official curricula of the six courses, transcribed from the teacher's
- * reference images in docs/curriculum/reference/. These files are the single
- * source for every lesson number, title and topic shown on the site.
+ * The six official courses: their identity, delivery, assessment plan and
+ * 24 lessons, transcribed from the teacher's reference images in
+ * docs/curriculum/reference/. These files are the single source for every
+ * course and lesson fact on the site.
  *
  * Transcription rules
  *  - Lesson titles, topic wording, capitalisation and order are kept exactly
@@ -60,22 +61,25 @@ export type CurriculumLesson = {
   notes?: TranscriptionNote[]
 }
 
-/** How the course is delivered: the "Course Details" strip of an image. */
-export type CourseDetails = {
+/**
+ * How the course is delivered and assessed: the "Course Details" strip of
+ * its reference image.
+ */
+export type CourseDelivery = {
   /**
    * image - printed on the course's reference image
    * owner - not printed; set by the owner's decision to match the other courses
    */
   from: 'image' | 'owner'
-  lessons: { count: number; length: string }
-  quizzes: { count: string; when: string }
+  hoursPerLesson: { min: number; max: number }
+  quizzes: { min: number; max: number; when: string }
   mocks: { count: number; format: string }
   homework: string
   tracking: string
 }
 
 export type CourseCurriculum = {
-  /** The course page's slug: /programs/<slug>/. */
+  /** The course page's slug, /programs/<slug>/, and the course's ID. */
   slug: string
   exam: Exam
   level: Level
@@ -84,10 +88,91 @@ export type CourseCurriculum = {
   grade: string
   /** The line under the heading, as printed. */
   strapline: string
-  details: CourseDetails
+  delivery: CourseDelivery
   /** Closing lines printed on the image. */
   slogans: string[]
   /** Which reference image this was transcribed from. */
   source: string
   lessons: CurriculumLesson[]
+}
+
+/* ------------------------------------------------------------------ */
+/* Learning objectives                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Every objective starts as a draft; only the teacher approves one. */
+export type ObjectiveReview = 'draft' | 'approved'
+
+export type LearningObjective = {
+  text: string
+  /**
+   * The 0-based indices of the lesson topics this objective is drawn from.
+   * An objective says nothing its topics do not.
+   */
+  from: number[]
+  review: ObjectiveReview
+}
+
+/** One course's objectives, keyed by lesson ID. */
+export type CourseObjectives = Record<string, LearningObjective[]>
+
+/* ------------------------------------------------------------------ */
+/* Exam formats and scope: facts about the exams themselves              */
+/* ------------------------------------------------------------------ */
+
+export type SourceRef = {
+  title: string
+  publisher: string
+  url: string
+  /** Page or section the fact comes from, when known. */
+  where?: string
+}
+
+/**
+ * confirmed  - read in the publisher's own document or page
+ * to-confirm - the publisher's document is identified, but its text has not
+ *              been read in full yet (only search excerpts of it)
+ * secondary  - only third-party sources
+ * Only `confirmed` facts are ever shown to visitors.
+ */
+export type Verification = 'confirmed' | 'to-confirm' | 'secondary'
+
+/** A fact about an exam, never stated without where it came from. */
+export type ExamFact = {
+  label: string
+  value: string
+  verification: Verification
+  sources: SourceRef[]
+}
+
+/** One exam's math test. SAT, EST and ACT are each described separately. */
+export type ExamFormat = {
+  exam: Exam
+  fullName: string
+  mathTest: string
+  facts: ExamFact[]
+  /** What could not be established, or where sources disagree. */
+  openQuestions: string[]
+  /** When the facts were last checked against their sources. */
+  checkedOn: string
+}
+
+/**
+ * Whether a topic is tested by its exam, as proposed for the owner's and
+ * teacher's review. Nothing is removed from the curriculum because of it.
+ */
+export type TopicScope = {
+  lessonId: string
+  /** 0-based topic index within the lesson. */
+  topic: number
+  /**
+   * core      - within the exam's tested content
+   * extension - beyond it
+   * mixed     - part of the topic is core and part extension; `basis` says which
+   */
+  proposed: 'core' | 'extension' | 'mixed'
+  basis: string
+  verification: Verification
+  sources: SourceRef[]
+  review: 'pending' | 'approved'
 }

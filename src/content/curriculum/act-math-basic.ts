@@ -8,10 +8,10 @@ export const ACT_MATH_BASIC: CourseCurriculum = {
   title: 'ACT Math – Basic',
   grade: 'Grade 10',
   strapline: '24 LESSONS • BUILD CONFIDENCE • ACT READY',
-  details: {
+  delivery: {
     from: 'image',
-    lessons: { count: 24, length: '1.5–2 hours each' },
-    quizzes: { count: '4–6', when: 'After key lessons' },
+    hoursPerLesson: { min: 1.5, max: 2 },
+    quizzes: { min: 4, max: 6, when: 'After key lessons' },
     mocks: { count: 3, format: 'ACT style, timed' },
     homework: 'After every lesson',
     tracking: 'Progress & weak topics',

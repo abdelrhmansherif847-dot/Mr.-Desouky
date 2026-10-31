@@ -8,10 +8,10 @@ export const EST_MATH_ADVANCED: CourseCurriculum = {
   title: 'EST Math – Advanced',
   grade: 'Grade 11–12',
   strapline: '24 LESSONS • CHALLENGING PROBLEMS • TOP EST SCORES',
-  details: {
+  delivery: {
     from: 'image',
-    lessons: { count: 24, length: '1.5–2 hours each' },
-    quizzes: { count: '4–6', when: 'After key lessons' },
+    hoursPerLesson: { min: 1.5, max: 2 },
+    quizzes: { min: 4, max: 6, when: 'After key lessons' },
     mocks: { count: 3, format: 'EST style, timed' },
     homework: 'After every lesson',
     tracking: 'Progress & weak topics',

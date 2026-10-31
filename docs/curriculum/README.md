@@ -13,6 +13,25 @@ They are transcribed, one file per course, into `src/content/curriculum/`.
 Those files are what the site reads; the images are kept here only so the
 transcription can be checked against its source.
 
+## Where everything lives
+
+| File | Holds |
+| --- | --- |
+| `src/content/curriculum/<course>.ts` | The transcription: identity, grade, delivery and assessment counts, 24 lessons with topics, corrections and teacher-check notes |
+| `src/content/curriculum/objectives/<course>.ts` | Learning objectives by lesson ID, each naming the topics it is drawn from. All are drafts until the teacher approves them |
+| `src/content/curriculum/exams.ts` | The SAT, EST and ACT math test formats, kept separate, every fact with its source; and the proposed SAT core/extension labels |
+| `src/content/curriculum/model.ts` | Validation, and the course view built from the files above (hours, assessment plan, lesson sections) |
+| `src/content/curriculum/index.ts` | `COURSES`, `getCourse`, `getLesson`, `getLessonById`: the only entry point the site uses |
+
+Each fact is written once. Hours, homework sets and in-lesson mocks are
+calculated from the lessons, not stored. If the files disagree, the build
+stops and lists every problem.
+
+Exam facts and SAT scope labels are shown to visitors only once they are
+`confirmed` against the publisher's own document (and, for scope labels,
+approved). On 2026-10-31 none could be read in the original, so all are
+`to-confirm`.
+
 The transcription rules are at the top of `src/content/curriculum/types.ts`.
 In short: wording and order are kept exactly as printed. A misprint is
 corrected only once the owner approves it, and its note keeps the printed

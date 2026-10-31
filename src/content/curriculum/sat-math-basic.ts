@@ -11,10 +11,10 @@ export const SAT_MATH_BASIC: CourseCurriculum = {
   // This image has no "Course Details" strip. By the owner's decision the
   // course is delivered like the other five; the mock format and tracking
   // wording follow SAT Math – Advanced.
-  details: {
+  delivery: {
     from: 'owner',
-    lessons: { count: 24, length: '1.5–2 hours each' },
-    quizzes: { count: '4–6', when: 'After key lessons' },
+    hoursPerLesson: { min: 1.5, max: 2 },
+    quizzes: { min: 4, max: 6, when: 'After key lessons' },
     mocks: { count: 3, format: 'Timed, full SAT style' },
     homework: 'After every lesson',
     tracking: 'Detailed feedback',

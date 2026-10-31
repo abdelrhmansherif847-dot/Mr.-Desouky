@@ -26,14 +26,12 @@ const LESSONS = COURSES.flatMap((c) => c.lessons)
 
 /** Every piece of text a course carries. */
 function texts(course: CourseCurriculum): string[] {
-  const d = course.details
+  const d = course.delivery
   return [
     course.title,
     course.grade,
     course.strapline,
     ...course.slogans,
-    d.lessons.length,
-    d.quizzes.count,
     d.quizzes.when,
     d.mocks.format,
     d.homework,
@@ -97,17 +95,17 @@ test('each course names only its own exam', () => {
 
 test('every course: 24 lessons of 1.5–2 hours, 4–6 quizzes, 3 timed mocks in its own exam style', () => {
   for (const c of COURSES) {
-    const d = c.details
-    assert.equal(d.lessons.count, c.lessons.length, c.slug)
-    assert.equal(d.lessons.length, '1.5–2 hours each', c.slug)
-    assert.equal(d.quizzes.count, '4–6', c.slug)
+    const d = c.delivery
+    assert.equal(c.lessons.length, 24, c.slug)
+    assert.deepEqual(d.hoursPerLesson, { min: 1.5, max: 2 }, c.slug)
+    assert.deepEqual([d.quizzes.min, d.quizzes.max], [4, 6], c.slug)
     assert.equal(d.mocks.count, 3, c.slug)
     assert.match(d.mocks.format, /timed/i, c.slug)
     assert.ok(d.mocks.format.includes(c.exam), `${c.slug} mock format`)
     assert.equal(d.homework, 'After every lesson', c.slug)
   }
   // Only SAT Basic's image has no "Course Details" strip; the owner set it.
-  assert.deepEqual(COURSES.filter((c) => c.details.from === 'owner').map((c) => c.slug), ['sat-math-basic'])
+  assert.deepEqual(COURSES.filter((c) => c.delivery.from === 'owner').map((c) => c.slug), ['sat-math-basic'])
 })
 
 test('SAT Basic ends at lesson 24, "Data – Graphs and Tables": no lesson is invented', () => {
