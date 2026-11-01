@@ -45,6 +45,19 @@ it is planned and not yet published; nothing is filled in. Topics awaiting the
 teacher are left out, with a note. Previous and next stay inside the course;
 the first and last lessons lead back to the course page.
 
+Lesson pages are `noindex, follow` and are not in the sitemap (owner's
+decision, Phase 3 review): most of each page is still planned, so they stay
+out of search until lessons have their teacher-approved content. Their links
+are still followed and their canonical URLs are kept. Course pages stay
+indexable. To index lessons later, remove `robots` from the lesson page's
+metadata and add the lessons back to `src/app/sitemap.ts`.
+
+`/programs/<course>/lessons/` has no page of its own: it redirects to the
+course page's curriculum, `/programs/<course>/#curriculum`. The server build
+answers with an HTTP 308. A static export cannot send redirects, so there the
+same route renders a page with an immediate meta refresh, a script fallback
+and a link, kept out of search. Unknown courses get the 404 page.
+
 Each fact is written once. Hours, homework sets and in-lesson mocks are
 calculated from the lessons, not stored. If the files disagree, the build
 stops and lists every problem.

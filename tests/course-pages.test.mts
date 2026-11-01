@@ -41,6 +41,7 @@ import {
   lessonParam,
   lessonPath,
   parseLessonParam,
+  curriculumPath,
 } from '../src/lib/courses/present.ts'
 
 const COURSES = buildCourses({
@@ -195,5 +196,14 @@ test('lesson descriptions use public topics only and name only their own exam', 
       assert.ok(!UNCONFIRMED.some((u) => d.includes(u)) && !/like terms\./.test(d.replace('Combining like terms', '')), l.id)
       for (const other of OTHER[c.exam]) assert.ok(!new RegExp(`\\b${other}\\b`).test(d), `${l.id}: ${d}`)
     }
+  }
+})
+
+test('the lesson collection address points at each course page\'s curriculum', () => {
+  assert.equal(curriculumPath(bySlug('sat-math-basic')), '/programs/sat-math-basic/#curriculum')
+  for (const c of COURSES) {
+    // Same course, its curriculum section, in the canonical trailing-slash form.
+    assert.equal(curriculumPath(c), `/programs/${c.slug}/#curriculum`)
+    assert.ok(lessonPath(c, c.lessons[0]).startsWith(curriculumPath(c).replace('/#curriculum', '/lessons/')), c.slug)
   }
 })

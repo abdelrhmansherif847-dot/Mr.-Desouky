@@ -52,12 +52,19 @@ export async function generateMetadata({ params }: { params: Params }) {
   if (!found) return {}
   const { course, lesson } = found
 
-  return pageMeta({
-    title: `Lesson ${lesson.number}: ${lesson.title} — ${course.title}`,
-    description: lessonDescription(course, lesson),
-    path: lessonPath(course, lesson),
-    keywords: [`${course.exam} Math ${lesson.title}`, `${course.title} lesson ${lesson.number}`, ...publicTopics(lesson).slice(0, 3)],
-  })
+  return {
+    ...pageMeta({
+      title: `Lesson ${lesson.number}: ${lesson.title} — ${course.title}`,
+      description: lessonDescription(course, lesson),
+      path: lessonPath(course, lesson),
+      keywords: [`${course.exam} Math ${lesson.title}`, `${course.title} lesson ${lesson.number}`, ...publicTopics(lesson).slice(0, 3)],
+    }),
+    // Kept out of search until each lesson has its teacher-approved content;
+    // its links are still followed. This replaces the site-wide robots
+    // setting for lesson pages only (course pages stay indexable), and the
+    // sitemap leaves lessons out to match.
+    robots: { index: false, follow: true },
+  }
 }
 
 /** What each part of the lesson says until the teacher publishes it. Nothing is filled in. */

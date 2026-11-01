@@ -68,7 +68,8 @@ only optional ones are for contact-form delivery (below).
 | `/` | Who, what, how the system works, why to trust it |
 | `/programs` | All six courses (SAT, EST, ACT × Basic, Advanced), compared side by side |
 | `/programs/[slug]` | One course: overview, 24-lesson curriculum, assessment plan, resources, progress, enrol |
-| `/programs/[slug]/lessons/[nn]` | One lesson (01–24): topics, draft objectives, planned teaching sections, previous/next, the course curriculum |
+| `/programs/[slug]/lessons/[nn]` | One lesson (01–24): topics, draft objectives, planned teaching sections, previous/next, the course curriculum. `noindex, follow` and not in the sitemap until lessons have their content |
+| `/programs/[slug]/lessons` | Redirects to the course page's curriculum (`/programs/[slug]/#curriculum`): HTTP 308 on the server build, an immediate meta refresh on the static export |
 | `/method` | The Desouky Method — READ · ANALYZE · PLAN · SOLVE · CHECK |
 | `/journey` | The seven-stage student journey |
 | `/how-it-works` | The educational system, stage by stage |

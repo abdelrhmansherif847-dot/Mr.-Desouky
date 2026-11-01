@@ -174,6 +174,15 @@ export function lessonPath(course: { slug: string }, lesson: { number: number })
   return `/programs/${course.slug}/lessons/${lessonParam(lesson.number)}`
 }
 
+/**
+ * Where /programs/<course>/lessons/ sends visitors: the curriculum section of
+ * the course page, which is the list of the course's lessons. The trailing
+ * slash matches the site's canonical form, so there is no second redirect.
+ */
+export function curriculumPath(course: { slug: string }): string {
+  return `/programs/${course.slug}/#curriculum`
+}
+
 /** The lessons before and after, within the same course only. */
 export function lessonNeighbours(course: Course, lesson: Lesson): { prev?: Lesson; next?: Lesson } {
   const i = course.lessons.findIndex((l) => l.id === lesson.id)
